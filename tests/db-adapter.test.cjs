@@ -7,7 +7,7 @@ const js={start:70,positioning:80,pace:82,judgment:81,urging:78,control:77,aggre
 const rows=()=>{
  const race={id:"4b5f766e-16fb-45c4-a088-b86e0525b859",track:"서울",distance_m:1200,status:"CLOSED"};
  const entries=["f1","f2"].map((id,i)=>({id,horse_id:"h"+i,owner_user_id:"user",jockey_id:"j"+i,gate_no:i+1,weight_kg:54,status:"CONFIRMED",snapshot:{}}));
- const horses=entries.map((e,i)=>({id:e.horse_id,name:"TEST "+i,condition_score:85,fatigue:10}));
+ const horses=entries.map((e,i)=>({id:e.horse_id,name:"TEST "+i,condition_score:85,fatigue:10,life_stage:"RACING",racing_retired_permanently:false}));
  const abilities=entries.map(e=>({horse_id:e.horse_id,current_stats:hs,distance_affinity:{"1200":88}}));
  const jockeys=entries.map(e=>({id:e.jockey_id,skill_stats:js}));
  const strategies=entries.map(e=>({race_entry_id:e.id,plan_no:1,strategy_code:"LEAD"}));
@@ -28,4 +28,11 @@ test("strategy mappings preserve 1,2,3 order and reject unknown",()=>{
  assert.deepEqual(readStrategies([{plan_no:2,strategy_code:"MID_MOVE"},{plan_no:1,strategy_code:"LEAD"}]),["FRONT","MOVE"]);
  assert.deepEqual(readStrategies([]),["FREE"]);
  assert.throws(()=>readStrategies([{plan_no:1,strategy_code:"INVALID"}]),/Unsupported/);
+});
+
+test("permanently retired breeding horse cannot enter race simulation",()=>{
+ const x=rows();x.horses[0].life_stage="BROODMARE";x.horses[0].racing_retired_permanently=true;
+ assert.throws(()=>makeRaceInputFromDatabase(x),/RACE_ENTRY_NOT_ELIGIBLE/);
+ const y=rows();y.horses[0].racing_retired_permanently=true;
+ assert.throws(()=>makeRaceInputFromDatabase(y),/RACE_ENTRY_NOT_ELIGIBLE/);
 });

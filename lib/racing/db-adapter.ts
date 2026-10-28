@@ -34,7 +34,7 @@ export interface DbEntryRow {
  id:string;horse_id:string;owner_user_id:string|null;jockey_id:string|null;
  gate_no:number|null;weight_kg:number|null;status:string;snapshot:unknown;
 }
-export interface DbHorseRow {id:string;name:string;condition_score:number;fatigue:number;}
+export interface DbHorseRow {id:string;name:string;condition_score:number;fatigue:number;life_stage:string;racing_retired_permanently:boolean;}
 export interface DbAbilityRow {horse_id:string;current_stats:unknown;distance_affinity?:unknown;}
 export interface DbJockeyRow {id:string;skill_stats:unknown;}
 export interface DbStrategyRow {race_entry_id:string;plan_no:number;strategy_code:string;}
@@ -51,6 +51,7 @@ export function makeRaceInputFromDatabase(params:{
    const a=abilities.find(a=>a.horse_id===entry.horse_id);
    const j=jockeys.find(j=>j.id===entry.jockey_id);
    if(!h||!a||!j||!entry.jockey_id)throw new Error("Missing horse, abilities or jockey for entry "+entry.id);
+   if(h.life_stage!=="RACING"||h.racing_retired_permanently)throw new Error("RACE_ENTRY_NOT_ELIGIBLE: retired breeding horses cannot race ("+h.name+")");
    if(entry.gate_no===null||entry.weight_kg===null)throw new Error("Missing confirmed gate or weight for "+h.name);
    const snap=isObject(entry.snapshot)?entry.snapshot:{};
    const distanceFitRaw=isObject(a.distance_affinity)?a.distance_affinity[String(race.distance_m)]:undefined;
