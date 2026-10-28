@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "strict": true,
+    "skipLibCheck": true,
+    "rootDir": "lib/racing",
+    "outDir": ".race-build",
+    "declaration": false,
+    "esModuleInterop": true
+  },
+  "include": [
+    "lib/racing/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
