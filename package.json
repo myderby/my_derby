@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "npm run test:race && next build",
     "start": "next start",
-    "test:race": "tsc -p tsconfig.race.json && node --test tests/race-engine.test.cjs"
+    "test:race": "tsc -p tsconfig.race.json && node --test tests/*.test.cjs"
   },
   "dependencies": {
     "next": "15.5.28",
