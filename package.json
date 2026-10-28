@@ -4,13 +4,20 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "start": "next start"
+    "build": "npm run test:race && next build",
+    "start": "next start",
+    "test:race": "tsc -p tsconfig.race.json && node --test tests/race-engine.test.cjs"
   },
   "dependencies": {
     "next": "15.5.28",
     "react": "19.1.2",
     "react-dom": "19.1.2",
     "@supabase/supabase-js": "2.76.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "@types/node": "^24.8.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0"
   }
 }
