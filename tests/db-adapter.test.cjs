@@ -36,3 +36,13 @@ test("permanently retired breeding horse cannot enter race simulation",()=>{
  const y=rows();y.horses[0].racing_retired_permanently=true;
  assert.throws(()=>makeRaceInputFromDatabase(y),/RACE_ENTRY_NOT_ELIGIBLE/);
 });
+
+test("permanently retired breeding horse cannot be simulated as race runner",()=>{
+ const args=rows();
+ args.horses[0].life_stage="BROODMARE";
+ args.horses[0].racing_retired_permanently=true;
+ args.horses[0].breeding_retired_at="2026-10-28T00:00:00Z";
+ assert.throws(()=>makeRaceInputFromDatabase(args),/BREEDING_RETIREMENT_PERMANENT/);
+ const stallion=rows();stallion.horses[0].life_stage="STALLION";
+ assert.throws(()=>makeRaceInputFromDatabase(stallion),/BREEDING_RETIREMENT_PERMANENT/);
+});
