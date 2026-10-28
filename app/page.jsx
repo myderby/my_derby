@@ -11,7 +11,7 @@ const testRaceSlots=[
   {time:"20:00",track:"부경",distance:1400,grade:"5등급"},
   {time:"21:00",track:"영천",distance:1600,grade:"4등급"}
 ];
-export default function Home(){const [screen,S]=useState("home"),[selected,H]=useState(horses[0]),[filter,F]=useState("전체"),[race,R]=useState(2),[trainer,T]=useState(0),[jockey,J]=useState(0),[plans,P]=useState(["선입 대기","외곽 선입","후방 추입"]),[pos,E]=useState(0),[playing,Play]=useState(false),[testRuns,SetTestRuns]=useState([]),[testResults,SetTestResults]=useState({}),[activeTestIndex,SetActiveTestIndex]=useState(-1),[testBusy,SetTestBusy]=useState(false),[toast,Q]=useState(""),[email,Mail]=useState(""),[password,Pass]=useState("");
+export default function Home(){const [screen,S]=useState("home"),[selected,H]=useState(horses[0]),[filter,F]=useState("전체"),[race,R]=useState(2),[trainer,T]=useState(0),[jockey,J]=useState(0),[plans,P]=useState(["선입 대기","외곽 선입","후방 추입"]),[pos,E]=useState(0),[playing,Play]=useState(false),[testRuns,SetTestRuns]=useState([]),[testResults,SetTestResults]=useState({}),[activeTestIndex,SetActiveTestIndex]=useState(-1),[testBusy,SetTestBusy]=useState(false),[dbStatus,SetDbStatus]=useState(null),[dbBusy,SetDbBusy]=useState(false),[dbRaceId,SetDbRaceId]=useState(""),[dbHistory,SetDbHistory]=useState([]),[dbPreview,SetDbPreview]=useState(null),[toast,Q]=useState(""),[email,Mail]=useState(""),[password,Pass]=useState("");
 useEffect(()=>{if(!playing||pos>=events.length)return;const id=setTimeout(()=>E(x=>x+1),1200);return()=>clearTimeout(id)},[playing,pos]);
 const go=x=>{S(x);if(typeof window!=="undefined")window.scrollTo(0,0)},msg=x=>{Q(x);setTimeout(()=>Q(""),3500)};
 const title=(x,sub)=><div className="pageTitle"><button className="back" onClick={()=>go("home")}>‹</button><div><h1>{x}</h1><div className="sub">{sub}</div></div></div>;
@@ -32,7 +32,7 @@ const runNextTestRace=async()=>{
     SetTestResults(previous=>({...previous,[index]:payload.result}));
     SetTestRuns(previous=>[...previous,index]);
     SetActiveTestIndex(index);
-    msg(testRaceSlots[index].time+" 경주 계산 완료 · 12두 실전 계산 및 로그 생성");
+    msg(testRaceSlots[index].time+" 경주 계산 완료 · Supabase DB 12두 출전 데이터");
   }catch(error){msg("경주 계산 실패: "+(error instanceof Error?error.message:"알 수 없는 오류"))}
   finally{SetTestBusy(false)}
 };
@@ -42,11 +42,46 @@ const resetTestRaces=()=>{
   SetActiveTestIndex(-1);
   msg("테스트 결과를 초기화했습니다.");
 };
+
+const getDbToken=async()=>{
+ const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+ if(!url||!key)throw new Error("Supabase 설정이 없습니다.");
+ const {data,error}=await createClient(url,key).auth.getSession();
+ if(error||!data.session?.access_token)throw new Error("먼저 계정 메뉴에서 로그인해야 합니다.");
+ return data.session.access_token;
+};
+const fetchDbStatus=async()=>{
+ go("database");SetDbBusy(true);
+ try{
+  const res=await fetch("/api/race/db-status",{cache:"no-store"});const data=await res.json();
+  if(!res.ok||!data.connected)throw new Error(data.error||"연결 실패");
+  SetDbStatus(data);
+ }catch(e){msg("DB 오류: "+e.message)}finally{SetDbBusy(false)}
+};
+const loadDbHistory=async()=>{
+ SetDbBusy(true);
+ try{
+  const token=await getDbToken();
+  const res=await fetch("/api/race/preview",{headers:{Authorization:"Bearer "+token},cache:"no-store"});
+  const data=await res.json();if(!res.ok)throw new Error(data.error||"조회 실패");
+  SetDbHistory(data.previews||[]);msg("내 비공식 경주 기록 "+(data.previews||[]).length+"건");
+ }catch(e){msg("기록 조회: "+e.message)}finally{SetDbBusy(false)}
+};
+const runDbPreview=async()=>{
+ SetDbBusy(true);
+ try{
+  const token=await getDbToken();
+  const res=await fetch("/api/race/preview",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+token},
+    body:JSON.stringify({raceId:dbRaceId.trim()}),cache:"no-store"});
+  const data=await res.json();if(!res.ok)throw new Error(data.error||"계산 실패");
+  SetDbPreview(data.result);msg("DB 출전마로 계산하고 비공식 기록을 저장했습니다.");
+ }catch(e){msg("DB 경주: "+e.message)}finally{SetDbBusy(false)}
+};
 const auth=async signup=>{const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;if(!url||!key)return msg("Supabase 환경 설정이 필요합니다.");const c=createClient(url,key);try{const {error}=signup?await c.auth.signUp({email,password}):await c.auth.signInWithPassword({email,password});msg(error?error.message:signup?"이메일 가입 요청 완료":"로그인 완료 (게임 데이터 저장 미연동)")}catch(e){msg(e.message)}};
 return <main className="shell"><header className="header"><div onClick={()=>go("home")}><div className="brand">MY DERBY</div><div className="sub">52주 시즌 · 일정 연동 준비 중</div></div><span className="coin">◉ 3,675 G</span><button className="hamburger" onClick={()=>go("menu")}>☰</button></header><div className="disclaimer">모바일 UI 체험판 · 가상 데이터 · 실제 경주 결과 아님</div>
 {screen==="home"&&<><div className="hero"><div className="overline">🍂 오늘도 우리 말들과 함께 성장해요</div><h1>가을 목장</h1><div className="caption">마주의 새로운 하루</div><button className="primary" onClick={()=>go("ranch")}>목장 둘러보기 ›</button></div><div className="area">{section("오늘의 관리","horses")}<div className="card row"><div><div className="large">5두</div><div className="muted">훈련 중 2두</div></div><div><div className="sub">평균 컨디션</div><div className="large green">80%</div></div><button className="outline" onClick={()=>go("testRaces")}>경주 테스트 ›</button></div>{section("정시 경주 테스트","testRaces")}{box("19:00 → 20:00 → 21:00","한국시간 · 12두 실제 엔진 계산",()=>go("testRaces"),testRuns.length+"/3 완료")}{section("게임 메뉴")}<div className="grid">{[["⌂","목장","휴양 · 재활 · 어린말 육성","ranch"],["♞","마방","조교사 · 훈련 리포트","horses"],["♜","경주","출전 · 전략 · 로그 결과","races"],["✧","교배","씨수말 · 교배 · 자마","breeding"]].map(([i,n,d,p])=><button className="card action" onClick={()=>go(p)} key={n}><div className="icon">{i}</div><b>{n}</b><div className="muted">{d}</div></button>)}</div></div></>}
 {screen==="testRaces"&&<>{title("정시 경주 엔진 테스트","19:00 → 20:00 → 21:00 · 서버 계산")}<div className="area">
-<div className="notice"><b>TypeScript 경주 엔진 · 테스트 전용</b><br/>12두 출전마의 스피드·체력·위치·기수 1~3안 전략을 0.2초 단위로 계산합니다. 출력되는 결과·로그는 엔진이 계산한 값이며, 출전 데이터 자체는 시연용입니다. 시즌 일정, Supabase, 상금·계약·실제 전적은 변경하지 않습니다.</div>
+<div className="notice"><b>TypeScript 경주 엔진 · 테스트 전용</b><br/>12두 출전마의 스피드·체력·위치·기수 1~3안 전략을 0.2초 단위로 계산합니다. 출력되는 결과·로그는 엔진이 계산한 값이며, 출전 데이터는 Supabase my_derby 테스트 테이블에서 읽습니다. 공식 시즌·경주 결과·상금·전적에는 기록하지 않습니다.</div>
 {testRaceSlots.map((slot,i)=><div className="card row" key={slot.time}>
   <div><b className="gold">{slot.time} · {slot.track} 경주</b><div className="muted">{slot.distance}m · {slot.grade} · 12두</div></div>
   <span className="tag">{testRuns.includes(i)?"✓ 계산 완료":i===testRuns.length?"다음 실행":"대기"}</span>
@@ -71,6 +106,20 @@ return <main className="shell"><header className="header"><div onClick={()=>go("
  </>;
 })()}
 </div></>}
+
+{screen==="database"&&<>{title("Supabase 경주 DB 연동","my_derby · 비공식 시뮬레이션")}<div className="area">
+<div className="notice">19·20·21시 테스트 경주는 DB에 저장한 시연용 12두를 사용합니다. 정규 경주 데이터가 등록되면 본인 소유 출전마에 한해 미리보기를 실행할 수 있습니다. 공식 순위·상금·시즌 데이터는 변경하지 않습니다.</div>
+<button className="outline wide" disabled={dbBusy} onClick={fetchDbStatus}>DB 연결 상태 확인</button>
+{dbStatus&&<div className="card"><b className="green">● {dbStatus.schema} 연결 성공</b><div className="line row"><span>정규 등록 경주</span><b>{dbStatus.registeredRaces}건</b></div>
+<div className="line row"><span>DB 테스트 경주</span><b>{dbStatus.storedTestFixtures}건</b></div><div className="muted">공식 결과 저장·상금 정산: 미연결</div></div>}
+<h2>내 출전 경주 계산</h2>
+<div className="muted">로그인이 필요합니다. 출전이 마감된 경주의 UUID를 입력하세요. 다른 마주의 비공개 능력치가 필요한 경주는 계산을 중단합니다.</div>
+<input className="field" placeholder="경주 ID (UUID)" value={dbRaceId} onChange={e=>SetDbRaceId(e.target.value)}/>
+<button className="primary wide" disabled={dbBusy||dbRaceId.trim().length<30} onClick={runDbPreview}>DB 출전마로 계산 · 비공식 기록 저장</button>
+<div style={{height:10}}/><button className="outline wide" disabled={dbBusy} onClick={loadDbHistory}>내 미리보기 기록 조회</button>
+{dbHistory.length>0&&<div className="card">{dbHistory.map(x=><div className="line" key={x.id}><b>{x.result_snapshot?.results?.[0]?.name||"출전 경주"}</b><div className="muted">{x.created_at} · {x.race_id}</div></div>)}</div>}
+{dbPreview&&<div className="card"><b>최근 비공식 경주 순위</b>{dbPreview.results.map(x=><div className="line row small" key={x.horseId}><b>{x.rank}위</b><span>{x.number}번 {x.name}</span><span>{x.timeSec}초</span></div>)}</div>}
+</div></>}
 {screen==="horses"&&<>{title("보유마","생애 단계와 상태를 한눈에")}<div className="area"><div className="card"><b>전체 5두</b><div className="muted">현역 2 · 목장 1 · 교배 1 · 재활 1</div></div><div className="tabs">{["전체","현역","목장","교배","재활"].map(x=><button className={filter===x?"active":""} onClick={()=>F(x)} key={x}>{x}</button>)}</div>{horses.filter(x=>filter==="전체"||x.stage===filter).map(x=><div key={x.id}>{box("♞ "+x.name,x.age+"세 · "+x.sex+"말 · 컨디션 "+x.condition,()=>{H(x);go("horse")},x.stage)}</div>)}</div></>}
 {screen==="horse"&&<>{title(selected.name,selected.age+"세 · "+selected.sex+"말 · "+selected.stage)}<div className="area"><div className="card"><div className="large gold">♞ {selected.name}</div><div className="muted">컨디션 {selected.condition} · 피로 {selected.fatigue}</div><div className="bar"><div className="fill" style={{width:selected.condition+"%"}}/></div></div>{section("능력치 · 추정")}<div className="grid">{["스피드","가속력","지구력","막판탄력","파워","근성"].map((x,i)=><div className="card" key={x}><div className="row small"><span>{x}</span><b>{selected.stats[i]}</b></div><div className="bar"><div className="fill" style={{width:selected.stats[i]+"%"}}/></div></div>)}</div><div className="notice">현재 능력치 수치는 샘플입니다. 잠재력·유전값·훈련의 실제 결과는 서버 엔진 미연결 상태입니다.</div><div className="twoCol">{[["조교사 찾기","trainers"],["훈련 리포트","training"],["경주 일정","races"],["개인목장","ranch"]].map(([t,p])=><button key={p} className="outline" onClick={()=>go(p)}>{t}</button>)}</div></div></>}
 {screen==="trainers"&&<>{title("조교사 찾기","등급 대신 전문성·수용량 비교")}<div className="area"><div className="notice">NPC 조교사는 최대 20두 담당합니다. 실제 신청·수락 판정은 서버 자동 판단 모듈 구현 후 연결됩니다.</div>{trainers.map(([n,s,count],i)=><div key={n}>{box(n,s+" · "+count+"/20두",()=>T(i),trainer===i?"선택":"비교")}</div>)}<button className="primary wide" onClick={()=>notReady(trainers[trainer][0]+" 위탁 신청")}>위탁 신청 (체험)</button></div></>}
@@ -84,6 +133,6 @@ return <main className="shell"><header className="header"><div onClick={()=>go("
 {screen==="spectate"&&<>{title("경주 로그 관전","샘플 이벤트 · 실제 엔진 산출 아님")}<div className="area"><div className="card"><b>서울 3경주 · 1,200m</b><div className="large gold">{pos?events[pos-1][1]:0}m / 1200m</div><div className="bar"><div className="fill" style={{width:(pos?events[pos-1][1]/12:0)+"%"}}/></div><div className="raceTrack">{["출발","초반","중반","승부처","종반"].map(x=><span key={x}>{x}</span>)}</div></div>{section("구간별 순위 · 시연")}<div className="card">{["7 블루라이트","3 실버윈드","5 레드스타","2 가을바람","1 골든스텝"].map((h,i)=><div className="line row" key={h}><b className="gold">{i+1}위</b><span>{h}</span><span className="muted">{i===0?"선두":"+"+(i*.8).toFixed(1)+"m"}</span></div>)}</div>{section("경주 사건 로그")}{events.slice(0,pos).map(([type,m,txt])=><div className="card" key={type}><div className="muted">{m}m · {type}</div><div className="small">{txt}</div></div>)}<div className="controls"><button className="outline" onClick={()=>Play(!playing)}>{playing?"⏸ 정지":"▶ 재생"}</button><button className="outline" onClick={()=>{E(events.length);Play(false)}}>끝으로</button><button className="primary" onClick={()=>{Play(false);go("results")}}>결과</button></div></div></>}
 {screen==="results"&&<>{title("경주 결과","가상 시연 자료")}<div className="area"><div className="notice">이 결과는 실제 경주 엔진 산출물이 아닙니다. 공식 기록·보상·피로도는 변경되지 않습니다.</div><div className="card">{["7 블루라이트","3 실버윈드","5 레드스타"].map((x,i)=><div className="line row" key={x}><b className="gold">{i+1}위</b><span>{x}</span><span className="muted">1:1{5+i}.8</span></div>)}</div><button className="outline wide" onClick={()=>go("spectate")}>로그 다시 보기</button></div></>}
 {screen==="breeding"&&<>{title("교배","번식암말 · 씨수말 · 자마 관리")}<div className="area"><div className="card"><b>여왕의꿈 · 6세</b><div className="muted">시즌당 1회 · 4~18세 교배 가능</div></div>{box("씨수말 후보","시스템 씨수말 · 혈통 궁합",()=>notReady("씨수말 선택"),"보기") }<div className="notice">교배 승인 · 임신 · 출산 · 유전 계산은 아직 서버 기능 미구현 상태입니다.</div><button className="primary wide" onClick={()=>notReady("교배 신청")}>교배 신청</button></div></>}
-{screen==="menu"&&<>{title("전체 메뉴","MY DERBY")}<div className="area">{[["경주 관리","출전 일정 · 전략 · 결과","races"],["정시 경주 테스트","19시 → 20시 → 21시 (임시)","testRaces"],["말 관리","보유마 · 조교사 · 훈련","horses"],["개인목장","회복 · 재활 · 어린말","ranch"],["교배","씨수말 · 혈통 · 자마","breeding"],["기록","샘플 경주 결과","results"],["계정","Supabase 이메일 인증","account"]].map(([a,b,c])=><div key={a}>{box(a,b,()=>go(c))}</div>)}<div className="footer">MY DERBY · WEB MVP</div></div></>}
+{screen==="menu"&&<>{title("전체 메뉴","MY DERBY")}<div className="area">{[["경주 관리","출전 일정 · 전략 · 결과","races"],["정시 경주 테스트","19시 → 20시 → 21시 (임시)","testRaces"],["Supabase 연동","경주 DB 연결 및 개인 미리보기","database"],["말 관리","보유마 · 조교사 · 훈련","horses"],["개인목장","회복 · 재활 · 어린말","ranch"],["교배","씨수말 · 혈통 · 자마","breeding"],["기록","샘플 경주 결과","results"],["계정","Supabase 이메일 인증","account"]].map(([a,b,c])=><div key={a}>{box(a,b,()=>go(c))}</div>)}<div className="footer">MY DERBY · WEB MVP</div></div></>}
 {screen==="account"&&<>{title("계정 및 연결","Supabase 이메일 로그인")}<div className="area"><div className="notice">Supabase 로그인·회원가입만 연결합니다. 플레이어 월드 생성과 데이터 저장, NPC 엔진은 아직 연결되지 않았습니다.</div><input className="field" placeholder="이메일" value={email} onChange={e=>Mail(e.target.value)}/><input className="field" placeholder="비밀번호" type="password" value={password} onChange={e=>Pass(e.target.value)}/><div className="stack"><button className="primary wide" onClick={()=>auth(false)}>로그인</button><button className="outline wide" onClick={()=>auth(true)}>회원가입</button></div></div></>}
 <nav className="bottom">{[["home","⌂","홈"],["horses","♞","말 관리"],["races","♜","경주"],["menu","☰","메뉴"]].map(([x,icon,label])=><button className={screen===x?"active":""} onClick={()=>go(x)} key={x}><span>{icon}</span>{label}</button>)}</nav>{toast&&<div className="toast">{toast}</div>}</main>}
