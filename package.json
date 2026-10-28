@@ -1,0 +1,16 @@
+{
+  "name": "my-derby",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "next": "15.5.28",
+    "react": "19.1.2",
+    "react-dom": "19.1.2",
+    "@supabase/supabase-js": "2.76.1"
+  }
+}
