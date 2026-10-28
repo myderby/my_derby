@@ -46,3 +46,13 @@ test("permanently retired breeding horse cannot be simulated as race runner",()=
  const stallion=rows();stallion.horses[0].life_stage="STALLION";
  assert.throws(()=>makeRaceInputFromDatabase(stallion),/BREEDING_RETIREMENT_PERMANENT/);
 });
+
+test("breeding-retired horses rejected even if a historical entry exists",()=>{
+ const d=rows();
+ d.horses[0].life_stage="BROODMARE";
+ d.horses[0].breeding_retired_at="2026-10-28T00:00:00Z";
+ assert.throws(()=>makeRaceInputFromDatabase(d),/BREEDING_RETIREMENT_PERMANENT/);
+ const d2=rows();
+ d2.horses[0].racing_retired_permanently=true;
+ assert.throws(()=>makeRaceInputFromDatabase(d2),/BREEDING_RETIREMENT_PERMANENT/);
+});

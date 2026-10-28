@@ -23,3 +23,7 @@
 `race_strategies.strategy_code`는 DB 어댑터에 정의된 전략 코드 중 하나여야 함.
 
 본격적인 운영 월드를 생성하기 전까지는 실제 경주 엔트리 데이터가 없으므로 DB 미리보기에는 결과가 없음.
+
+## 번식마 은퇴 (2026-10-28)
+
+`breeding_retired_at`과 `racing_retired_permanently`가 설정된 말, 또는 `life_stage != RACING`인 말은 공식 경주 입력 변환 시 거부합니다. 출전 신청은 DB 트리거가 검사합니다. 은퇴 요청은 인증된 마주 전용 `my_derby.retire_horse_for_breeding(p_horse_id)` RPC로만 처리합니다. 영구 은퇴 상태는 시즌 변경이나 교배 취소 시 초기화하지 않습니다.

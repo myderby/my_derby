@@ -51,6 +51,7 @@ export function makeRaceInputFromDatabase(params:{
    const a=abilities.find(a=>a.horse_id===entry.horse_id);
    const j=jockeys.find(j=>j.id===entry.jockey_id);
    if(!h||!a||!j||!entry.jockey_id)throw new Error("Missing horse, abilities or jockey for entry "+entry.id);
+   if(h.breeding_retired_at||h.racing_retired_permanently||h.life_stage&&h.life_stage!=="RACING")throw new Error("BREEDING_RETIREMENT_PERMANENT: breeding/retired horses cannot compete");
    if(h.life_stage!==undefined&&h.life_stage!=="RACING"||h.racing_retired_permanently===true||h.breeding_retired_at!=null)throw new Error("RACE_ENTRY_NOT_ELIGIBLE BREEDING_RETIREMENT_PERMANENT: 은퇴·번식마는 경주에 출전할 수 없습니다: "+h.name);
    if(h.life_stage!=="RACING"||h.racing_retired_permanently)throw new Error("RACE_ENTRY_NOT_ELIGIBLE: retired breeding horses cannot race ("+h.name+")");
    if(entry.gate_no===null||entry.weight_kg===null)throw new Error("Missing confirmed gate or weight for "+h.name);
