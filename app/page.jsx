@@ -11,7 +11,7 @@ const testRaceSlots=[
   {time:"20:00",track:"부경",distance:1400,grade:"5등급"},
   {time:"21:00",track:"영천",distance:1600,grade:"4등급"}
 ];
-export default function Home(){const [screen,S]=useState("home"),[selected,H]=useState(horses[0]),[filter,F]=useState("전체"),[race,R]=useState(2),[trainer,T]=useState(0),[jockey,J]=useState(0),[plans,P]=useState(["선입 대기","외곽 선입","후방 추입"]),[pos,E]=useState(0),[playing,Play]=useState(false),[testRuns,SetTestRuns]=useState([]),[testResults,SetTestResults]=useState({}),[activeTestIndex,SetActiveTestIndex]=useState(-1),[testBusy,SetTestBusy]=useState(false),[dbStatus,SetDbStatus]=useState(null),[dbBusy,SetDbBusy]=useState(false),[dbRaceId,SetDbRaceId]=useState(""),[dbHistory,SetDbHistory]=useState([]),[dbPreview,SetDbPreview]=useState(null),[toast,Q]=useState(""),[email,Mail]=useState(""),[password,Pass]=useState("");
+export default function Home(){const [screen,S]=useState("home"),[selected,H]=useState(horses[0]),[filter,F]=useState("전체"),[race,R]=useState(2),[trainer,T]=useState(0),[jockey,J]=useState(0),[plans,P]=useState(["선입 대기","외곽 선입","후방 추입"]),[pos,E]=useState(0),[playing,Play]=useState(false),[testRuns,SetTestRuns]=useState([]),[testResults,SetTestResults]=useState({}),[activeTestIndex,SetActiveTestIndex]=useState(-1),[testBusy,SetTestBusy]=useState(false),[dbStatus,SetDbStatus]=useState(null),[dbBusy,SetDbBusy]=useState(false),[dbRaceId,SetDbRaceId]=useState(""),[dbHistory,SetDbHistory]=useState([]),[dbPreview,SetDbPreview]=useState(null),[breedingHorses,SetBreedingHorses]=useState([]),[breedingLoading,SetBreedingLoading]=useState(false),[breedingMessage,SetBreedingMessage]=useState(""),[toast,Q]=useState(""),[email,Mail]=useState(""),[password,Pass]=useState("");
 useEffect(()=>{if(!playing||pos>=events.length)return;const id=setTimeout(()=>E(x=>x+1),1200);return()=>clearTimeout(id)},[playing,pos]);
 const go=x=>{S(x);if(typeof window!=="undefined")window.scrollTo(0,0)},msg=x=>{Q(x);setTimeout(()=>Q(""),3500)};
 const title=(x,sub)=><div className="pageTitle"><button className="back" onClick={()=>go("home")}>‹</button><div><h1>{x}</h1><div className="sub">{sub}</div></div></div>;
@@ -77,7 +77,37 @@ const runDbPreview=async()=>{
   SetDbPreview(data.result);msg("DB 출전마로 계산하고 비공식 기록을 저장했습니다.");
  }catch(e){msg("DB 경주: "+e.message)}finally{SetDbBusy(false)}
 };
+
+const loadBreedingHorses=async()=>{
+ SetBreedingLoading(true);
+ try{
+  const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  if(!url||!key)throw new Error("Supabase 설정이 없습니다.");
+  const client=createClient(url,key);
+  const {data:{session}}=await client.auth.getSession();
+  if(!session){SetBreedingHorses([]);SetBreedingMessage("로그인 후 본인 소유마를 확인할 수 있습니다.");return;}
+  const {data,error}=await client.schema("my_derby").from("horses").select("id,name,sex,age_years,life_stage,breeding_retired_at,racing_retired_permanently,race_entry_state").order("created_at",{ascending:true});
+  if(error)throw error;
+  SetBreedingHorses(data||[]);SetBreedingMessage(data?.length?"":"아직 등록된 본인 소유마가 없습니다.");
+ }catch(e){SetBreedingHorses([]);SetBreedingMessage("조회 실패: "+e.message)}finally{SetBreedingLoading(false)}
+};
+const canBreedRetire=h=>!h.breeding_retired_at&&!h.racing_retired_permanently&&["RACING","RETIRED"].includes(h.life_stage)&&
+  (h.sex==="MALE"&&h.age_years>=2||h.sex==="FEMALE"&&h.age_years>=4&&h.age_years<=18);
+const retireBreeder=async(h)=>{
+ if(!window.confirm(h.name+"을(를) 교배용으로 영구 은퇴시키겠습니까?\n다시는 경주마로 복귀할 수 없습니다."))return;
+ SetBreedingLoading(true);
+ try{
+  const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  const client=createClient(url,key);
+  const {data:{session}}=await client.auth.getSession();if(!session)throw new Error("로그인해야 합니다.");
+  const {error}=await client.schema("my_derby").rpc("retire_horse_for_breeding",{p_horse_id:h.id});
+  if(error)throw error;
+  msg(h.name+" 번식마 영구 은퇴 완료 · 경주 복귀 불가");
+  await loadBreedingHorses();
+ }catch(e){SetBreedingMessage("은퇴 처리 오류: "+e.message);msg("은퇴 처리 오류: "+e.message)}finally{SetBreedingLoading(false)}
+};
 const auth=async signup=>{const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;if(!url||!key)return msg("Supabase 환경 설정이 필요합니다.");const c=createClient(url,key);try{const {error}=signup?await c.auth.signUp({email,password}):await c.auth.signInWithPassword({email,password});msg(error?error.message:signup?"이메일 가입 요청 완료":"로그인 완료 (게임 데이터 저장 미연동)")}catch(e){msg(e.message)}};
+useEffect(()=>{if(screen==="breeding"){void loadBreedingHorses()}},[screen]);
 return <main className="shell"><header className="header"><div onClick={()=>go("home")}><div className="brand">MY DERBY</div><div className="sub">52주 시즌 · 일정 연동 준비 중</div></div><span className="coin">◉ 3,675 G</span><button className="hamburger" onClick={()=>go("menu")}>☰</button></header><div className="disclaimer">모바일 UI 체험판 · 가상 데이터 · 실제 경주 결과 아님</div>
 {screen==="home"&&<><div className="hero"><div className="overline">🍂 오늘도 우리 말들과 함께 성장해요</div><h1>가을 목장</h1><div className="caption">마주의 새로운 하루</div><button className="primary" onClick={()=>go("ranch")}>목장 둘러보기 ›</button></div><div className="area">{section("오늘의 관리","horses")}<div className="card row"><div><div className="large">5두</div><div className="muted">훈련 중 2두</div></div><div><div className="sub">평균 컨디션</div><div className="large green">80%</div></div><button className="outline" onClick={()=>go("testRaces")}>경주 테스트 ›</button></div>{section("정시 경주 테스트","testRaces")}{box("19:00 → 20:00 → 21:00","한국시간 · 12두 실제 엔진 계산",()=>go("testRaces"),testRuns.length+"/3 완료")}{section("게임 메뉴")}<div className="grid">{[["⌂","목장","휴양 · 재활 · 어린말 육성","ranch"],["♞","마방","조교사 · 훈련 리포트","horses"],["♜","경주","출전 · 전략 · 로그 결과","races"],["✧","교배","씨수말 · 교배 · 자마","breeding"]].map(([i,n,d,p])=><button className="card action" onClick={()=>go(p)} key={n}><div className="icon">{i}</div><b>{n}</b><div className="muted">{d}</div></button>)}</div></div></>}
 {screen==="testRaces"&&<>{title("정시 경주 엔진 테스트","19:00 → 20:00 → 21:00 · 서버 계산")}<div className="area">
@@ -132,7 +162,23 @@ return <main className="shell"><header className="header"><div onClick={()=>go("
 {screen==="strategy"&&<>{title("경주 전략","1안·2안·3안 · 기수 자율 판단")}<div className="area"><div className="notice">기수가 경주 전개에 따라 2안이나 3안으로 전환합니다. 전환 결과는 이벤트 로그에 기록됩니다.</div>{plans.map((x,i)=><div className="card" key={i}><b className="gold">{i+1}안 {i===0?"· 기본":"· 대안"}</b><select className="field" value={x} onChange={e=>P(y=>y.map((v,j)=>j===i?e.target.value:v))}>{["선입 대기","외곽 선입","후방 추입","선행 압박","중반 무빙","자유 판단"].map(p=><option key={p}>{p}</option>)}</select></div>)}<button className="primary wide" onClick={()=>notReady("전략 저장")}>전략 저장</button></div></>}
 {screen==="spectate"&&<>{title("경주 로그 관전","샘플 이벤트 · 실제 엔진 산출 아님")}<div className="area"><div className="card"><b>서울 3경주 · 1,200m</b><div className="large gold">{pos?events[pos-1][1]:0}m / 1200m</div><div className="bar"><div className="fill" style={{width:(pos?events[pos-1][1]/12:0)+"%"}}/></div><div className="raceTrack">{["출발","초반","중반","승부처","종반"].map(x=><span key={x}>{x}</span>)}</div></div>{section("구간별 순위 · 시연")}<div className="card">{["7 블루라이트","3 실버윈드","5 레드스타","2 가을바람","1 골든스텝"].map((h,i)=><div className="line row" key={h}><b className="gold">{i+1}위</b><span>{h}</span><span className="muted">{i===0?"선두":"+"+(i*.8).toFixed(1)+"m"}</span></div>)}</div>{section("경주 사건 로그")}{events.slice(0,pos).map(([type,m,txt])=><div className="card" key={type}><div className="muted">{m}m · {type}</div><div className="small">{txt}</div></div>)}<div className="controls"><button className="outline" onClick={()=>Play(!playing)}>{playing?"⏸ 정지":"▶ 재생"}</button><button className="outline" onClick={()=>{E(events.length);Play(false)}}>끝으로</button><button className="primary" onClick={()=>{Play(false);go("results")}}>결과</button></div></div></>}
 {screen==="results"&&<>{title("경주 결과","가상 시연 자료")}<div className="area"><div className="notice">이 결과는 실제 경주 엔진 산출물이 아닙니다. 공식 기록·보상·피로도는 변경되지 않습니다.</div><div className="card">{["7 블루라이트","3 실버윈드","5 레드스타"].map((x,i)=><div className="line row" key={x}><b className="gold">{i+1}위</b><span>{x}</span><span className="muted">1:1{5+i}.8</span></div>)}</div><button className="outline wide" onClick={()=>go("spectate")}>로그 다시 보기</button></div></>}
-{screen==="breeding"&&<>{title("교배","번식암말 · 씨수말 · 자마 관리")}<div className="area"><div className="card"><b>여왕의꿈 · 6세</b><div className="muted">경주 은퇴 · 시즌당 1회 · 4~18세 교배 가능</div></div>{box("씨수말 후보","시스템 씨수말 · 혈통 궁합",()=>notReady("씨수말 선택"),"보기") }<div className="notice">번식마로 은퇴하면 현역 경주마로 다시 돌아갈 수 없습니다. 교배 승인 · 임신 · 출산 · 유전 계산은 아직 서버 기능 미구현 상태입니다.</div><button className="primary wide" onClick={()=>notReady("교배 신청")}>교배 신청</button></div></>}
+{screen==="breeding"&&<>{title("교배 · 영구 은퇴","번식마 전환은 되돌릴 수 없습니다")}<div className="area">
+<div className="notice"><b>⚠ 번식마로 은퇴하면 현역 경주마로 복귀할 수 없습니다.</b><br/>씨수말·번식암말 은퇴는 영구 처리됩니다. 시즌이 변경되어도 유지되며 기존 전적과 혈통은 남습니다. 출전 신청 중인 말은 은퇴 처리할 수 없습니다.</div>
+{section("내 경주마 · 번식마")}
+<button className="outline wide" onClick={loadBreedingHorses} disabled={breedingLoading}>{breedingLoading?"조회 중":"보유마 새로고침"}</button>
+{breedingMessage&&<div className="notice">{breedingMessage}</div>}
+{breedingHorses.map(h=><div className="card" key={h.id}>
+<div className="row"><b className="gold">♞ {h.name}</b><span className="tag">{h.breeding_retired_at||h.racing_retired_permanently?"은퇴 · 복귀 불가":h.life_stage==="RACING"?"현역":h.life_stage}</span></div>
+<div className="muted">{h.age_years}세 · {h.sex==="FEMALE"?"암말":h.sex==="MALE"?"수말":"거세마"} · {h.life_stage==="BROODMARE"?"번식암말":h.life_stage==="STALLION"?"씨수말":"상태: "+h.life_stage}</div>
+{canBreedRetire(h)?<button style={{marginTop:10}} className="outline wide" disabled={breedingLoading} onClick={()=>retireBreeder(h)}>교배용 영구 은퇴</button>:
+<div className="muted">{h.breeding_retired_at||h.racing_retired_permanently?"영구 은퇴 상태: 경주 출전 불가":"현재 교배용 은퇴 조건 미충족"}</div>}
+</div>)}
+{section("교배 신청")}
+<div className="card"><b>번식 자격</b><div className="muted">번식암말은 4~18세이며, 씨수말과 번식암말 모두 은퇴 상태여야 합니다. 교배 후 현역 복귀는 불가능합니다.</div></div>
+{box("씨수말 후보","시스템 씨수말 선택 및 궁합 계산 준비 중",()=>notReady("씨수말 선택"),"개발 예정")}
+<div className="notice">교배 승인·임신·출산·유전 계산은 아직 구현되지 않았습니다. 위 ‘교배용 영구 은퇴’ 버튼은 로그인한 본인 소유마의 실제 DB 상태를 변경합니다.</div>
+<button className="outline wide" onClick={()=>notReady("교배 신청")}>교배 신청 (개발 예정)</button>
+</div></>}
 {screen==="menu"&&<>{title("전체 메뉴","MY DERBY")}<div className="area">{[["경주 관리","출전 일정 · 전략 · 결과","races"],["정시 경주 테스트","19시 → 20시 → 21시 (임시)","testRaces"],["Supabase 연동","경주 DB 연결 및 개인 미리보기","database"],["말 관리","보유마 · 조교사 · 훈련","horses"],["개인목장","회복 · 재활 · 어린말","ranch"],["교배","씨수말 · 혈통 · 자마","breeding"],["기록","샘플 경주 결과","results"],["계정","Supabase 이메일 인증","account"]].map(([a,b,c])=><div key={a}>{box(a,b,()=>go(c))}</div>)}<div className="footer">MY DERBY · WEB MVP</div></div></>}
 {screen==="account"&&<>{title("계정 및 연결","Supabase 이메일 로그인")}<div className="area"><div className="notice">Supabase 로그인·회원가입만 연결합니다. 플레이어 월드 생성과 데이터 저장, NPC 엔진은 아직 연결되지 않았습니다.</div><input className="field" placeholder="이메일" value={email} onChange={e=>Mail(e.target.value)}/><input className="field" placeholder="비밀번호" type="password" value={password} onChange={e=>Pass(e.target.value)}/><div className="stack"><button className="primary wide" onClick={()=>auth(false)}>로그인</button><button className="outline wide" onClick={()=>auth(true)}>회원가입</button></div></div></>}
 <nav className="bottom">{[["home","⌂","홈"],["horses","♞","말 관리"],["races","♜","경주"],["menu","☰","메뉴"]].map(([x,icon,label])=><button className={screen===x?"active":""} onClick={()=>go(x)} key={x}><span>{icon}</span>{label}</button>)}</nav>{toast&&<div className="toast">{toast}</div>}</main>}
