@@ -34,7 +34,7 @@ export interface DbEntryRow {
  id:string;horse_id:string;owner_user_id:string|null;jockey_id:string|null;
  gate_no:number|null;weight_kg:number|null;status:string;snapshot:unknown;
 }
-export interface DbHorseRow {id:string;name:string;condition_score:number;fatigue:number;life_stage:string;racing_retired_permanently:boolean;}
+export interface DbHorseRow {id:string;name:string;condition_score:number;fatigue:number;life_stage:string;racing_retired_permanently:boolean;breeding_retired_at?:string|null;}
 export interface DbAbilityRow {horse_id:string;current_stats:unknown;distance_affinity?:unknown;}
 export interface DbJockeyRow {id:string;skill_stats:unknown;}
 export interface DbStrategyRow {race_entry_id:string;plan_no:number;strategy_code:string;}
