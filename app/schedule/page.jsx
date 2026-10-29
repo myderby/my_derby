@@ -15,6 +15,7 @@ export default function SchedulePage(){
  const grouped=events.reduce((a,r)=>{const k=r.time.slice(0,2)+":00";(a[k]||=[]).push(r);return a},{});
  return <main className="shell"><header className="header"><a className="brand" href="/" style={{textDecoration:"none"}}>MY DERBY</a><span className="coin">🏇 공식 경주</span></header>
  <div className="area"><a href="/" className="outline" style={{display:"inline-block",textDecoration:"none",marginBottom:16}}>‹ 홈으로</a>
+ <a href="/entries" className="primary" style={{display:"inline-block",textDecoration:"none",marginBottom:16,marginLeft:8}}>🏇 출전·기수 신청 ›</a>
  <div className="section"><h2>52주 경주 시간표</h2><button onClick={()=>load(week)}>새로고침 ↻</button></div>
  {program?.world&&<div className="card"><div className="large gold">{program.world.season}시즌 · {week}주차</div>
  <div className="muted">현실 1일 = 게임 1주 · 출발 3분 간격 · 결과 출발 3분 후 · Asia/Seoul</div>
