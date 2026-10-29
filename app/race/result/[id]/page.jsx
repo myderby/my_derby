@@ -1,6 +1,7 @@
 "use client";
 import {useEffect,useState} from "react";
 import {useParams} from "next/navigation";
+import {selectRaceCommentary} from "../../../../lib/racing/commentary";
 export default function OfficialResultPage(){
  const params=useParams();const [race,SetRace]=useState(null),[error,SetError]=useState("");
  useEffect(()=>{if(!params?.id)return;let alive=true;
@@ -29,8 +30,8 @@ export default function OfficialResultPage(){
  <div className="section"><h2>200m 구간 순위</h2></div>
  {race.sections?.map(sec=><div className="card" key={sec.distanceM}>
  <b>{sec.distanceM}m</b><div className="muted">{sec.ranks?.slice(0,5).map(r=>r.rank+"위 "+r.number+"번 "+r.name).join(" · ")}</div></div>)}
- <div className="section"><h2>경주 사건 로그</h2></div>
- {race.events?.filter(e=>e.text&&e.eventType!=="STRATEGY_SWITCH"&&e.importance>=2).slice(0,100).map(e=><div className="card" key={e.seq}>
+ <div className="section"><h2>경주 중계 · 출발부터 결승선까지</h2></div>
+ {selectRaceCommentary(race.events,100).map(e=><div className="card" key={e.seq}>
  <div className="muted">{Number(e.timeSec).toFixed(1)}초 · {Number(e.distanceM).toFixed(0)}m</div>
  <div className="small">{e.text}</div></div>)}
  </>}

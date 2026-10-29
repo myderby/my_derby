@@ -1,6 +1,7 @@
 "use client";
 import {useEffect,useState} from "react";
 import {createClient} from "@supabase/supabase-js";
+import {selectRaceCommentary} from "../lib/racing/commentary";
 const horses=[{id:1,name:"가을바람",age:4,sex:"수",stage:"현역",condition:82,fatigue:18,stats:[81,74,68,76,70,73]},{id:2,name:"골든레이스",age:3,sex:"수",stage:"현역",condition:77,fatigue:22,stats:[74,76,69,72,70,66]},{id:3,name:"작은별",age:1,sex:"암",stage:"목장",condition:93,fatigue:4,stats:[35,39,42,32,36,41]},{id:4,name:"여왕의꿈",age:6,sex:"암",stage:"교배",breedingRetired:true,condition:89,fatigue:9,stats:[80,78,82,76,73,77]},{id:5,name:"블랙스톰",age:5,sex:"거",stage:"재활",condition:58,fatigue:42,stats:[83,73,77,82,69,74]}];
 const trainers=[["김도윤","스피드·가속",14],["박수진","지구력·회복",8],["이민호","파워·근성",19],["최은영","컨디션·기질",6],["정우석","마일·선입",20]];
 const jockeys=[["박준호","마일·선입",3],["김하늘","중거리·페이스",5],["이승민","출발·단거리",8],["정다은","추입·안정성",2]];
@@ -183,8 +184,8 @@ CSV의 rank, rcNo, stTime 순서를 반영한 오늘의 경주를 시간표 순�
  <div className="card">{result.sections.map(x=><div className="line" key={x.distanceM}>
  <b className="gold">{x.distanceM}m</b>
  <div className="muted">{x.ranks.slice(0,5).map(h=>h.rank+"위 "+h.number+"번 "+h.name).join(" · ")}</div></div>)}</div>
- {section("경주 엔진 사건 로그")}
- {result.events.filter(x=>x.importance>=2&&x.eventType!=="STRATEGY_SWITCH").slice(0,70).map(x=><div className="card" key={x.seq}>
+ {section("경주 중계 · 출발부터 결승선까지")}
+ {selectRaceCommentary(result.events,100).map(x=><div className="card" key={x.seq}>
  <div className="muted">{x.timeSec.toFixed(1)}초 · {x.distanceM.toFixed(0)}m</div>
  <div className="small">{x.text}</div></div>)}
  </>;

@@ -109,3 +109,44 @@ test("falling-behind narration requires worsening rank and increasing leader gap
     assert.match(e.text,/밀려납니다/);
   }
 });
+
+const {selectRaceCommentary}=require("../.race-build/commentary.js");
+test("1000m race commentary must reach the finish line even with 16 horses",()=>{
+  const input=makeTestRace(0,19451);
+  input.distanceM=1000;
+  input.runners.push(...input.runners.slice(0,4).map((h,i)=>({
+    ...h,id:"finish-extra-"+i,name:"완주테스트"+i,number:13+i,gate:13+i,
+    horse:{...h.horse},jockey:{...h.jockey},strategies:[...h.strategies]
+  })));
+  const result=simulateRace(input);
+  const commentary=selectRaceCommentary(result.events,70);
+  assert.equal(result.distanceM,1000);
+  assert.equal(result.sections.at(-1).distanceM,1000);
+  assert.equal(result.events.filter(e=>e.eventType==="FINISH").length,16);
+  assert.equal(commentary.filter(e=>e.eventType==="FINISH").length,16);
+  assert.equal(commentary.at(-1).distanceM,1000);
+  assert.ok(commentary.some(e=>e.eventType==="FINISH"&&e.params.rank===1
+    &&e.text.includes(result.results[0].name)));
+});
+test("dense 1000m commentary keeps finish and 200m checkpoints instead of cutting at 800m",()=>{
+  const crowd=Array.from({length:180},(_,i)=>({
+    seq:i+1,timeSec:i*.4,distanceM:Math.min(980,i*5.4),
+    horseId:"race-"+(i%8),eventType:"OVERTAKE",reasonCode:null,
+    params:{},importance:2,text:"추월 중계 이벤트 "+i
+  }));
+  crowd.unshift({seq:0,timeSec:0,distanceM:0,horseId:null,
+    eventType:"START",reasonCode:null,params:{},importance:2,text:"출발합니다!"});
+  for(let n=200;n<=800;n+=200){
+    crowd.push({seq:200+n,timeSec:n/14,distanceM:n,horseId:"race-1",
+      eventType:"PACE",reasonCode:"SECTION_LEADER",params:{},importance:2,text:n+"m 선두!"});
+  }
+  crowd.push({seq:999,timeSec:80,distanceM:1000,horseId:"winner",
+    eventType:"FINISH",reasonCode:null,params:{rank:1},importance:3,text:"우승마 결승선 통과!"});
+  const shown=selectRaceCommentary(crowd,70);
+  assert.equal(shown.length,70);
+  assert.ok(shown.some(e=>e.eventType==="FINISH"&&e.distanceM===1000));
+  assert.ok(shown.some(e=>e.eventType==="START"));
+  for(const checkpoint of [200,400,600,800])
+    assert.ok(shown.some(e=>e.reasonCode==="SECTION_LEADER"&&e.distanceM===checkpoint));
+  assert.ok(shown.some(e=>e.timeSec>65), "must include events near finish");
+});
