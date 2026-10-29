@@ -127,26 +127,34 @@ export default function WorldPage(){
    </div>)}
    {!trainers.length&&!trainerError&&<div className="muted">조교사 명단 불러오는 중…</div>}
    <div className="muted" style={{marginTop:10}}>실제 NPC 계약 현황입니다. 내 경주마의 조교사 신청·계약 기능은 별도 개발 항목입니다.</div></div>
-   <div className="section" style={{marginTop:22}}><h2>NPC 마주 은퇴·번식 전환</h2></div>
+   <div className="section" style={{marginTop:22}}><h2>NPC 마주 성향별 번식 전환</h2></div>
    <div className="card">
-    <div className="row"><b className="gold">NPC 은퇴 결정</b><span className="tag">매일 23:05 자동 심사</span></div>
-    <div className="muted" style={{marginTop:10}}>최근 공식 6경주 연속 미입상·5회 이상 하위 40%·평균 하위권이거나,
-    의료적으로 경주 복귀 불가 판정 시 은퇴합니다. 번식 적령 수말·암말은 씨수말·번식암말로 전환하고,
-    거세마는 일반 은퇴합니다. 단순 부상은 은퇴 대상이 아닙니다.</div>
+    <div className="row"><b className="gold">번식마 전환 판단</b><span className="tag">매일 23:05 심사</span></div>
+    <div className="muted" style={{marginTop:10}}>NPC 마주 자체에는 은퇴 기준이 없습니다. 각 NPC 마주의 성향에 따라 성적이 계속 부진한 경주마를 씨수말·번식암말로 전환합니다.
+     영구적으로 경주 복귀가 불가능한 부상도 번식 전환 사유입니다. 번식 불가능한 말은 부진만으로 일반 은퇴시키지 않습니다.</div>
+    <div className="card" style={{marginTop:12}}>
+     <div className="row small"><span>안정형</span><b>최근 4경주 부진 평가</b></div>
+     <div className="line row small"><span>균형형</span><b>최근 6경주 부진 평가</b></div>
+     <div className="line row small"><span>공격형</span><b>최근 8경주 부진 평가</b></div>
+     <div className="muted" style={{marginTop:9}}>각 성향별 기준은 해당 기간 전부 3위 이내 입상 실패,
+      하위 40% 기록 3회/5회/7회 이상, 평균 상대 순위 하위권입니다. 임시 부상·거세마는 번식 전환에서 제외합니다.</div>
+    </div>
     {npcRetireError&&<div className="notice">{npcRetireError}</div>}
     {npcRetirements&&<>
      <div className="grid" style={{marginTop:12}}>
-      <div className="card"><div className="muted">전체 자동 은퇴</div><b className="gold">{npcRetirements.total??0}두</b></div>
-      <div className="card"><div className="muted">성적 부진</div><b>{npcRetirements.poorForm??0}두</b></div>
-      <div className="card"><div className="muted">영구 부상</div><b>{npcRetirements.injury??0}두</b></div>
+      <div className="card"><div className="muted">누적 번식 전환</div><b className="gold">{npcRetirements.total??0}두</b></div>
+      <div className="card"><div className="muted">성적 부진 원인</div><b>{npcRetirements.poorForm??0}두</b></div>
+      <div className="card"><div className="muted">영구 부상 원인</div><b>{npcRetirements.injury??0}두</b></div>
       <div className="card"><div className="muted">씨수말 / 번식암말</div><b>{npcRetirements.stallions??0} / {npcRetirements.broodmares??0}두</b></div>
      </div>
      {(npcRetirements.recent||[]).length>0&&
       <div style={{marginTop:14}}>{npcRetirements.recent.map((entry,i)=><div className="line row small" key={i}>
-       <div><b>{entry.horseName}</b><div className="muted">{entry.reason==="POOR_FORM"?"최근 경주 성적 부진":"경주 복귀 불가 부상"} · 게임 {entry.gameDay}일</div></div>
-       <span className="tag">{entry.newStage==="STALLION"?"씨수말":entry.newStage==="BROODMARE"?"번식암말":"일반 은퇴"}</span>
+       <div><b>{entry.horseName}</b>
+        <div className="muted">마주 {entry.ownerName||"NPC"} · {entry.ownerRisk==="CONSERVATIVE"?"안정형":entry.ownerRisk==="AGGRESSIVE"?"공격형":"균형형"}</div>
+        <div className="muted">{entry.reason==="POOR_FORM"?"지속적인 경주 성적 부진":"경주 복귀 불가 부상"} · 게임 {entry.gameDay}일</div></div>
+       <span className="tag">{entry.newStage==="STALLION"?"씨수말":entry.newStage==="BROODMARE"?"번식암말":"기존 기록"}</span>
       </div>)}</div>}
-     {(npcRetirements.recent||[]).length===0&&<div className="muted" style={{marginTop:10}}>아직 NPC 마주의 자동 은퇴 결정이 없습니다. 충분한 공식 경주 결과가 쌓인 이후부터 평가됩니다.</div>}
+     {(npcRetirements.recent||[]).length===0&&<div className="muted" style={{marginTop:10}}>아직 번식 전환 기록이 없습니다. 부진 누적이나 영구 부상 판정에 따라 자동으로 전환됩니다.</div>}
     </>}
    </div>
    <div className="section" style={{marginTop:22}}><h2>NPC 마주 현황</h2></div>
