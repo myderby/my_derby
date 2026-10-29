@@ -66,3 +66,46 @@ test("16-runner dusu race finishes with all unique places and gate numbers",()=>
  assert.equal(result.events.filter(x=>x.eventType==="FINISH").length,16);
  assert.ok(result.sections.every(x=>x.ranks.length===16));
 });
+
+test("race commentary describes horses without internal strategy plan numbering",()=>{
+  for(let i=0;i<3;i++){
+    const result=simulateRace(makeTestRace(i,6281+i*101));
+    assert.ok(result.events.length>result.results.length);
+    assert.ok(result.events.every(e=>!/(\\d+안에서|전략을 전환|STRATEGY_SWITCH)/.test(e.text)));
+    assert.ok(!result.events.some(e=>e.eventType==="STRATEGY_SWITCH"));
+    assert.ok(result.events.some(e=>e.reasonCode==="SECTION_LEADER"));
+    const top=result.events.find(e=>e.eventType==="FINISH"&&e.params.rank===1);
+    assert.ok(top&&top.text.includes(result.results[0].name));
+  }
+});
+test("every overtaking log names the exact overtaken opponent",()=>{
+  const races=[makeTestRace(0,9001),makeTestRace(1,9287),makeTestRace(2,11235)];
+  const overtakes=races.flatMap(r=>simulateRace(r).events.filter(e=>e.eventType==="OVERTAKE"));
+  assert.ok(overtakes.length>0,"Need overtakes in test races");
+  for(const e of overtakes){
+    assert.equal(typeof e.params.targetHorseId,"string");
+    assert.equal(typeof e.params.targetHorseName,"string");
+    assert.ok(e.text.includes(e.params.targetHorseName));
+    assert.ok(e.text.includes(String(e.params.targetHorseNumber)+"번"));
+    assert.ok(e.params.currentRank<e.params.previousRank);
+  }
+});
+test("lane narration comes from a recorded lane change with real direction",()=>{
+  const events=simulateRace(makeTestRace(1,89134)).events.filter(e=>e.eventType==="LANE_CHANGE");
+  assert.ok(events.length>0);
+  for(const e of events){
+    assert.notEqual(e.params.fromLane,e.params.toLane);
+    assert.equal(e.params.outside,e.params.toLane>e.params.fromLane);
+    assert.match(e.text,e.params.outside?/바깥쪽/:/안쪽/);
+  }
+});
+test("falling-behind narration requires worsening rank and increasing leader gap",()=>{
+  const samples=[20,39,900].flatMap(seed=>simulateRace(makeTestRace(0,seed)).events)
+    .filter(e=>e.reasonCode==="FALLING_BEHIND");
+  assert.ok(samples.length>0);
+  for(const e of samples){
+    assert.ok(e.params.currentRank>e.params.previousRank);
+    assert.ok(e.params.gapIncreaseM>=2.5);
+    assert.match(e.text,/밀려납니다/);
+  }
+});

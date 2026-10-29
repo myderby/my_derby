@@ -138,6 +138,11 @@ export function simulateRace(input:RaceInput):RaceResult {
     events.push({seq:events.length+1,timeSec:rnd(time),distanceM:rnd(Math.max(0,distance)),horseId,eventType,reasonCode:reason,params,importance,text});
   };
   const lastSwitch=new Map(runners.map(r=>[r.id,0]));
+  const lastLaneMention=new Map<string,number>();
+  const lastBlockMention=new Map<string,number>();
+  const lastOvertakeMention=new Map<string,number>();
+  const lastDriveMention=new Map<string,number>();
+  let finalChargeMentions=0;
   let elapsed=0, nextSection=200, lastPressureBand="";
   const startNames=states.map(s=>s.name).join(", ");
   event(0,0,null,"START",null,{runnerCount:runners.length},2,"출발! "+runners.length+"두가 경주를 시작합니다.");
@@ -171,19 +176,51 @@ export function simulateRace(input:RaceInput):RaceResult {
         ns.strategyIndex=decision.index;
         ns.strategy=runner.strategies[decision.index];
         lastSwitch.set(st.id,elapsed);
-        event(elapsed,st.distanceM,st.id,"STRATEGY_SWITCH",decision.reason,
-          {from:st.strategy,to:ns.strategy,fromPlan:st.strategyIndex+1,toPlan:decision.index+1},2,
-          st.number+"번 "+st.name+"의 기수가 "+(st.strategyIndex+1)+"안에서 "+(decision.index+1)+"안으로 전략을 전환합니다.");
+        // Strategy changes affect the physics but are deliberately not narrated.
+        // Internal plans remain in section strategy snapshots for analysis.
       }
       ns.lane=physicalLane(runner,st,ns.strategy,snapshot,rng);
-      if(ns.lane!==st.lane&&tick%3===0)event(elapsed,st.distanceM,st.id,"LANE_CHANGE",null,{fromLane:st.lane,toLane:ns.lane},1,st.number+"번 "+st.name+"이(가) "+ns.lane+"번 진로로 이동했습니다.");
-      if(blocked&&!st.blocked)event(elapsed,st.distanceM,st.id,"BLOCKED","INSIDE_BLOCKED",{lane:st.lane},1,st.number+"번 "+st.name+"의 앞길이 막힙니다.");
-      if(phase==="MOVE"&&ns.strategy==="MOVE"&&st.strategy!=="MOVE")event(elapsed,st.distanceM,st.id,"MOVE","MOVE_OPPORTUNITY",{},1,st.number+"번 "+st.name+"이(가) 승부수를 시작합니다.");
-      if(phase==="FINAL"&&ns.strategy==="CLOSER"&&st.distanceM<input.distanceM*.85)event(elapsed,st.distanceM,st.id,"FINAL_CHARGE",null,{},2,st.number+"번 "+st.name+"이(가) 마지막 추입을 시작합니다.");
+      if(ns.lane!==st.lane && elapsed-(lastLaneMention.get(st.id)??-100)>7){
+        lastLaneMention.set(st.id,elapsed);
+        const outside=ns.lane>st.lane;
+        event(elapsed,st.distanceM,st.id,"LANE_CHANGE",
+          outside?"OUTSIDE_LANE":"INSIDE_LANE",
+          {fromLane:st.lane,toLane:ns.lane,outside},2,
+          st.number+"번 "+st.name+(outside?
+          ", 바깥쪽으로 진로를 빼면서 추격할 공간을 찾습니다!":
+          ", 안쪽 주로로 붙으며 거리를 아낍니다."));
+      }
+      if(blocked&&!st.blocked&&elapsed-(lastBlockMention.get(st.id)??-100)>8){
+        const ahead=snapshot.filter(o=>o.id!==st.id&&o.finishedAt===null&&o.lane===st.lane&&o.distanceM>st.distanceM&&o.distanceM-st.distanceM<5.2)
+         .sort((a,b)=>a.distanceM-b.distanceM)[0];
+        if(ahead){
+          lastBlockMention.set(st.id,elapsed);
+          event(elapsed,st.distanceM,st.id,"BLOCKED","TRAFFIC_AHEAD",
+            {lane:st.lane,targetHorseId:ahead.id,targetHorseNumber:ahead.number},2,
+            st.number+"번 "+st.name+", 앞서 가는 "+ahead.number+"번 "+ahead.name+"에 막혀 잠시 진로를 찾습니다.");
+        }
+      }
       const desired=targetSpeed(runner,ns,phase,frontPressure,blocked,input.trackFactor??1);
       const acceleration=.48+runner.horse.acceleration*.011+(phase==="START"?runner.horse.start*.004:0);
       const stepSpeed=clamp(desired-ns.speedMps,-(1.45+runner.horse.stability*.004)*TICK_SECONDS,acceleration*TICK_SECONDS);
       ns.speedMps=clamp(ns.speedMps+stepSpeed,3.0,22);
+      if(phase==="MOVE"&&st.rank>1&&st.rank<=Math.ceil(runners.length*.75)
+         &&ns.speedMps>st.speedMps+.09
+         &&elapsed-(lastDriveMention.get(st.id)??-100)>15){
+        lastDriveMention.set(st.id,elapsed);
+        event(elapsed,st.distanceM,st.id,"MOVE","SPEED_INCREASE",
+          {previousSpeed:rnd(st.speedMps),currentSpeed:rnd(ns.speedMps)},2,
+          st.number+"번 "+st.name+", 중반을 지나며 속도를 끌어올립니다! 앞선 말들을 따라붙습니다.");
+      }
+      if(phase==="FINAL"&&st.rank>1&&st.rank<=5
+         &&ns.speedMps>st.speedMps+.09
+         &&finalChargeMentions<3&&!lastDriveMention.has(st.id)){
+        finalChargeMentions++;
+        lastDriveMention.set(st.id,elapsed);
+        event(elapsed,st.distanceM,st.id,"FINAL_CHARGE","FINAL_SPEED_INCREASE",
+          {previousSpeed:rnd(st.speedMps),currentSpeed:rnd(ns.speedMps)},3,
+          st.number+"번 "+st.name+", 막판 직선에서 속도를 높입니다! 앞선 말과의 격차를 좁힐 수 있을까요?");
+      }
       const distanceDelta=ns.speedMps*TICK_SECONDS;
       ns.distanceM+=distanceDelta;
       ns.stamina=clamp(st.stamina-staminaCost(runner,ns,phase,frontPressure,TICK_SECONDS),0,100);
@@ -198,17 +235,41 @@ export function simulateRace(input:RaceInput):RaceResult {
       }
       next.push(ns);
     }
-    const newOrder=[...next].sort(ranker).filter(s=>s.finishedAt===null);
+    const oldOrder=[...snapshot].sort(ranker);
+    const newOrder=[...next].sort((a,b)=>{
+      if(a.finishedAt!==null&&b.finishedAt!==null)return a.finishedAt-b.finishedAt||a.number-b.number;
+      if(a.finishedAt!==null)return -1;
+      if(b.finishedAt!==null)return 1;
+      return ranker(a,b);
+    });
+    const nextById=new Map(next.map(s=>[s.id,s]));
+    const oldById=new Map(snapshot.map(s=>[s.id,s]));
     for(const st of next){
-      if(st.finishedAt!==null)continue;
-      const oldRank=ranks.findIndex(s=>s.id===st.id);
+      if(elapsed<3||elapsed-(lastOvertakeMention.get(st.id)??-100)<2.2)continue;
+      const prev=oldById.get(st.id)!;
+      if(prev.finishedAt!==null)continue;
+      const oldRank=oldOrder.findIndex(s=>s.id===st.id);
       const newRank=newOrder.findIndex(s=>s.id===st.id);
-      if(oldRank>=0&&newRank>=0&&newRank<oldRank&&tick%4===0){
-        const overtaken=ranks[Math.max(0,oldRank-1)];
-        event(elapsed+TICK_SECONDS,st.distanceM,st.id,"OVERTAKE",null,
-          {previousRank:oldRank+1,currentRank:newRank+1,targetHorseId:overtaken.id},2,
-          st.number+"번 "+st.name+"이(가) "+(oldRank+1)+"위에서 "+(newRank+1)+"위로 올라갑니다.");
-      }
+      if(newRank>=oldRank||newRank<0)continue;
+      const overtaken=oldOrder.slice(0,oldRank)
+        .filter(other=>{
+          if(other.finishedAt!==null)return false;
+          const current=nextById.get(other.id)!;
+          return other.distanceM>=prev.distanceM-EPS &&
+            st.distanceM>current.distanceM+EPS;
+        }).sort((a,b)=>a.distanceM-b.distanceM);
+      const target=overtaken[0];
+      if(!target)continue;
+      lastOvertakeMention.set(st.id,elapsed);
+      const lead=newRank===0;
+      event(elapsed+TICK_SECONDS,st.distanceM,st.id,"OVERTAKE",
+       lead?"NEW_LEADER":"POSITION_GAIN",{
+        previousRank:oldRank+1,currentRank:newRank+1,
+        targetHorseId:target.id,targetHorseNumber:target.number,
+        targetHorseName:target.name
+       },lead?3:2,
+       st.number+"번 "+st.name+", "+target.number+"번 "+target.name+"을(를) 제치고 "+
+         (lead?"선두로 치고 나옵니다!":(newRank+1)+"위까지 올라섭니다!"));
     }
     states=next;
     elapsed+=TICK_SECONDS;
@@ -224,7 +285,34 @@ export function simulateRace(input:RaceInput):RaceResult {
         horseId:st.id,number:st.number,name:st.name,rank:i+1,
         gapM:rnd(Math.max(0,maxPos-Math.min(nextSection,st.distanceM))),strategy:st.strategy
       }))};
+      const earlier=sections.length?sections[sections.length-1]:null;
       sections.push(result);
+      if(nextSection<input.distanceM){
+        const leader=result.ranks[0],runnerUp=result.ranks[1];
+        const leading=runnerUp&&runnerUp.gapM<=2.5?
+          ", "+runnerUp.number+"번 "+runnerUp.name+"이(가) 바짝 따라붙습니다.":
+          runnerUp?", "+runnerUp.number+"번 "+runnerUp.name+"이(가) "+runnerUp.gapM.toFixed(1)+"m 뒤에서 추격합니다.":".";
+        event(elapsed+TICK_SECONDS,nextSection,leader.horseId,"PACE","SECTION_LEADER",
+          {leaderNumber:leader.number,secondNumber:runnerUp?.number??0,
+            secondGapM:runnerUp?.gapM??0,sectionM:nextSection},2,
+          nextSection+"m 지점, 선두는 "+leader.number+"번 "+leader.name+leading);
+        if(earlier){
+          const trailing=result.ranks.map(s=>{
+            const old=earlier.ranks.find(v=>v.horseId===s.horseId);
+            return {current:s,old,losingGround:old?s.gapM-old.gapM:0};
+          }).filter(x=>x.old&&x.current.rank>x.old.rank&&x.losingGround>=2.5
+            &&x.current.gapM>=5&&x.current.rank>Math.ceil(runners.length/2))
+            .sort((a,b)=>b.losingGround-a.losingGround||a.current.number-b.current.number)[0];
+          if(trailing){
+            const h=trailing.current;
+            event(elapsed+TICK_SECONDS,nextSection,h.horseId,"PACE","FALLING_BEHIND",
+              {previousRank:trailing.old!.rank,currentRank:h.rank,
+                gapM:h.gapM,gapIncreaseM:rnd(trailing.losingGround)},2,
+              h.number+"번 "+h.name+", 선두와의 차이가 "+h.gapM.toFixed(1)+
+                "m로 벌어지며 "+h.rank+"위까지 밀려납니다.");
+          }
+        }
+      }
       nextSection+=200;
     }
   }
@@ -234,6 +322,20 @@ export function simulateRace(input:RaceInput):RaceResult {
     horseId:s.id,number:s.number,name:s.name,rank:i+1,timeSec:rnd(s.finishedAt!),
     finalStamina:rnd(s.stamina),strategy:s.strategy
   }));
+  // Finish commentary uses official computed placings, never a guessed result.
+  const finalById=new Map(results.map(r=>[r.horseId,r]));
+  for(const e of events){
+    if(e.eventType!=="FINISH"||!e.horseId)continue;
+    const placing=finalById.get(e.horseId);
+    if(!placing)continue;
+    e.params.rank=placing.rank;
+    e.importance=placing.rank<=3?3:1;
+    e.text=placing.rank===1?
+      "결승선 통과! "+placing.number+"번 "+placing.name+" 가장 먼저 들어옵니다! 우승입니다!":
+      placing.rank<=3?
+      "이어서 "+placing.number+"번 "+placing.name+"! "+placing.rank+"위로 결승선을 통과합니다.":
+      placing.number+"번 "+placing.name+", "+placing.rank+"위로 결승선을 통과합니다.";
+  }
   // Events are sorted by physical event time, then renumbered for replay.
   events.sort((a,b)=>a.timeSec-b.timeSec||a.seq-b.seq);
   events.forEach((e,i)=>e.seq=i+1);
