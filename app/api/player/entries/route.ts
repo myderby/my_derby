@@ -10,7 +10,7 @@ export async function GET(request:Request){
   const {db}=await requireUser(request);
   const raw=new URL(request.url).searchParams.get("week");
   const week=raw===null?null:Number(raw);
-  if(raw!==null&&(!Number.isInteger(week)||week!<1||week!>52))return respond({error:"주차가 잘못되었습니다."},400);
+  if(raw!==null&&(!Number.isInteger(week)||Number(week)<1||Number(week)>52))return respond({error:"주차가 잘못되었습니다."},400);
   const {data,error}=await db.schema("my_derby").rpc("player_race_board",{p_week:week});
   if(error)throw error;
   return respond(data);
