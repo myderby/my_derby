@@ -6,44 +6,63 @@ const trainers=[["김도윤","스피드·가속",14],["박수진","지구력·�
 const jockeys=[["박준호","마일·선입",3],["김하늘","중거리·페이스",5],["이승민","출발·단거리",8],["정다은","추입·안정성",2]];
 const raceData=[["서울",1200,"6등급"],["서울",1400,"5등급"],["서울",1400,"4등급"],["서울",1800,"3등급"],["서울",1600,"OPEN"]];
 const events=[["START",200,"3번마가 빠르게 출발해 선두를 차지합니다."],["PACE",400,"초반 선행 경쟁이 치열해지고 있습니다."],["STRATEGY_SWITCH",600,"7번마 기수가 1안 선행에서 2안 외곽 선입으로 변경합니다."],["LANE_CHANGE",800,"7번마가 바깥 진로를 확보합니다."],["OVERTAKE",1000,"7번마가 선두를 추월합니다."],["FINISH",1200,"7번마 블루라이트가 가장 먼저 결승선을 통과합니다."]];
-const testRaceSlots=[
-  {time:"19:00",track:"서울",distance:1200,grade:"6등급"},
-  {time:"20:00",track:"부경",distance:1400,grade:"5등급"},
-  {time:"21:00",track:"영천",distance:1600,grade:"4등급"}
-];
+
 export default function Home(){const [screen,S]=useState("home"),[selected,H]=useState(horses[0]),[filter,F]=useState("전체"),[race,R]=useState(2),[trainer,T]=useState(0),[jockey,J]=useState(0),[plans,P]=useState(["선입 대기","외곽 선입","후방 추입"]),[pos,E]=useState(0),[playing,Play]=useState(false),[testRuns,SetTestRuns]=useState([]),[testResults,SetTestResults]=useState({}),[activeTestIndex,SetActiveTestIndex]=useState(-1),[testBusy,SetTestBusy]=useState(false),[raceSchedule,SetRaceSchedule]=useState(null),[scheduleError,SetScheduleError]=useState(""),[dbStatus,SetDbStatus]=useState(null),[dbBusy,SetDbBusy]=useState(false),[dbRaceId,SetDbRaceId]=useState(""),[dbHistory,SetDbHistory]=useState([]),[dbPreview,SetDbPreview]=useState(null),[breedingHorses,SetBreedingHorses]=useState([]),[breedingLoading,SetBreedingLoading]=useState(false),[breedingMessage,SetBreedingMessage]=useState(""),[toast,Q]=useState(""),[email,Mail]=useState(""),[password,Pass]=useState("");
 useEffect(()=>{if(!playing||pos>=events.length)return;const id=setTimeout(()=>E(x=>x+1),1200);return()=>clearTimeout(id)},[playing,pos]);
-const liveSlots=(raceSchedule?.races?.length===3?raceSchedule.races.map(r=>({time:r.start_time.slice(0,5),track:r.track,distance:r.distance_m,grade:r.class_name,status:r.status})):testRaceSlots);
+const liveSlots=(raceSchedule?.races||[]).map(r=>({
+ id:r.id,time:r.start_time?.slice(0,5)||"--:--",resultTime:r.result_time,
+ track:r.track,distance:r.distance_m,grade:r.class_name,
+ displayNo:r.source_rc_no,status:r.status,entryStatus:r.entry_status,
+ sourceTime:r.source_st_time
+}));
 const go=x=>{S(x);if(typeof window!=="undefined")window.scrollTo(0,0)},msg=x=>{Q(x);setTimeout(()=>Q(""),3500)};
 const title=(x,sub)=><div className="pageTitle"><button className="back" onClick={()=>go("home")}>‹</button><div><h1>{x}</h1><div className="sub">{sub}</div></div></div>;
 const section=(x,next)=><div className="section"><h2>{x}</h2>{next&&<button onClick={()=>go(next)}>전체 보기 ›</button>}</div>;
 const box=(a,b,d,right)=><div className="card action row" onClick={d}><div><b>{a}</b><div className="muted">{b}</div></div><span className="tag">{right||"›"}</span></div>;
 const notReady=x=>msg(x+"은(는) 아직 시연 화면입니다. 실제 서버에 기록되지 않습니다.");
+const runTestAt=async index=>{
+ const race=liveSlots[index];
+ if(!race?.id)throw new Error("경주시간표를 먼저 불러와야 합니다.");
+ const response=await fetch("/api/race/scheduled-test",{
+  method:"POST",headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({raceId:race.id}),cache:"no-store"
+ });
+ const payload=await response.json();
+ if(!response.ok||!payload.result||payload.mode!=="SCHEDULE_BASED_TEST")
+  throw new Error(payload.error||"경주 계산 실패");
+ SetTestResults(previous=>({...previous,[index]:payload.result}));
+ SetTestRuns(previous=>previous.includes(index)?previous:[...previous,index]);
+ SetActiveTestIndex(index);
+ return payload.result;
+};
 const runNextTestRace=async()=>{
-  if(testBusy)return;
-  const index=testRuns.length;
-  if(index>=3||!raceSchedule?.races||raceSchedule.races.length!==3)return;
-  SetTestBusy(true);
-  try{
-    const response=await fetch("/api/race/scheduled-test",{
-      method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({slot:index}),cache:"no-store"
-    });
-    const payload=await response.json();
-    if(!response.ok||!payload.result||payload.mode!=="SCHEDULE_BASED_TEST")throw new Error(payload.error||"경주 계산 실패");
-    SetTestResults(previous=>({...previous,[index]:payload.result}));
-    SetTestRuns(previous=>[...previous,index]);
-    SetActiveTestIndex(index);
-    msg(liveSlots[index].time+" "+liveSlots[index].track+" 경주 계산 완료 · 공식 편성 출전마 12두");
-  }catch(error){msg("경주 계산 실패: "+(error instanceof Error?error.message:"알 수 없는 오류"))}
-  finally{SetTestBusy(false)}
+ if(testBusy||!liveSlots.length||testRuns.length>=liveSlots.length)return;
+ const index=testRuns.length;
+ SetTestBusy(true);
+ try{
+  const result=await runTestAt(index);
+  msg(liveSlots[index].time+" "+liveSlots[index].track+" "+liveSlots[index].displayNo+
+   "경주 테스트 완료 · "+result.results.length+"두 · 우승 "+result.results[0].name);
+ }catch(e){msg("경주 테스트 실패: "+e.message)}
+ finally{SetTestBusy(false)}
+};
+const runAllTestRaces=async()=>{
+ if(testBusy||!liveSlots.length||testRuns.length>=liveSlots.length)return;
+ SetTestBusy(true);
+ let finished=0;
+ try{
+  for(let index=testRuns.length;index<liveSlots.length;index++){
+   await runTestAt(index);
+   finished++;
+  }
+  msg("오늘 전체 "+finished+"경주 순차 계산 완료 · 공식 기록은 변경되지 않습니다.");
+ }catch(e){msg("연속 테스트 중단 ("+finished+"경주 완료): "+e.message)}
+ finally{SetTestBusy(false)}
 };
 const resetTestRaces=()=>{
-  SetTestRuns([]);
-  SetTestResults({});
-  SetActiveTestIndex(-1);
-  msg("테스트 결과를 초기화했습니다.");
+ SetTestRuns([]);SetTestResults({});SetActiveTestIndex(-1);
+ msg("비공식 테스트 결과만 초기화했습니다. 정식 전적·상금은 그대로입니다.");
 };
-
 const getDbToken=async()=>{
  const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
  if(!url||!key)throw new Error("Supabase 설정이 없습니다.");
@@ -112,43 +131,65 @@ useEffect(()=>{if(screen==="breeding"){void loadBreedingHorses()}},[screen]);
 useEffect(()=>{
  if(screen!=="home"&&screen!=="testRaces")return;
  let alive=true;
- fetch("/api/world/schedule",{cache:"no-store"}).then(async r=>{
+ const refresh=()=>fetch("/api/world/schedule",{cache:"no-store"}).then(async r=>{
   const data=await r.json();if(!r.ok)throw new Error(data.error||"경주 일정 조회 실패");
   if(alive){SetRaceSchedule(data);SetScheduleError("");}
- }).catch(e=>{if(alive){SetRaceSchedule(null);SetScheduleError(e.message);}});
- return ()=>{alive=false};
+ }).catch(e=>{if(alive)SetScheduleError(e.message)});
+ void refresh();
+ const timer=setInterval(refresh,30000);
+ return ()=>{alive=false;clearInterval(timer)};
 },[screen]);
 return <main className="shell"><header className="header"><div onClick={()=>go("home")}><div className="brand">MY DERBY</div><div className="sub">{raceSchedule?.world?`${raceSchedule.world.season}시즌 · ${raceSchedule.world.week}주차 · ${raceSchedule.world.status==="ACTIVE"?"월드 운영 중":"운영 대기"}`:"경주 일정 조회 중"}</div></div><span className="coin">◉ 3,675 G</span><button className="hamburger" onClick={()=>go("menu")}>☰</button></header><div className="disclaimer">월드 시간표는 운영 중 · 일반 관리화면은 체험 UI 포함 · 공식 경기 결과는 별도 저장</div>
 {screen==="home"&&<><div className="hero"><div className="overline">🍂 오늘도 우리 말들과 함께 성장해요</div><h1>가을 목장</h1><div className="caption">마주의 새로운 하루</div><button className="primary" onClick={()=>go("ranch")}>목장 둘러보기 ›</button></div><div className="area">{section("오늘의 관리","horses")}<div className="card row"><div><div className="large gold">실제 경주마</div><div className="muted">마주 소유마는 월드에서 조회</div></div><div><div className="sub">평균 컨디션</div><div className="large green">{raceSchedule?.world?.status==="ACTIVE"?"ACTIVE":"확인 중"}</div></div><button className="outline" onClick={()=>go("testRaces")}>경주 테스트 ›</button></div>{section("오늘의 공식 경주 시간표","testRaces")}
-{raceSchedule?.races?.length?raceSchedule.races.map(r=>box(r.start_time.slice(0,5)+" · "+r.track+" "+r.distance_m+"m",r.class_name+" · "+(r.status==="FINISHED"?"경주 종료":r.status==="RUNNING"?"경주 진행 중":"경주 대기"),()=>go("testRaces"),r.status)): <div className="notice">{scheduleError||"오늘 경주시간표를 불러오는 중…"}</div>}
-{box("⚡ 경주시간표 강제 테스트","19시 → 20시 → 21시 · 공식 출전마로 비공식 계산",()=>go("testRaces"),testRuns.length+"/3")}<a href="/schedule" className="card action row" style={{textDecoration:"none",color:"inherit",display:"flex",marginTop:14}}><div><b className="gold">📅 52주 공식 경주시간표</b><div className="muted">서울 19시 · 부산 20시 · 영천 21시 · 전체 편성 확인</div></div><span className="tag">시간표 ›</span></a><a href="/world" className="card action row" style={{textDecoration:"none",color:"inherit",display:"flex",marginTop:14}}><div><b className="gold">🌍 월드 운영 · 실제 보유마</b><div className="muted">NPC 마주 현황 · 시즌 일정 · 사용자 마주 등록</div></div><span className="tag">열기 ›</span></a>{section("게임 메뉴")}<div className="grid">{[["⌂","목장","휴양 · 재활 · 어린말 육성","ranch"],["♞","마방","조교사 · 훈련 리포트","horses"],["♜","경주","출전 · 전략 · 로그 결과","races"],["✧","교배","씨수말 · 교배 · 자마","breeding"]].map(([i,n,d,p])=><button className="card action" onClick={()=>go(p)} key={n}><div className="icon">{i}</div><b>{n}</b><div className="muted">{d}</div></button>)}</div></div></>}
-{screen==="testRaces"&&<>{title("정시 경주 엔진 테스트","19:00 → 20:00 → 21:00 · 서버 계산")}<div className="area">
-<div className="notice"><b>TypeScript 경주 엔진 · 테스트 전용</b><br/>12두 출전마의 스피드·체력·위치·기수 1~3안 전략을 0.2초 단위로 계산합니다. 출력되는 결과·로그는 엔진이 계산한 값이며, 공식 경주시간표와 실제 편성된 12두를 Supabase에서 불러와 시간 제한 없이 강제 계산합니다. 재실행 시 새 시드를 사용합니다. 테스트 버튼은 공식 결과·상금·전적을 변경하지 않습니다.</div>
-{liveSlots.map((slot,i)=><div className="card row" key={slot.time}>
-  <div><b className="gold">{slot.time} · {slot.track} 경주</b><div className="muted">{slot.distance}m · {slot.grade} · 12두</div></div>
-  <span className="tag">{testRuns.includes(i)?"✓ 계산 완료":i===testRuns.length?"다음 실행":"대기"}</span>
+{raceSchedule?.races?.length?<><div className="muted">오늘 총 {raceSchedule.raceCount}경주 · 출발 3분 간격 · 결과 3분 후</div>
+ {raceSchedule.races.slice(0,8).map(r=>box(r.start_time.slice(0,5)+" · "+r.track+" "+r.source_rc_no+"경주",
+ r.class_name+" · "+r.distance_m+"m · 결과 "+r.result_time,
+ ()=>go("testRaces"),r.status))}
+ <button className="outline wide" onClick={()=>go("testRaces")}>오늘 전체 {raceSchedule.raceCount}경주 보기 ›</button></>:
+ <div className="notice">{scheduleError||"오늘 경주시간표를 불러오는 중…"}</div>}
+{box("⚡ 경주시간표 강제 테스트","19시 부산·영천 / 20시 서울·영천 / 21시 서울·부산",()=>go("testRaces"),testRuns.length+"/"+liveSlots.length)}<a href="/schedule" className="card action row" style={{textDecoration:"none",color:"inherit",display:"flex",marginTop:14}}><div><b className="gold">📅 52주 공식 경주시간표</b><div className="muted">rank·stTime에 따른 매일 다경주 편성 · 결과 3분 후</div></div><span className="tag">시간표 ›</span></a><a href="/world" className="card action row" style={{textDecoration:"none",color:"inherit",display:"flex",marginTop:14}}><div><b className="gold">🌍 월드 운영 · 실제 보유마</b><div className="muted">NPC 마주 현황 · 시즌 일정 · 사용자 마주 등록</div></div><span className="tag">열기 ›</span></a>{section("게임 메뉴")}<div className="grid">{[["⌂","목장","휴양 · 재활 · 어린말 육성","ranch"],["♞","마방","조교사 · 훈련 리포트","horses"],["♜","경주","출전 · 전략 · 로그 결과","races"],["✧","교배","씨수말 · 교배 · 자마","breeding"]].map(([i,n,d,p])=><button className="card action" onClick={()=>go(p)} key={n}><div className="icon">{i}</div><b>{n}</b><div className="muted">{d}</div></button>)}</div></div></>}
+{screen==="testRaces"&&<>{title("공식 시간표 경주 강제 테스트","19시 부산·영천 / 20시 서울·영천 / 21시 서울·부산")}
+<div className="area">
+<div className="notice"><b>실제 공식 출전 편성 사용 · 결과는 비공식</b><br/>
+CSV의 rank, rcNo, stTime 순서를 반영한 오늘의 경주를 시간표 순서로 하나씩 계산합니다.
+각 경주는 3분 간격으로 시작하며 공식 결과는 시작 3분 후 공개됩니다.
+테스트에서는 시계를 기다리지 않고 같은 엔진을 강제로 계산하지만
+경주 상태, 공식 기록, 상금에는 영향을 주지 않습니다.</div>
+<div className="card row"><b className="gold">오늘 {liveSlots.length}경주</b>
+<span className="tag">{testRuns.length}/{liveSlots.length} 테스트 완료</span></div>
+{scheduleError&&<div className="notice">{scheduleError}</div>}
+<div className="controls">
+<button className="primary" disabled={testBusy||!liveSlots.length||testRuns.length>=liveSlots.length} onClick={runNextTestRace}>
+{testBusy?"경주 계산 중…":testRuns.length<liveSlots.length?
+  liveSlots[testRuns.length].time+" 다음 경주 실행":"전체 테스트 완료"}</button>
+<button className="outline" disabled={testBusy||!liveSlots.length||testRuns.length>=liveSlots.length} onClick={runAllTestRaces}>전체 일정 연속 테스트</button>
+</div>
+<div style={{height:10}}/><button className="outline wide" disabled={testBusy} onClick={resetTestRaces}>비공식 테스트 초기화</button>
+<div style={{height:14}}/>
+{liveSlots.map((race,i)=><div className="card row" key={race.id} onClick={()=>{if(testResults[i])SetActiveTestIndex(i)}} style={{cursor:testResults[i]?"pointer":"default",padding:"11px 13px"}}>
+ <div><b className="gold">{race.time} · {race.track} {race.displayNo}경주</b>
+ <div className="muted">{race.grade} · {race.distance}m · 결과 {race.resultTime} · 원본 {race.sourceTime}</div></div>
+ <span className="tag">{testRuns.includes(i)?"✓ 테스트 완료":race.entryStatus==="INSUFFICIENT_ELIGIBLE_HORSES"?"출전마 부족":i===testRuns.length?"다음":"대기"}</span>
 </div>)}
-<button className="primary wide" disabled={testBusy||!raceSchedule?.races||raceSchedule.races.length!==3||testRuns.length>=3} onClick={runNextTestRace}>
-{testBusy?"경주 시뮬레이션 계산 중…":testRuns.length<3?liveSlots[testRuns.length].time+" 경주 계산 실행":"19시 · 20시 · 21시 계산 완료"}
-</button><div style={{height:10}}/><button className="outline wide" disabled={testBusy} onClick={resetTestRaces}>테스트 초기화</button>
 {activeTestIndex>=0&&testResults[activeTestIndex]&&(()=>{
- const result=testResults[activeTestIndex];
- const winner=result.results[0];
- return <><div style={{height:20}}/>{section("경주 계산 결과 · 비공식 테스트")}
- <div className="card"><div className="row"><b>{liveSlots[activeTestIndex].time} · {result.track}</b><span className="tag">엔진 결과 · 비공식</span></div>
- <div className="large gold">{winner.number}번 {winner.name} · 우승</div>
- <div className="muted">기록 {winner.timeSec.toFixed(2)}초 · 시드 {result.seed} · 엔진 {result.version} · {result.tickSeconds}초 틱</div></div>
- {section("최종 순위 · 12두")}
- <div className="card">{result.results.map(r=><div className="row line small" key={r.horseId}><b className="gold">{r.rank}위</b><span>{r.number}번 {r.name}</span><span>{r.timeSec.toFixed(2)}초</span></div>)}</div>
- {section("200m 구간별 순위")}
- <div className="card">{result.sections.map(sec=><div className="line" key={sec.distanceM}><b className="gold">{sec.distanceM}m</b><div className="muted">{sec.ranks.slice(0,5).map(r=>r.rank+"위 "+r.number+"번 "+r.name).join(" · ")}</div></div>)}</div>
- {section("실제 계산에서 생성된 사건 로그")}
- <div className="notice">전개·추월·전환·결승 사건을 표시합니다. 전략 전환은 실제 기수 AI 판단에 의해 기록됩니다.</div>
- {result.events.filter(e=>e.importance>=2).slice(0,65).map(ev=><div className="card" key={ev.seq}><div className="muted">{ev.timeSec.toFixed(1)}초 · {ev.distanceM.toFixed(0)}m · {ev.eventType}{ev.reasonCode?" · "+ev.reasonCode:""}</div><div className="small">{ev.text}</div></div>)}
+ const result=testResults[activeTestIndex],winner=result.results[0],r=liveSlots[activeTestIndex];
+ return <><div style={{height:14}}/>{section("선택한 비공식 경주 결과")}
+ <div className="card"><b>{r.time} · {r.track} {r.displayNo}경주 · {r.grade}</b>
+ <div className="large gold">{winner.number}번 {winner.name} 우승</div>
+ <div className="muted">경주기록 {winner.timeSec.toFixed(2)}초 · 결과 발표 예정 {r.resultTime} · 시드 {result.seed}</div></div>
+ <div className="card">{result.results.map(x=><div className="row line small" key={x.horseId}>
+ <b className="gold">{x.rank}위</b><span>{x.number}번 {x.name}</span><span>{x.timeSec.toFixed(2)}초</span></div>)}</div>
+ {section("200m 구간 순위")}
+ <div className="card">{result.sections.map(x=><div className="line" key={x.distanceM}>
+ <b className="gold">{x.distanceM}m</b>
+ <div className="muted">{x.ranks.slice(0,5).map(h=>h.rank+"위 "+h.number+"번 "+h.name).join(" · ")}</div></div>)}</div>
+ {section("경주 엔진 사건 로그")}
+ {result.events.filter(x=>x.importance>=2).slice(0,50).map(x=><div className="card" key={x.seq}>
+ <div className="muted">{x.timeSec.toFixed(1)}초 · {x.distanceM.toFixed(0)}m · {x.eventType}</div>
+ <div className="small">{x.text}</div></div>)}
  </>;
 })()}
 </div></>}
-
 {screen==="database"&&<>{title("Supabase 경주 DB 연동","my_derby · 비공식 시뮬레이션")}<div className="area">
 <div className="notice">19·20·21시 테스트 경주는 DB에 저장한 시연용 12두를 사용합니다. 정규 경주 데이터가 등록되면 본인 소유 출전마에 한해 미리보기를 실행할 수 있습니다. 공식 순위·상금·시즌 데이터는 변경하지 않습니다.</div>
 <button className="outline wide" disabled={dbBusy} onClick={fetchDbStatus}>DB 연결 상태 확인</button>
