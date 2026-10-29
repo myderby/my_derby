@@ -65,7 +65,7 @@ export default function WorldPage(){
  };
  return <div className="shell">
   <header className="header"><a className="brand" href="/" style={{textDecoration:"none"}}>MY DERBY</a><span className="coin">🌍 월드 운영</span></header>
-  <div className="disclaimer">실경주 기반 1,386두 · 사용자별 실제 소유 · 초기 운영 준비</div>
+  <div className="disclaimer">경주기록 기반 월드 · 추가 편성마는 임시 능력치 · 운영 중</div>
   <div className="area">
    <a href="/" className="outline" style={{display:"inline-block",textDecoration:"none",marginBottom:14}}>‹ 홈으로</a>
    <a href="/schedule" className="outline" style={{display:"inline-block",textDecoration:"none",marginBottom:14,marginLeft:8}}>공식 경주시간표 ›</a>
