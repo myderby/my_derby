@@ -20,15 +20,10 @@ export async function GET(request:Request){
   .eq("world_id",profile.data.world_id).gte("race_day",start+1).lte("race_day",start+21).eq("status","OPEN").order("race_day").order("start_time").limit(250);
   if(racesError)throw racesError;
   const ids=(races||[]).map(r=>r.id);
-  const entries=ids.length?await api.from("race_entries").select("id,race_id,horse_id,jockey_id,owner_user_id,status,snapshot").in("race_id",ids):{data:[],error:null};
-  if(entries.error)throw entries.error;
-  const byRace=new Map<string,{confirmed:number,npcSlots:number}>();
+  const [entries,slots]=await Promise.all([ids.length?api.from("race_entries").select("id,race_id,horse_id,jockey_id,owner_user_id,status,snapshot").in("race_id",ids):Promise.resolve({data:[],error:null}),ids.length?api.rpc("player_entry_slots",{p_race_ids:ids}):Promise.resolve({data:[],error:null})]);
+  if(entries.error||slots.error)throw entries.error||slots.error;
+  const byRace=new Map<string,{confirmed:number,npcSlots:number}>((slots.data||[]).map((s:{race_id:string;confirmed_count:number;replaceable_npc_count:number})=>[s.race_id,{confirmed:Number(s.confirmed_count),npcSlots:Number(s.replaceable_npc_count)}]));
   const list=(entries.data||[]) as Array<{race_id:string;horse_id:string;jockey_id:string;owner_user_id:string|null;status:string;snapshot:Record<string,unknown>}>;
-  for(const e of list){const obj=byRace.get(e.race_id)||{confirmed:0,npcSlots:0};
-   if(["CONFIRMED","APPLIED"].includes(e.status))obj.confirmed++;
-   if(e.status==="CONFIRMED"&&!e.owner_user_id&&e.snapshot?.entry_source==="NPC_AUTOFILL_V2")obj.npcSlots++;
-   byRace.set(e.race_id,obj);
-  }
   return response({joined:true,currentDay:start,horses:horses.data||[],jockeys:jockeys.data||[],
    races:(races||[]).map(r=>({...r,confirmedCount:byRace.get(r.id)?.confirmed||0,replaceableNpcCount:byRace.get(r.id)?.npcSlots||0})),
    entries:list.filter(e=>e.owner_user_id===user.id).map(e=>({id:e.race_id,horseId:e.horse_id,jockeyId:e.jockey_id,status:e.status}))});
