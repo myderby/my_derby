@@ -68,6 +68,7 @@ export default function WorldPage(){
   <div className="disclaimer">실경주 기반 1,386두 · 사용자별 실제 소유 · 초기 운영 준비</div>
   <div className="area">
    <a href="/" className="outline" style={{display:"inline-block",textDecoration:"none",marginBottom:14}}>‹ 홈으로</a>
+   <a href="/schedule" className="outline" style={{display:"inline-block",textDecoration:"none",marginBottom:14,marginLeft:8}}>공식 경주시간표 ›</a>
    <div className="section"><h2>월드 현황</h2><button onClick={loadOverview}>새로고침 ↻</button></div>
    {!overview&&<div className="notice">{loaded?"월드 데이터를 읽지 못했습니다.":"데이터를 불러오는 중…"}</div>}
    {overview&&<><div className="card">
@@ -83,7 +84,7 @@ export default function WorldPage(){
      <div className="card"><div className="muted">NPC 보유마</div><div className="large">{overview.npcOwnedHorses?.toLocaleString("ko-KR")}두</div></div>
      <div className="card"><div className="muted">사용자 배정 대기</div><div className="large green">{overview.reservedHorses}두</div></div>
     </div>
-    <div className="notice">월드 시간표는 <b>{overview.world.status==="ACTIVE"?"ACTIVE":"PAUSED"}</b> 상태이며 현실 1일=게임 1주, 52일=1시즌으로 계산됩니다. 단, <b>일괄 훈련·경제 정산 및 매일 19·20·21시 공식 경주 자동 실행은 아직 비활성화</b>되어 있습니다. 월드 날짜 표시가 바뀌어도 공식 결과·재화·연령은 자동 반영되지 않습니다.</div>
+    <div className="notice">월드 시간표는 <b>{overview.world.status==="ACTIVE"?"ACTIVE":"PAUSED"}</b> 상태이며 현실 1일=게임 1주, 52일=1시즌으로 계산됩니다. <b>공식 경주 자동 실행은 {overview.world.schedulerConfigured&&overview.world.automaticProcessingEnabled?"스케줄러가 활성화됨":"아직 비활성화"}</b> 상태입니다. 경주 결과와 구간 로그는 정시 실행 후 저장되지만 <b>상금·훈련·성장·말 나이의 자동 정산은 별도 개발이 필요</b>합니다. 2025년 경주 편성표를 게임용으로 재구성했으며 지역별 일부 말·기수 능력치는 임시 추정치입니다.</div>
    </>}
    <div className="section" style={{marginTop:18}}><h2>내 마주 등록 · 보유마</h2>{authenticated&&<button onClick={logout}>로그아웃</button>}</div>
    {!authenticated&&<div className="card">
