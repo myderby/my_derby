@@ -27,7 +27,7 @@ begin
    join my_derby.horses horse on horse.id=res.horse_id
    join my_derby.race_entries ent on ent.race_id=v_r.id and ent.horse_id=horse.id
    where res.race_run_id=v_run.id),
-  'sections',(select coalesce(jsonb_agg(entry order by entry->>'distanceM'),'[]'::jsonb) from
+  'sections',(select coalesce(jsonb_agg(entry order by (entry->>'distanceM')::integer),'[]'::jsonb) from
     (select jsonb_build_object('distanceM',sec.distance_m,
         'ranks',jsonb_agg(jsonb_build_object('rank',sec.ranking,'name',h.name,
           'number',ent.gate_no,'gapM',sec.gap_m) order by sec.ranking)) as entry
