@@ -11,8 +11,9 @@ const testRaceSlots=[
   {time:"20:00",track:"부경",distance:1400,grade:"5등급"},
   {time:"21:00",track:"영천",distance:1600,grade:"4등급"}
 ];
-export default function Home(){const [screen,S]=useState("home"),[selected,H]=useState(horses[0]),[filter,F]=useState("전체"),[race,R]=useState(2),[trainer,T]=useState(0),[jockey,J]=useState(0),[plans,P]=useState(["선입 대기","외곽 선입","후방 추입"]),[pos,E]=useState(0),[playing,Play]=useState(false),[testRuns,SetTestRuns]=useState([]),[testResults,SetTestResults]=useState({}),[activeTestIndex,SetActiveTestIndex]=useState(-1),[testBusy,SetTestBusy]=useState(false),[dbStatus,SetDbStatus]=useState(null),[dbBusy,SetDbBusy]=useState(false),[dbRaceId,SetDbRaceId]=useState(""),[dbHistory,SetDbHistory]=useState([]),[dbPreview,SetDbPreview]=useState(null),[breedingHorses,SetBreedingHorses]=useState([]),[breedingLoading,SetBreedingLoading]=useState(false),[breedingMessage,SetBreedingMessage]=useState(""),[toast,Q]=useState(""),[email,Mail]=useState(""),[password,Pass]=useState("");
+export default function Home(){const [screen,S]=useState("home"),[selected,H]=useState(horses[0]),[filter,F]=useState("전체"),[race,R]=useState(2),[trainer,T]=useState(0),[jockey,J]=useState(0),[plans,P]=useState(["선입 대기","외곽 선입","후방 추입"]),[pos,E]=useState(0),[playing,Play]=useState(false),[testRuns,SetTestRuns]=useState([]),[testResults,SetTestResults]=useState({}),[activeTestIndex,SetActiveTestIndex]=useState(-1),[testBusy,SetTestBusy]=useState(false),[raceSchedule,SetRaceSchedule]=useState(null),[scheduleError,SetScheduleError]=useState(""),[dbStatus,SetDbStatus]=useState(null),[dbBusy,SetDbBusy]=useState(false),[dbRaceId,SetDbRaceId]=useState(""),[dbHistory,SetDbHistory]=useState([]),[dbPreview,SetDbPreview]=useState(null),[breedingHorses,SetBreedingHorses]=useState([]),[breedingLoading,SetBreedingLoading]=useState(false),[breedingMessage,SetBreedingMessage]=useState(""),[toast,Q]=useState(""),[email,Mail]=useState(""),[password,Pass]=useState("");
 useEffect(()=>{if(!playing||pos>=events.length)return;const id=setTimeout(()=>E(x=>x+1),1200);return()=>clearTimeout(id)},[playing,pos]);
+const liveSlots=(raceSchedule?.races?.length===3?raceSchedule.races.map(r=>({time:r.start_time.slice(0,5),track:r.track,distance:r.distance_m,grade:r.class_name,status:r.status})):testRaceSlots);
 const go=x=>{S(x);if(typeof window!=="undefined")window.scrollTo(0,0)},msg=x=>{Q(x);setTimeout(()=>Q(""),3500)};
 const title=(x,sub)=><div className="pageTitle"><button className="back" onClick={()=>go("home")}>‹</button><div><h1>{x}</h1><div className="sub">{sub}</div></div></div>;
 const section=(x,next)=><div className="section"><h2>{x}</h2>{next&&<button onClick={()=>go(next)}>전체 보기 ›</button>}</div>;
@@ -21,18 +22,18 @@ const notReady=x=>msg(x+"은(는) 아직 시연 화면입니다. 실제 서버�
 const runNextTestRace=async()=>{
   if(testBusy)return;
   const index=testRuns.length;
-  if(index>=testRaceSlots.length)return;
+  if(index>=3||!raceSchedule?.races||raceSchedule.races.length!==3)return;
   SetTestBusy(true);
   try{
-    const response=await fetch("/api/race/simulate",{
+    const response=await fetch("/api/race/scheduled-test",{
       method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({slot:index}),cache:"no-store"
     });
     const payload=await response.json();
-    if(!response.ok||!payload.result||payload.mode!=="TEST_ONLY")throw new Error(payload.error||"경주 계산 실패");
+    if(!response.ok||!payload.result||payload.mode!=="SCHEDULE_BASED_TEST")throw new Error(payload.error||"경주 계산 실패");
     SetTestResults(previous=>({...previous,[index]:payload.result}));
     SetTestRuns(previous=>[...previous,index]);
     SetActiveTestIndex(index);
-    msg(testRaceSlots[index].time+" 경주 계산 완료 · Supabase DB 12두 출전 데이터");
+    msg(liveSlots[index].time+" "+liveSlots[index].track+" 경주 계산 완료 · 공식 편성 출전마 12두");
   }catch(error){msg("경주 계산 실패: "+(error instanceof Error?error.message:"알 수 없는 오류"))}
   finally{SetTestBusy(false)}
 };
@@ -108,22 +109,33 @@ const retireBreeder=async(h)=>{
 };
 const auth=async signup=>{const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;if(!url||!key)return msg("Supabase 환경 설정이 필요합니다.");const c=createClient(url,key);try{const {error}=signup?await c.auth.signUp({email,password}):await c.auth.signInWithPassword({email,password});msg(error?error.message:signup?"이메일 가입 요청 완료":"로그인 완료 (게임 데이터 저장 미연동)")}catch(e){msg(e.message)}};
 useEffect(()=>{if(screen==="breeding"){void loadBreedingHorses()}},[screen]);
-return <main className="shell"><header className="header"><div onClick={()=>go("home")}><div className="brand">MY DERBY</div><div className="sub">52주 시즌 · 일정 연동 준비 중</div></div><span className="coin">◉ 3,675 G</span><button className="hamburger" onClick={()=>go("menu")}>☰</button></header><div className="disclaimer">모바일 UI 체험판 · 가상 데이터 · 실제 경주 결과 아님</div>
-{screen==="home"&&<><div className="hero"><div className="overline">🍂 오늘도 우리 말들과 함께 성장해요</div><h1>가을 목장</h1><div className="caption">마주의 새로운 하루</div><button className="primary" onClick={()=>go("ranch")}>목장 둘러보기 ›</button></div><div className="area">{section("오늘의 관리","horses")}<div className="card row"><div><div className="large">5두</div><div className="muted">훈련 중 2두</div></div><div><div className="sub">평균 컨디션</div><div className="large green">80%</div></div><button className="outline" onClick={()=>go("testRaces")}>경주 테스트 ›</button></div>{section("정시 경주 테스트","testRaces")}{box("19:00 → 20:00 → 21:00","한국시간 · 12두 실제 엔진 계산",()=>go("testRaces"),testRuns.length+"/3 완료")}<a href="/world" className="card action row" style={{textDecoration:"none",color:"inherit",display:"flex",marginTop:14}}><div><b className="gold">🌍 월드 운영 · 실제 보유마</b><div className="muted">NPC 마주 현황 · 시즌 일정 · 사용자 마주 등록</div></div><span className="tag">열기 ›</span></a>{section("게임 메뉴")}<div className="grid">{[["⌂","목장","휴양 · 재활 · 어린말 육성","ranch"],["♞","마방","조교사 · 훈련 리포트","horses"],["♜","경주","출전 · 전략 · 로그 결과","races"],["✧","교배","씨수말 · 교배 · 자마","breeding"]].map(([i,n,d,p])=><button className="card action" onClick={()=>go(p)} key={n}><div className="icon">{i}</div><b>{n}</b><div className="muted">{d}</div></button>)}</div></div></>}
+useEffect(()=>{
+ if(screen!=="home"&&screen!=="testRaces")return;
+ let alive=true;
+ fetch("/api/world/schedule",{cache:"no-store"}).then(async r=>{
+  const data=await r.json();if(!r.ok)throw new Error(data.error||"경주 일정 조회 실패");
+  if(alive){SetRaceSchedule(data);SetScheduleError("");}
+ }).catch(e=>{if(alive){SetRaceSchedule(null);SetScheduleError(e.message);}});
+ return ()=>{alive=false};
+},[screen]);
+return <main className="shell"><header className="header"><div onClick={()=>go("home")}><div className="brand">MY DERBY</div><div className="sub">{raceSchedule?.world?`${raceSchedule.world.season}시즌 · ${raceSchedule.world.week}주차 · ${raceSchedule.world.status==="ACTIVE"?"월드 운영 중":"운영 대기"}`:"경주 일정 조회 중"}</div></div><span className="coin">◉ 3,675 G</span><button className="hamburger" onClick={()=>go("menu")}>☰</button></header><div className="disclaimer">월드 시간표는 운영 중 · 일반 관리화면은 체험 UI 포함 · 공식 경기 결과는 별도 저장</div>
+{screen==="home"&&<><div className="hero"><div className="overline">🍂 오늘도 우리 말들과 함께 성장해요</div><h1>가을 목장</h1><div className="caption">마주의 새로운 하루</div><button className="primary" onClick={()=>go("ranch")}>목장 둘러보기 ›</button></div><div className="area">{section("오늘의 관리","horses")}<div className="card row"><div><div className="large">5두</div><div className="muted">훈련 중 2두</div></div><div><div className="sub">평균 컨디션</div><div className="large green">80%</div></div><button className="outline" onClick={()=>go("testRaces")}>경주 테스트 ›</button></div>{section("오늘의 공식 경주 시간표","testRaces")}
+{raceSchedule?.races?.length?raceSchedule.races.map(r=>box(r.start_time.slice(0,5)+" · "+r.track+" "+r.distance_m+"m",r.class_name+" · "+(r.status==="FINISHED"?"경주 종료":r.status==="RUNNING"?"경주 진행 중":"경주 대기"),()=>go("testRaces"),r.status)): <div className="notice">{scheduleError||"오늘 경주시간표를 불러오는 중…"}</div>}
+{box("⚡ 경주시간표 강제 테스트","19시 → 20시 → 21시 · 공식 출전마로 비공식 계산",()=>go("testRaces"),testRuns.length+"/3")}<a href="/world" className="card action row" style={{textDecoration:"none",color:"inherit",display:"flex",marginTop:14}}><div><b className="gold">🌍 월드 운영 · 실제 보유마</b><div className="muted">NPC 마주 현황 · 시즌 일정 · 사용자 마주 등록</div></div><span className="tag">열기 ›</span></a>{section("게임 메뉴")}<div className="grid">{[["⌂","목장","휴양 · 재활 · 어린말 육성","ranch"],["♞","마방","조교사 · 훈련 리포트","horses"],["♜","경주","출전 · 전략 · 로그 결과","races"],["✧","교배","씨수말 · 교배 · 자마","breeding"]].map(([i,n,d,p])=><button className="card action" onClick={()=>go(p)} key={n}><div className="icon">{i}</div><b>{n}</b><div className="muted">{d}</div></button>)}</div></div></>}
 {screen==="testRaces"&&<>{title("정시 경주 엔진 테스트","19:00 → 20:00 → 21:00 · 서버 계산")}<div className="area">
-<div className="notice"><b>TypeScript 경주 엔진 · 테스트 전용</b><br/>12두 출전마의 스피드·체력·위치·기수 1~3안 전략을 0.2초 단위로 계산합니다. 출력되는 결과·로그는 엔진이 계산한 값이며, 출전 데이터는 Supabase my_derby 테스트 테이블에서 읽습니다. 공식 시즌·경주 결과·상금·전적에는 기록하지 않습니다.</div>
-{testRaceSlots.map((slot,i)=><div className="card row" key={slot.time}>
+<div className="notice"><b>TypeScript 경주 엔진 · 테스트 전용</b><br/>12두 출전마의 스피드·체력·위치·기수 1~3안 전략을 0.2초 단위로 계산합니다. 출력되는 결과·로그는 엔진이 계산한 값이며, 공식 경주시간표와 실제 편성된 12두를 Supabase에서 불러와 시간 제한 없이 강제 계산합니다. 재실행 시 새 시드를 사용합니다. 테스트 버튼은 공식 결과·상금·전적을 변경하지 않습니다.</div>
+{liveSlots.map((slot,i)=><div className="card row" key={slot.time}>
   <div><b className="gold">{slot.time} · {slot.track} 경주</b><div className="muted">{slot.distance}m · {slot.grade} · 12두</div></div>
   <span className="tag">{testRuns.includes(i)?"✓ 계산 완료":i===testRuns.length?"다음 실행":"대기"}</span>
 </div>)}
-<button className="primary wide" disabled={testBusy||testRuns.length>=testRaceSlots.length} onClick={runNextTestRace}>
-{testBusy?"경주 시뮬레이션 계산 중…":testRuns.length<testRaceSlots.length?testRaceSlots[testRuns.length].time+" 경주 계산 실행":"19시 · 20시 · 21시 계산 완료"}
+<button className="primary wide" disabled={testBusy||!raceSchedule?.races||raceSchedule.races.length!==3||testRuns.length>=3} onClick={runNextTestRace}>
+{testBusy?"경주 시뮬레이션 계산 중…":testRuns.length<3?liveSlots[testRuns.length].time+" 경주 계산 실행":"19시 · 20시 · 21시 계산 완료"}
 </button><div style={{height:10}}/><button className="outline wide" disabled={testBusy} onClick={resetTestRaces}>테스트 초기화</button>
 {activeTestIndex>=0&&testResults[activeTestIndex]&&(()=>{
  const result=testResults[activeTestIndex];
  const winner=result.results[0];
- return <><div style={{height:20}}/>{section("경주 계산 결과")}
- <div className="card"><div className="row"><b>{testRaceSlots[activeTestIndex].time} · {result.track}</b><span className="tag">엔진 결과 · 비공식</span></div>
+ return <><div style={{height:20}}/>{section("경주 계산 결과 · 비공식 테스트")}
+ <div className="card"><div className="row"><b>{liveSlots[activeTestIndex].time} · {result.track}</b><span className="tag">엔진 결과 · 비공식</span></div>
  <div className="large gold">{winner.number}번 {winner.name} · 우승</div>
  <div className="muted">기록 {winner.timeSec.toFixed(2)}초 · 시드 {result.seed} · 엔진 {result.version} · {result.tickSeconds}초 틱</div></div>
  {section("최종 순위 · 12두")}
