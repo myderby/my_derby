@@ -31,7 +31,7 @@ export default function SchedulePage(){
    {races.map(r=><div key={r.id} className="card row">
     <div><b className="gold">{r.time} · {r.track}</b>
     <div className="muted">{r.grade} · {r.distance}m · 원본 meet: {r.sourceMeet}</div></div>
-    <span className="tag">{r.status==="FINISHED"?"경주 종료":r.status==="RUNNING"?"진행 중":"예정"}</span>
+    <span className="tag">{r.status==="FINISHED"?"경주 종료":r.status==="RUNNING"?"진행 중":"예정"}</span>{r.status==="FINISHED"&&<a className="outline" href={"/race/result/"+r.id} style={{textDecoration:"none",fontSize:12}}>결과 ›</a>}
    </div>)}
   </div>)}
   {!program&&!error&&<div className="notice">경주 시간표를 불러오는 중…</div>}
