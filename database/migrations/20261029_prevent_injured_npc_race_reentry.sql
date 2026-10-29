@@ -67,7 +67,7 @@ begin
  return jsonb_build_object('status','OK','startOffset',v_start,'endOffset',v_end,
  'newRaces',v_created,'newEntries',v_entries);
 end;
-$function$
+$function$;
 
 
 CREATE OR REPLACE FUNCTION my_derby_private.prepare_program_entries(p_game_day integer)
@@ -176,4 +176,4 @@ begin
  end loop;
  return jsonb_build_object('gameDay',p_game_day,'addedEntries',total_added,
   'readyRaces',ready,'insufficientRaces',missing);
-end $function$
+end $function$;
