@@ -83,7 +83,7 @@ export default function WorldPage(){
      <div className="card"><div className="muted">NPC 보유마</div><div className="large">{overview.npcOwnedHorses?.toLocaleString("ko-KR")}두</div></div>
      <div className="card"><div className="muted">사용자 배정 대기</div><div className="large green">{overview.reservedHorses}두</div></div>
     </div>
-    <div className="notice">현재 월드는 <b>PAUSED</b> 상태입니다. NPC 소유·사용자 배정·시간 규칙은 DB에 연결됐지만 매일 7일치 훈련·경제 정산 및 19/20/21시 경주 자동 실행은 아직 시작하지 않았습니다.</div>
+    <div className="notice">월드 시간표는 <b>{overview.world.status==="ACTIVE"?"ACTIVE":"PAUSED"}</b> 상태이며 현실 1일=게임 1주, 52일=1시즌으로 계산됩니다. 단, <b>일괄 훈련·경제 정산 및 매일 19·20·21시 공식 경주 자동 실행은 아직 비활성화</b>되어 있습니다. 월드 날짜 표시가 바뀌어도 공식 결과·재화·연령은 자동 반영되지 않습니다.</div>
    </>}
    <div className="section" style={{marginTop:18}}><h2>내 마주 등록 · 보유마</h2>{authenticated&&<button onClick={logout}>로그아웃</button>}</div>
    {!authenticated&&<div className="card">
