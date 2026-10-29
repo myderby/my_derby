@@ -52,3 +52,17 @@ test("increasing quality substantially improves average placing",()=>{
  }
  assert.ok(better<base,JSON.stringify({better,base}));
 });
+
+test("16-runner dusu race finishes with all unique places and gate numbers",()=>{
+ const input=makeTestRace(0,39211);
+ input.runners.push(...input.runners.slice(0,4).map((h,i)=>({
+  ...h,id:"extra-"+i,name:"증원"+(i+1),number:13+i,gate:13+i,
+  horse:{...h.horse},jockey:{...h.jockey},strategies:[...h.strategies]
+ })));
+ const result=simulateRace(input);
+ assert.equal(result.results.length,16);
+ assert.equal(result.results.filter(x=>x.rank===16).length,1);
+ assert.equal(new Set(result.results.map(x=>x.horseId)).size,16);
+ assert.equal(result.events.filter(x=>x.eventType==="FINISH").length,16);
+ assert.ok(result.sections.every(x=>x.ranks.length===16));
+});

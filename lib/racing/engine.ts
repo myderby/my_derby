@@ -21,7 +21,7 @@ export function validateRace(input:RaceInput):void {
   if(typeof input.raceId!=="string"||!input.raceId||input.raceId.length>80)throw new Error("Invalid raceId");
   if(!Number.isInteger(input.seed)||input.seed<0||input.seed>2147483647)throw new Error("Invalid seed");
   if(!Number.isInteger(input.distanceM)||input.distanceM<800||input.distanceM>3200)throw new Error("Distance must be 800..3200m");
-  if(!Array.isArray(input.runners)||input.runners.length<2||input.runners.length>12)throw new Error("Race requires 2..12 horses");
+  if(!Array.isArray(input.runners)||input.runners.length<2||input.runners.length>16)throw new Error("Race requires 2..16 horses");
   if(input.trackFactor!==undefined&&(!Number.isFinite(input.trackFactor)||input.trackFactor<.75||input.trackFactor>1.1))throw new Error("Invalid track factor");
   const ids=new Set<string>(), numbers=new Set<number>(), gates=new Set<number>();
   for(const r of input.runners){
@@ -134,7 +134,7 @@ export function simulateRace(input:RaceInput):RaceResult {
   let states=runners.map(r=>initialState(r,rng));
   let events:RaceEvent[]=[], sections:SectionRank[]=[];
   const event=(time:number,distance:number,horseId:string|null,eventType:RaceEvent["eventType"],reason:string|null,params:RaceEvent["params"],importance:number,text:string)=>{
-    if(events.length>=650)return;
+    if(events.length>=620&&eventType!=="FINISH")return;
     events.push({seq:events.length+1,timeSec:rnd(time),distanceM:rnd(Math.max(0,distance)),horseId,eventType,reasonCode:reason,params,importance,text});
   };
   const lastSwitch=new Map(runners.map(r=>[r.id,0]));

@@ -13,7 +13,7 @@ const liveSlots=(raceSchedule?.races||[]).map(r=>({
  id:r.id,time:r.start_time?.slice(0,5)||"--:--",resultTime:r.result_time,
  track:r.track,distance:r.distance_m,grade:r.class_name,
  displayNo:r.source_rc_no,status:r.status,entryStatus:r.entry_status,
- sourceTime:r.source_st_time
+ sourceTime:r.source_st_time,dusu:r.dusu,actual:r.actual_starters
 }));
 const go=x=>{S(x);if(typeof window!=="undefined")window.scrollTo(0,0)},msg=x=>{Q(x);setTimeout(()=>Q(""),3500)};
 const title=(x,sub)=><div className="pageTitle"><button className="back" onClick={()=>go("home")}>‹</button><div><h1>{x}</h1><div className="sub">{sub}</div></div></div>;
@@ -143,7 +143,7 @@ return <main className="shell"><header className="header"><div onClick={()=>go("
 {screen==="home"&&<><div className="hero"><div className="overline">🍂 오늘도 우리 말들과 함께 성장해요</div><h1>가을 목장</h1><div className="caption">마주의 새로운 하루</div><button className="primary" onClick={()=>go("ranch")}>목장 둘러보기 ›</button></div><div className="area">{section("오늘의 관리","horses")}<div className="card row"><div><div className="large gold">실제 경주마</div><div className="muted">마주 소유마는 월드에서 조회</div></div><div><div className="sub">평균 컨디션</div><div className="large green">{raceSchedule?.world?.status==="ACTIVE"?"ACTIVE":"확인 중"}</div></div><button className="outline" onClick={()=>go("testRaces")}>경주 테스트 ›</button></div>{section("오늘의 공식 경주 시간표","testRaces")}
 {raceSchedule?.races?.length?<><div className="muted">오늘 총 {raceSchedule.raceCount}경주 · 출발 3분 간격 · 결과 3분 후</div>
  {raceSchedule.races.slice(0,8).map(r=>box(r.start_time.slice(0,5)+" · "+r.track+" "+r.source_rc_no+"경주",
- r.class_name+" · "+r.distance_m+"m · 결과 "+r.result_time,
+ r.class_name+" · "+r.distance_m+"m · 출전 "+r.actual_starters+"/"+r.dusu+"두 · 결과 "+r.result_time,
  ()=>go("testRaces"),r.status))}
  <button className="outline wide" onClick={()=>go("testRaces")}>오늘 전체 {raceSchedule.raceCount}경주 보기 ›</button></>:
  <div className="notice">{scheduleError||"오늘 경주시간표를 불러오는 중…"}</div>}
@@ -168,7 +168,7 @@ CSV의 rank, rcNo, stTime 순서를 반영한 오늘의 경주를 시간표 순�
 <div style={{height:14}}/>
 {liveSlots.map((race,i)=><div className="card row" key={race.id} onClick={()=>{if(testResults[i])SetActiveTestIndex(i)}} style={{cursor:testResults[i]?"pointer":"default",padding:"11px 13px"}}>
  <div><b className="gold">{race.time} · {race.track} {race.displayNo}경주</b>
- <div className="muted">{race.grade} · {race.distance}m · 결과 {race.resultTime} · 원본 {race.sourceTime}</div></div>
+ <div className="muted">{race.grade} · {race.distance}m · 출전 {race.actual}/{race.dusu}두 · 결과 {race.resultTime} · 원본 {race.sourceTime}</div></div>
  <span className="tag">{testRuns.includes(i)?"✓ 테스트 완료":race.entryStatus==="INSUFFICIENT_ELIGIBLE_HORSES"?"출전마 부족":i===testRuns.length?"다음":"대기"}</span>
 </div>)}
 {activeTestIndex>=0&&testResults[activeTestIndex]&&(()=>{

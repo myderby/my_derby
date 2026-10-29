@@ -9,7 +9,7 @@ export async function GET(){
   if(summaryError||!summary?.ready)throw summaryError||new Error("월드가 없습니다.");
   const day=summary.world.gameDayStart;
   const {data:cards,error}=await api.from("races")
-    .select("id,track,distance_m,class_name,start_time,status,prize_policy,race_day")
+    .select("id,track,distance_m,class_name,start_time,status,prize_policy,race_day,target_runner_count")
     .eq("world_id",summary.world.worldId).eq("race_day",day)
     .eq("prize_policy->>schedule_version","csv2025_rank_sttime_v2")
     .order("start_time",{ascending:true}).limit(100);
@@ -27,7 +27,7 @@ export async function GET(){
     slot_index:r.prize_policy?.slot_index,
     slot_sequence:r.prize_policy?.slot_sequence,
     entry_status:r.prize_policy?.entry_status,
-    race_day:r.race_day}))},{headers:{"Cache-Control":"no-store"}});
+    race_day:r.race_day,dusu:r.target_runner_count,actual_starters:r.prize_policy?.actual_starters??0}))},{headers:{"Cache-Control":"no-store"}});
  }catch(e){return NextResponse.json({error:e instanceof Error?e.message:"Schedule unavailable"},
    {status:503,headers:{"Cache-Control":"no-store"}})}
 }

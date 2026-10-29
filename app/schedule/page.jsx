@@ -29,7 +29,7 @@ export default function SchedulePage(){
  <div className="tabs">{["전체","서울","부산","영천"].map(x=><button key={x} className={track===x?"active":""} onClick={()=>SetTrack(x)}>{x}</button>)}</div>
  {Object.entries(grouped).map(([slot,list])=><div key={slot}><div className="section"><h2>{slot} 시작 · {list.length}경주</h2></div>
  {list.map(r=><div key={r.id} className="card row">
- <div><b className="gold">{r.time} {r.track} {r.sourceRaceNo}경주</b><div className="muted">{r.grade} · {r.distance}m · 결과 {r.resultTime}</div>
+ <div><b className="gold">{r.time} {r.track} {r.sourceRaceNo}경주</b><div className="muted">{r.grade} · {r.distance}m · 출전 {r.actualStarters}/{r.dusu}두 · 결과 {r.resultTime}</div>
  <div className="muted">원본 {r.sourceMeet} {r.sourceDate} / stTime {r.sourceStTime}{r.sourceWeekReused?" · 원본 주간 재사용":""}</div></div>
  <div><span className="tag">{r.status==="FINISHED"?"결과 확정":r.status==="RUNNING"?"경주 진행 중":"예정"}</span>
  {r.status==="FINISHED"&&<a className="outline" style={{display:"block",fontSize:11,marginTop:8,textDecoration:"none"}} href={"/race/result/"+r.id}>결과 ›</a>}</div>

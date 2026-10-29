@@ -13,7 +13,7 @@ export async function GET(request:Request){
    return NextResponse.json({error:"주차는 1~52 사이여야 합니다."},{status:400});
   const gameDay=(week-1)*7+1;
   const {data:events,error}=await api.from("races")
-   .select("id,track,race_day,start_time,class_name,distance_m,status,prize_policy")
+   .select("id,track,race_day,start_time,class_name,distance_m,status,prize_policy,target_runner_count")
    .eq("world_id",overview.world.worldId).eq("race_day",gameDay)
    .eq("prize_policy->>schedule_version","csv2025_rank_sttime_v2")
    .order("start_time",{ascending:true}).limit(100);
@@ -33,6 +33,7 @@ export async function GET(request:Request){
     sourceDate:r.prize_policy?.source_date,
     sourceRaceNo:r.prize_policy?.source_rc_no,
     sourceWeekReused:r.prize_policy?.source_week_reused,
+    dusu:r.target_runner_count,actualStarters:r.prize_policy?.actual_starters??0,
     entryStatus:r.prize_policy?.entry_status,
     prizesSettled:r.prize_policy?.prize_status==="SETTLED"
    }))

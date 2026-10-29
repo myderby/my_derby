@@ -45,7 +45,7 @@ export function makeRaceInputFromDatabase(params:{
 }):RaceInput{
  const {race,entries,horses,abilities,jockeys,strategies,seed}=params;
  if(race.status!=="CLOSED"&&race.status!=="FINISHED")throw new Error("Race must be closed before preview");
- if(entries.length<2||entries.length>12)throw new Error("Need 2..12 confirmed runners");
+ if(entries.length<2||entries.length>16)throw new Error("Need 2..16 confirmed runners");
  const out:RaceRunner[]=entries.map((entry,i)=>{
    const h=horses.find(h=>h.id===entry.horse_id);
    const a=abilities.find(a=>a.horse_id===entry.horse_id);

@@ -40,7 +40,7 @@ export async function POST(request:Request){
   if(countError)throw countError;
   if(count===null)return fail("해당 경주의 출전 마주만 미리보기를 요청할 수 있습니다.",403);
   if(!entries||entries.length!==count)return fail("다른 마주의 출전마가 포함되어 있습니다. 공식 서버 계산 권한 연결 전까지 경주 전체를 미리볼 수 없습니다.",409);
-  if(entries.length<2||entries.length>12)return fail("2~12두의 확정 출전마가 필요합니다.",409);
+  if(entries.length<2||entries.length>16)return fail("2~16두의 확정 출전마가 필요합니다.",409);
   if(entries.some(e=>e.owner_user_id!==user.id))return fail("미리보기 접근이 제한되었습니다.",403);
   const horseIds=entries.map(e=>e.horse_id),jockeyIds=entries.map(e=>e.jockey_id).filter(Boolean);
   if(jockeyIds.length!==entries.length)return fail("기수가 미배정된 출전마가 있습니다.",409);
