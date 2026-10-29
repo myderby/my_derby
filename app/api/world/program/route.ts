@@ -30,6 +30,8 @@ export async function GET(request:Request){
     track:r.track,grade:r.class_name,distance:r.distance_m,status:r.status,
     sourceMeet:r.prize_policy?.source_meet,
     sourceStTime:r.prize_policy?.source_st_time,
+    sourceDistance:r.prize_policy?.source_distance_m??null,
+    distancePolicy:r.prize_policy?.distance_policy??null,
     sourceDate:r.prize_policy?.source_date,
     sourceRaceNo:r.prize_policy?.source_rc_no,
     sourceWeekReused:r.prize_policy?.source_week_reused,

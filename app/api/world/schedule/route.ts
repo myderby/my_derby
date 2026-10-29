@@ -27,6 +27,8 @@ export async function GET(){
     slot_index:r.prize_policy?.slot_index,
     slot_sequence:r.prize_policy?.slot_sequence,
     entry_status:r.prize_policy?.entry_status,
+    source_distance_m:r.prize_policy?.source_distance_m??null,
+    distance_policy:r.prize_policy?.distance_policy??null,
     race_day:r.race_day,dusu:r.target_runner_count,actual_starters:r.prize_policy?.actual_starters??0}))},{headers:{"Cache-Control":"no-store"}});
  }catch(e){return NextResponse.json({error:e instanceof Error?e.message:"Schedule unavailable"},
    {status:503,headers:{"Cache-Control":"no-store"}})}
