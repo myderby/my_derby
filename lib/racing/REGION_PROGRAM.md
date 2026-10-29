@@ -16,3 +16,14 @@ This application uses **2025 race-plan data supplied by the user**, only as the 
 - Official results and 200m checkpoints, events are saved. **Economy_v2 payouts are NOT implemented; stored prize_amount=0 and prize_status=PENDING_ECONOMY_V2.** No financial ledger adjustments may be made before that system is implemented.
 - The first season has 52 dates pre-programmed; ongoing season-2 program rollover, automated fatigue/growth, dynamic entries, late scratches and horse aging still need dedicated processors. Calendar displays advance with KST days; do not claim those extra processors run.
 - Historical plans from 2025 are **not** official 2026 races; this is a fictional game program generated from statistical patterns.
+
+### Live schedule, results and tests
+
+- Public upcoming program: `/schedule` and `GET /api/world/program` (52-week timetable, normalized meet labels).
+- Home current official slots: `GET /api/world/schedule`.
+- User-triggered sequential forced simulations: `POST /api/race/scheduled-test` body `{"slot":0}`, then slot 1 and 2. Can replay with different seeds; **not official results**.
+- Official race results after cron: `/race/result/<raceId>` and `GET /api/race/official/<raceId>`. Race info, order, 200m checkpoints and event logs are visible; hidden genetic/potential stats are not exposed.
+- Supabase cron KST 19/20/21: `0,5,10,15 10/11/12 * * *` respectively in UTC. The 00 slot is first run; 05/10/15 retries are idempotent. A separate job refreshes upcoming programs at 00:05 UTC (09:05 KST).
+- Backend `secure_official_race_input` and `secure_official_race_finalize` use private dispatch token and SQL transaction locks. Never place `CRON_SECRET` in GitHub.
+- Audit and reproducibility: `my_derby.official_race_process_audit`, `race_runs.race_input`, `race_runs.random_seed`.
+- Manual safety test: three schedule-based races computed via real HTTP successfully; official finalize and public result construction tested in rolled-back database subtransactions (no premature official result).
