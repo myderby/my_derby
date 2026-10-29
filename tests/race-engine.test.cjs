@@ -119,7 +119,7 @@ test("1000m race commentary must reach the finish line even with 16 horses",()=>
     horse:{...h.horse},jockey:{...h.jockey},strategies:[...h.strategies]
   })));
   const result=simulateRace(input);
-  const commentary=selectRaceCommentary(result.events,70);
+  const commentary=selectRaceCommentary(result.events);
   assert.equal(result.distanceM,1000);
   assert.equal(result.sections.at(-1).distanceM,1000);
   assert.equal(result.events.filter(e=>e.eventType==="FINISH").length,16);
@@ -142,11 +142,53 @@ test("dense 1000m commentary keeps finish and 200m checkpoints instead of cuttin
   }
   crowd.push({seq:999,timeSec:80,distanceM:1000,horseId:"winner",
     eventType:"FINISH",reasonCode:null,params:{rank:1},importance:3,text:"우승마 결승선 통과!"});
-  const shown=selectRaceCommentary(crowd,70);
-  assert.equal(shown.length,70);
+  const shown=selectRaceCommentary(crowd);
+  assert.equal(shown.length,crowd.length);
   assert.ok(shown.some(e=>e.eventType==="FINISH"&&e.distanceM===1000));
   assert.ok(shown.some(e=>e.eventType==="START"));
   for(const checkpoint of [200,400,600,800])
     assert.ok(shown.some(e=>e.reasonCode==="SECTION_LEADER"&&e.distanceM===checkpoint));
   assert.ok(shown.some(e=>e.timeSec>65), "must include events near finish");
+});
+
+test("commentary displays every non-private event with no importance or count cap",()=>{
+ const input=Array.from({length:1300},(_,i)=>({
+  seq:i+1,timeSec:i/10,distanceM:i*.6,
+  horseId:"demo-"+(1+i%10),eventType:"PACE",
+  reasonCode:null,params:{},importance:i%3,
+  text:"실시간 경기 이벤트 "+i
+ }));
+ input.push({seq:1301,timeSec:131,distanceM:1000,horseId:"demo-1",
+  eventType:"FINISH",reasonCode:null,params:{rank:1},importance:3,text:"결승선 통과!"});
+ input.push({seq:1302,timeSec:130,distanceM:950,horseId:"demo-1",
+  eventType:"STRATEGY_SWITCH",reasonCode:null,params:{},importance:2,text:"1안에서 2안으로"});
+ const shown=selectRaceCommentary(input);
+ assert.equal(shown.length,1301,"all real commentary events must be visible");
+ assert.ok(shown.some(e=>e.importance===0));
+ assert.ok(shown.some(e=>e.importance===1));
+ assert.equal(shown.at(-1).eventType,"FINISH");
+ assert.ok(!shown.some(e=>e.eventType==="STRATEGY_SWITCH"));
+});
+
+test("starting gate movement cannot trigger false blocked-ahead commentary",()=>{
+ // Ensure different runner pools and 800/1000/1600m courses all share
+ // the early-race physical restriction, not merely a UI hide filter.
+ const distances=[800,1000,1600];
+ for(const distanceM of distances){
+  for(const seed of [42,6197,8103,17701]){
+   const race=makeTestRace(0,seed);
+   race.distanceM=distanceM;
+   const result=simulateRace(race);
+   for(const e of result.events.filter(e=>e.eventType==="BLOCKED")){
+    assert.ok(e.timeSec>=7,"blocking before field settles: "+JSON.stringify(e));
+    assert.ok(e.distanceM>=100,"blocking in starting straight: "+JSON.stringify(e));
+   }
+   for(const e of result.events.filter(e=>e.eventType==="LANE_CHANGE")){
+    assert.ok(e.timeSec>=4,"lane change right at gate: "+JSON.stringify(e));
+    assert.ok(e.distanceM>=50,"lane change inside starting gate: "+JSON.stringify(e));
+   }
+   assert.equal(result.results.length,12);
+   assert.equal(result.events.filter(e=>e.eventType==="FINISH").length,12);
+  }
+ }
 });

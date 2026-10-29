@@ -90,8 +90,20 @@ function physicalLane(r:RaceRunner,st:RunnerState,wanted:Strategy,live:RunnerSta
   const success=!occupied&&rng.next()<(0.58+r.jockey.positioning*.0035);
   return success?candidate:st.lane;
 }
-function blockedBy(st:RunnerState,others:RunnerState[]){
-  return others.some(o=>o.id!==st.id&&o.finishedAt===null&&o.lane===st.lane&&o.distanceM>st.distanceM&&o.distanceM-st.distanceM<5.2);
+/**
+ * A horse isn't "boxed in" simply because its starting stall shares a
+ * modelled lane with another starter. Traffic interference can arise only
+ * after the field has settled, when a slower horse is directly ahead.
+ */
+function blockedBy(st:RunnerState,others:RunnerState[],elapsedSec:number){
+  if(elapsedSec<7||st.distanceM<100)return false;
+  return others.some(o=>
+    o.id!==st.id&&o.finishedAt===null&&
+    o.lane===st.lane&&
+    o.distanceM-st.distanceM>=1.5&&
+    o.distanceM-st.distanceM<5.2&&
+    st.speedMps>=o.speedMps-0.15
+  );
 }
 function targetSpeed(r:RaceRunner,st:RunnerState,phase:Phase,pressure:number,blocked:boolean,trackFactor:number):number{
   const h=r.horse,j=r.jockey;
@@ -134,7 +146,7 @@ export function simulateRace(input:RaceInput):RaceResult {
   let states=runners.map(r=>initialState(r,rng));
   let events:RaceEvent[]=[], sections:SectionRank[]=[];
   const event=(time:number,distance:number,horseId:string|null,eventType:RaceEvent["eventType"],reason:string|null,params:RaceEvent["params"],importance:number,text:string)=>{
-    if(events.length>=620&&eventType!=="FINISH")return;
+    // No global log cap: the bounded race simulation determines event volume.
     events.push({seq:events.length+1,timeSec:rnd(time),distanceM:rnd(Math.max(0,distance)),horseId,eventType,reasonCode:reason,params,importance,text});
   };
   const lastSwitch=new Map(runners.map(r=>[r.id,0]));
@@ -142,7 +154,6 @@ export function simulateRace(input:RaceInput):RaceResult {
   const lastBlockMention=new Map<string,number>();
   const lastOvertakeMention=new Map<string,number>();
   const lastDriveMention=new Map<string,number>();
-  let finalChargeMentions=0;
   let elapsed=0, nextSection=200, lastPressureBand="";
   const startNames=states.map(s=>s.name).join(", ");
   event(0,0,null,"START",null,{runnerCount:runners.length},2,"출발! "+runners.length+"두가 경주를 시작합니다.");
@@ -169,7 +180,7 @@ export function simulateRace(input:RaceInput):RaceResult {
       const runner=byId.get(st.id)!;
       const progress=clamp(st.distanceM/input.distanceM,0,1);
       const phase=phaseOf(progress);
-      const blocked=blockedBy(st,snapshot);
+      const blocked=blockedBy(st,snapshot,elapsed);
       const decision=decide(runner,st,phase,frontPressure,blocked,elapsed,rng,lastSwitch.get(st.id)!);
       const ns=copy(st);
       if(decision.index!==st.strategyIndex){
@@ -179,7 +190,9 @@ export function simulateRace(input:RaceInput):RaceResult {
         // Strategy changes affect the physics but are deliberately not narrated.
         // Internal plans remain in section strategy snapshots for analysis.
       }
-      ns.lane=physicalLane(runner,st,ns.strategy,snapshot,rng);
+      // Keep stable gate lanes until horses have genuinely left the start.
+      ns.lane=elapsed>=4&&st.distanceM>=50
+        ?physicalLane(runner,st,ns.strategy,snapshot,rng):st.lane;
       if(ns.lane!==st.lane && elapsed-(lastLaneMention.get(st.id)??-100)>7){
         lastLaneMention.set(st.id,elapsed);
         const outside=ns.lane>st.lane;
@@ -214,8 +227,7 @@ export function simulateRace(input:RaceInput):RaceResult {
       }
       if(phase==="FINAL"&&st.rank>1&&st.rank<=5
          &&ns.speedMps>st.speedMps+.09
-         &&finalChargeMentions<3&&!lastDriveMention.has(st.id)){
-        finalChargeMentions++;
+         &&!lastDriveMention.has(st.id)){
         lastDriveMention.set(st.id,elapsed);
         event(elapsed,st.distanceM,st.id,"FINAL_CHARGE","FINAL_SPEED_INCREASE",
           {previousSpeed:rnd(st.speedMps),currentSpeed:rnd(ns.speedMps)},3,

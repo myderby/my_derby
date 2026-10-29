@@ -185,7 +185,7 @@ CSV의 rank, rcNo, stTime 순서를 반영한 오늘의 경주를 시간표 순�
  <b className="gold">{x.distanceM}m</b>
  <div className="muted">{x.ranks.slice(0,5).map(h=>h.rank+"위 "+h.number+"번 "+h.name).join(" · ")}</div></div>)}</div>
  {section("경주 중계 · 출발부터 결승선까지")}
- {selectRaceCommentary(result.events,100).map(x=><div className="card" key={x.seq}>
+ {selectRaceCommentary(result.events).map(x=><div className="card" key={x.seq}>
  <div className="muted">{x.timeSec.toFixed(1)}초 · {x.distanceM.toFixed(0)}m</div>
  <div className="small">{x.text}</div></div>)}
  </>;
