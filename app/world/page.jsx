@@ -69,7 +69,8 @@ export default function WorldPage(){
   <div className="disclaimer">경주기록 기반 월드 · 추가 편성마는 임시 능력치 · 운영 중</div>
   <div className="area">
    <a href="/" className="outline" style={{display:"inline-block",textDecoration:"none",marginBottom:14}}>‹ 홈으로</a>
-   <a href="/schedule" className="outline" style={{display:"inline-block",textDecoration:"none",marginBottom:14,marginLeft:8}}>공식 경주시간표 ›</a><a href="/entry" className="outline" style={{display:"inline-block",textDecoration:"none",marginBottom:14,marginLeft:8}}>🏇 출전 · 기수 신청 ›</a>
+   <a href="/schedule" className="outline" style={{display:"inline-block",textDecoration:"none",marginBottom:14,marginLeft:8}}>공식 경주시간표 ›</a>
+   <a href="/entries" className="primary" style={{display:"inline-block",textDecoration:"none",marginBottom:14,marginLeft:8}}>🏇 출전·기수 신청 ›</a><a href="/entry" className="outline" style={{display:"inline-block",textDecoration:"none",marginBottom:14,marginLeft:8}}>🏇 출전 · 기수 신청 ›</a>
    <div className="section"><h2>월드 현황</h2><button onClick={loadOverview}>새로고침 ↻</button></div>
    {!overview&&<div className="notice">{loaded?"월드 데이터를 읽지 못했습니다.":"데이터를 불러오는 중…"}</div>}
    {overview&&<><div className="card">
