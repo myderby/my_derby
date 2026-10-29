@@ -14,7 +14,7 @@ const apiClient=()=>{const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.
 export default function WorldPage(){
  const [overview,O]=useState(null),[mine,M]=useState(null),[authenticated,A]=useState(false);
  const [busy,B]=useState(false),[notice,N]=useState(""),[email,E]=useState(""),[pass,P]=useState(""),[nickname,Nick]=useState("");
- const [loaded,L]=useState(false),[expanded,Expand]=useState(null);
+ const [loaded,L]=useState(false),[expanded,Expand]=useState(null),[trainers,Trainers]=useState([]),[trainerTrack,TrainerTrack]=useState("전체"),[trainerError,TrainerError]=useState("");
  const flash=x=>{N(x);setTimeout(()=>N(""),7000)};
  const loadMine=useCallback(async()=>{
   try{
@@ -35,6 +35,7 @@ export default function WorldPage(){
   }catch(e){flash(e.message)}
  },[]);
  useEffect(()=>{Promise.all([loadOverview(),loadMine()]).finally(()=>L(true))},[loadOverview,loadMine]);
+ useEffect(()=>{fetch("/api/world/trainers",{cache:"no-store"}).then(async r=>{const data=await r.json();if(!r.ok)throw new Error(data.error||"조교사 목록 조회 실패");Trainers(data.trainers||[])}).catch(e=>TrainerError(e.message))},[]);
  const login=async signup=>{
   B(true);
   try{
@@ -115,6 +116,15 @@ export default function WorldPage(){
       </div><div className="muted" style={{marginTop:12}}>히든 특성과 최대 잠재력은 서버에 보관하며 일반 사용자에게 직접 공개하지 않습니다.</div></>}
     </div>)}
    </>}
+   <div className="section" style={{marginTop:22}}><h2>NPC 조교사 · 마방</h2></div>
+   <div className="card"><div className="row"><b className="gold">NPC 조교사 {trainers.length}명</b><span className="tag">1명당 최대 40두</span></div>
+   <div className="controls" style={{marginTop:12,flexWrap:"wrap"}}>{["전체","서울","부산","영천"].map(track=><button key={track} className={trainerTrack===track?"primary":"outline"} onClick={()=>TrainerTrack(track)}>{track}</button>)}</div>
+   {trainerError&&<div className="notice">{trainerError}</div>}
+   {trainers.filter(t=>trainerTrack==="전체"||t.track===trainerTrack).map(t=><div className="line row small" key={t.id} style={{alignItems:"center"}}>
+     <div><b>{t.name}</b><div className="muted">{t.track} · {t.stableName} · {t.specialties.join(" / ")}</div></div><span className="tag">{t.horseCount}/{t.capacity}두</span>
+   </div>)}
+   {!trainers.length&&!trainerError&&<div className="muted">조교사 명단 불러오는 중…</div>}
+   <div className="muted" style={{marginTop:10}}>실제 NPC 계약 현황입니다. 내 경주마의 조교사 신청·계약 기능은 별도 개발 항목입니다.</div></div>
    <div className="section" style={{marginTop:22}}><h2>NPC 마주 현황</h2></div>
    <div className="card">
     {(overview?.topNpcOwners??[]).map((owner,i)=><div className="line row small" key={owner.ownerName}>
