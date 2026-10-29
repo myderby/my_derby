@@ -14,7 +14,7 @@ const apiClient=()=>{const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.
 export default function WorldPage(){
  const [overview,O]=useState(null),[mine,M]=useState(null),[authenticated,A]=useState(false);
  const [busy,B]=useState(false),[notice,N]=useState(""),[email,E]=useState(""),[pass,P]=useState(""),[nickname,Nick]=useState("");
- const [loaded,L]=useState(false),[expanded,Expand]=useState(null),[trainers,Trainers]=useState([]),[trainerTrack,TrainerTrack]=useState("전체"),[trainerError,TrainerError]=useState("");
+ const [loaded,L]=useState(false),[expanded,Expand]=useState(null),[trainers,Trainers]=useState([]),[trainerTrack,TrainerTrack]=useState("전체"),[trainerError,TrainerError]=useState(""),[npcRetirements,NpcRetirements]=useState(null),[npcRetireError,NpcRetireError]=useState("");
  const flash=x=>{N(x);setTimeout(()=>N(""),7000)};
  const loadMine=useCallback(async()=>{
   try{
@@ -36,6 +36,7 @@ export default function WorldPage(){
  },[]);
  useEffect(()=>{Promise.all([loadOverview(),loadMine()]).finally(()=>L(true))},[loadOverview,loadMine]);
  useEffect(()=>{fetch("/api/world/trainers",{cache:"no-store"}).then(async r=>{const data=await r.json();if(!r.ok)throw new Error(data.error||"조교사 목록 조회 실패");Trainers(data.trainers||[])}).catch(e=>TrainerError(e.message))},[]);
+ useEffect(()=>{fetch("/api/world/npc-retirements",{cache:"no-store"}).then(async r=>{const data=await r.json();if(!r.ok)throw new Error(data.error||"NPC 은퇴 현황 조회 실패");NpcRetirements(data)}).catch(e=>NpcRetireError(e.message))},[]);
  const login=async signup=>{
   B(true);
   try{
@@ -126,6 +127,28 @@ export default function WorldPage(){
    </div>)}
    {!trainers.length&&!trainerError&&<div className="muted">조교사 명단 불러오는 중…</div>}
    <div className="muted" style={{marginTop:10}}>실제 NPC 계약 현황입니다. 내 경주마의 조교사 신청·계약 기능은 별도 개발 항목입니다.</div></div>
+   <div className="section" style={{marginTop:22}}><h2>NPC 마주 은퇴·번식 전환</h2></div>
+   <div className="card">
+    <div className="row"><b className="gold">NPC 은퇴 결정</b><span className="tag">매일 23:05 자동 심사</span></div>
+    <div className="muted" style={{marginTop:10}}>최근 공식 6경주 연속 미입상·5회 이상 하위 40%·평균 하위권이거나,
+    의료적으로 경주 복귀 불가 판정 시 은퇴합니다. 번식 적령 수말·암말은 씨수말·번식암말로 전환하고,
+    거세마는 일반 은퇴합니다. 단순 부상은 은퇴 대상이 아닙니다.</div>
+    {npcRetireError&&<div className="notice">{npcRetireError}</div>}
+    {npcRetirements&&<>
+     <div className="grid" style={{marginTop:12}}>
+      <div className="card"><div className="muted">전체 자동 은퇴</div><b className="gold">{npcRetirements.total??0}두</b></div>
+      <div className="card"><div className="muted">성적 부진</div><b>{npcRetirements.poorForm??0}두</b></div>
+      <div className="card"><div className="muted">영구 부상</div><b>{npcRetirements.injury??0}두</b></div>
+      <div className="card"><div className="muted">씨수말 / 번식암말</div><b>{npcRetirements.stallions??0} / {npcRetirements.broodmares??0}두</b></div>
+     </div>
+     {(npcRetirements.recent||[]).length>0&&
+      <div style={{marginTop:14}}>{npcRetirements.recent.map((entry,i)=><div className="line row small" key={i}>
+       <div><b>{entry.horseName}</b><div className="muted">{entry.reason==="POOR_FORM"?"최근 경주 성적 부진":"경주 복귀 불가 부상"} · 게임 {entry.gameDay}일</div></div>
+       <span className="tag">{entry.newStage==="STALLION"?"씨수말":entry.newStage==="BROODMARE"?"번식암말":"일반 은퇴"}</span>
+      </div>)}</div>}
+     {(npcRetirements.recent||[]).length===0&&<div className="muted" style={{marginTop:10}}>아직 NPC 마주의 자동 은퇴 결정이 없습니다. 충분한 공식 경주 결과가 쌓인 이후부터 평가됩니다.</div>}
+    </>}
+   </div>
    <div className="section" style={{marginTop:22}}><h2>NPC 마주 현황</h2></div>
    <div className="card">
     {(overview?.topNpcOwners??[]).map((owner,i)=><div className="line row small" key={owner.ownerName}>
