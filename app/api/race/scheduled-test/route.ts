@@ -4,29 +4,31 @@ import {createPublicDb} from "../../../../lib/server/supabase";
 import {simulateRace} from "../../../../lib/racing/engine";
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
-// Manual override of WHEN the calculation runs. Does NOT mutate official races.
+export const maxDuration=60;
+const validUuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export async function POST(request:Request){
  try{
-  if(Number(request.headers.get("content-length")||0)>1024)
-   return NextResponse.json({error:"Payload too large"},{status:413});
+  if(Number(request.headers.get("content-length")||0)>512)
+   return NextResponse.json({error:"요청이 너무 큽니다."},{status:413});
   const body=await request.json();
   if(!body||typeof body!=="object"||Array.isArray(body)||
-   !Number.isInteger(body.slot)||body.slot<0||body.slot>2||
-   Object.keys(body).some(k=>k!=="slot"&&k!=="seed")||
-   (body.seed!==undefined&&(!Number.isInteger(body.seed)||body.seed<1||body.seed>2147483646)))
-   return NextResponse.json({error:"Invalid slot/seed"},{status:400});
+    Object.keys(body).some(k=>!["raceId","seed"].includes(k))||
+    typeof body.raceId!=="string"||!validUuid.test(body.raceId)||
+    (body.seed!==undefined&&(!Number.isInteger(body.seed)||body.seed<1||body.seed>2147483646)))
+   return NextResponse.json({error:"경주 ID 또는 시드가 올바르지 않습니다."},{status:400});
   const secret=process.env.CRON_SECRET;
-  if(!secret)throw new Error("Race processor credentials not configured");
+  if(!secret)throw new Error("경주 계산 설정을 사용할 수 없습니다.");
   const {data:claim,error}=await createPublicDb().schema("my_derby")
-    .rpc("secure_official_race_input",{p_secret:secret,p_slot:body.slot,
-      p_force:true,p_preview:true});
-  if(error||claim?.status!=="PREVIEW")throw error??new Error("No scheduled race");
+    .rpc("secure_program_preview_race",{p_secret:secret,p_race_id:body.raceId});
+  if(error||claim?.status!=="PREVIEW")throw error||new Error("경주 편성이나 출전마가 없습니다.");
   const input={...claim.input,seed:body.seed??randomInt(1,2147483647)};
   const result=simulateRace(input);
-  return NextResponse.json({mode:"SCHEDULE_BASED_TEST",source:"my_derby.races + race_entries",
-   officialStateChanged:false,result,
-   program:{raceId:claim.raceId,track:result.track,distanceM:result.distanceM}},
-   {headers:{"Cache-Control":"no-store"}});
- }catch(e){return NextResponse.json({error:e instanceof Error?e.message:"Failed to simulate"},
-   {status:400,headers:{"Cache-Control":"no-store"}})}
+  return NextResponse.json({mode:"SCHEDULE_BASED_TEST",source:"my_derby.races",
+   schedule:{raceId:body.raceId,startTime:claim.startTime,resultTime:claim.resultTime,
+      rank:claim.rank,displayRaceNo:claim.displayRaceNo},
+   officialStateChanged:false,result},{headers:{"Cache-Control":"no-store"}});
+ }catch(e){
+  return NextResponse.json({error:e instanceof Error?e.message:"계산에 실패했습니다."},
+   {status:400,headers:{"Cache-Control":"no-store"}});
+ }
 }

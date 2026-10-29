@@ -5,32 +5,40 @@ import {simulateRace} from "../../../../lib/racing/engine";
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
 export const maxDuration=60;
-const json=(v:unknown,status=200)=>NextResponse.json(v,{status,headers:{"Cache-Control":"no-store"}});
-function authorized(request:Request,secret:string){
- const value=request.headers.get("authorization")??"";
- const required="Bearer "+secret;
- const a=Buffer.from(value),b=Buffer.from(required);
+const out=(data:unknown,status=200)=>NextResponse.json(data,{status,headers:{"Cache-Control":"no-store"}});
+function verified(request:Request,secret:string){
+ const a=Buffer.from(request.headers.get("authorization")||"");
+ const b=Buffer.from("Bearer "+secret);
  return a.length===b.length&&timingSafeEqual(a,b);
 }
 export async function GET(request:Request){
  const secret=process.env.CRON_SECRET;
- if(!secret||!authorized(request,secret))return json({error:"Not authorized"},401);
- const slot=Number(new URL(request.url).searchParams.get("slot"));
- if(!Number.isInteger(slot)||slot<0||slot>2)return json({error:"Invalid slot"},400);
+ if(!secret||!verified(request,secret))return out({error:"Unauthorized"},401);
+ const value=new URL(request.url).searchParams.get("slot");
+ const slot=value!==null?Number(value):NaN;
+ if(!Number.isInteger(slot)||slot<0||slot>2)return out({error:"Invalid schedule slot"},400);
+ const api=createPublicDb().schema("my_derby");
  try{
-  const api=createPublicDb().schema("my_derby");
-  const {data:claim,error:claimError}=await api.rpc("secure_official_race_input",
-   {p_secret:secret,p_slot:slot,p_force:false,p_preview:false});
+  // Publish only pending results whose official stTime + 3 minutes has elapsed.
+  const {data:published,error:pubError}=await api.rpc("secure_program_publish_due",
+   {p_secret:secret,p_slot:slot});
+  if(pubError)throw pubError;
+  const {data:claimed,error:claimError}=await api.rpc("secure_program_claim_next",
+   {p_secret:secret,p_slot:slot});
   if(claimError)throw claimError;
-  if(claim.status==="ALREADY_FINISHED"||claim.status==="ALREADY_RUNNING")
-   return json({mode:"OFFICIAL",...claim,slot});
-  if(claim.status!=="CLAIMED"||!claim.runId||!claim.input)
-   throw new Error("Race not claimed");
-  const result=simulateRace(claim.input);
-  const {data:finish,error:finishError}=await api.rpc("secure_official_race_finalize",
-   {p_secret:secret,p_run_id:claim.runId,p_result:result});
-  if(finishError)throw finishError;
-  return json({mode:"OFFICIAL",...finish,slot});
- }catch(e){console.error("My Derby official race error",e instanceof Error?e.message:e);
-  return json({error:"Official race processing failed",slot},503)}
+  if(claimed?.status!=="CLAIMED"){
+   return out({mode:"MULTI_RACE_CRON",slot,published,claimed:claimed?.status||"WAITING"});
+  }
+  const result=simulateRace(claimed.input);
+  const {data:staged,error:stageError}=await api.rpc("secure_program_stage_result",
+   {p_secret:secret,p_run_id:claimed.runId,p_result:result});
+  if(stageError)throw stageError;
+  return out({mode:"MULTI_RACE_CRON",slot,published,claimed:"CALCULATED",
+   raceId:claimed.raceId,rank:claimed.rank,runnerCount:result.results.length,
+   resultDueAt:staged.scheduledResultAt,resultPublic:false});
+ }catch(error){
+  console.error("My Derby scheduled race processor failed",
+   error instanceof Error?error.message:"Unknown error");
+  return out({error:"Scheduled race processor failed",slot},503);
+ }
 }
