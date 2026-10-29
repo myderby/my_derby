@@ -47,6 +47,25 @@ export default function EntriesPage(){
  const [jockeys,SetJockeys]=useState([]);
  const [jockeyChoice,SetJockeyChoice]=useState("");
  const [jockeyBusy,SetJockeyBusy]=useState(false);
+ const [strategyFocus,SetStrategyFocus]=useState(null);
+ const [strategyChoices,SetStrategyChoices]=useState({});
+ const [strategyBusy,SetStrategyBusy]=useState(false);
+ const strategyOptions=[["FRONT","도주"],["PRESS","선입"],["SAVE","절약"],["MOVE","중반 무빙"],["CLOSER","추입"],["FREE","자유형"]];
+ const defaultPlans=["SAVE","MOVE","CLOSER"];
+ const submitStrategies=async(raceId,horseId)=>{
+  const selected=strategyChoices[horseId]||defaultPlans;
+  SetStrategyBusy(true);SetMessage("");
+  try{
+   const res=await fetch("/api/player/strategies",{method:"POST",cache:"no-store",
+    headers:{"Authorization":"Bearer "+token,"Content-Type":"application/json"},
+    body:JSON.stringify({raceId,horseId,strategies:selected})});
+   const body=await res.json();if(!res.ok)throw new Error(body.error||"전략 저장 실패");
+   SetMessage("공식 경주 전략 1·2·3안을 저장했습니다. 이 전략이 실제 경주 엔진에 입력됩니다.");
+   SetStrategyFocus(null);await load(week);
+  }catch(e){SetMessage(explain(e.message));}
+  finally{SetStrategyBusy(false)}
+ };
+
 
  useEffect(()=>{
   let live=true;
@@ -175,8 +194,27 @@ export default function EntriesPage(){
      {mine.map(e=><div key={e.horseId} className="card" style={{padding:12,marginTop:12}}>
       <div className="row"><div><b>✓ {horses.find(h=>h.id===e.horseId)?.name||"내 경주마"} 출전 확정</b>
         <div className="muted">{e.gateNo}번 게이트 · 현재 기수 {e.jockeyName||"미배정"}</div></div>
-       <button className="outline" disabled={close||busy||jockeyBusy}
-       onClick={()=>showJockeys(r.id,e.horseId)}>기수 선택 ›</button></div>
+       <div className="controls">
+        <button className="outline" disabled={close||busy||jockeyBusy}
+         onClick={()=>showJockeys(r.id,e.horseId)}>기수 선택 ›</button>
+        <button className="outline" disabled={close||busy||strategyBusy}
+         onClick={()=>SetStrategyFocus(strategyFocus===e.horseId?null:e.horseId)}>
+         전략 1·2·3안 ›</button>
+       </div></div>
+      {strategyFocus===e.horseId&&
+       <div style={{marginTop:12}}>
+        <div className="muted">선택한 세 가지 전개 전략은 실제 공식 경주 엔진에 저장됩니다.</div>
+        {(strategyChoices[e.horseId]||defaultPlans).map((v,index)=>
+          <div className="row" key={index}>
+           <label className="muted" style={{minWidth:60}}>{index+1}안</label>
+           <select className="field" value={v} onChange={event=>{
+             const next=[...(strategyChoices[e.horseId]||defaultPlans)];
+             next[index]=event.target.value;SetStrategyChoices(old=>({...old,[e.horseId]:next}));
+           }}>{strategyOptions.map(([code,name])=><option key={code} value={code}>{name}</option>)}</select>
+          </div>)}
+        <button className="primary wide" disabled={strategyBusy}
+          onClick={()=>submitStrategies(r.id,e.horseId)}>{strategyBusy?"저장 중…":"공식 경주 전략 저장"}</button>
+       </div>}
       {active?.raceId===r.id&&active?.horseId===e.horseId&&
        <div style={{marginTop:14}}>
         <div className="muted">NPC 기수에게 신청하면 조건 확인 후 즉시 승인됩니다.</div>
