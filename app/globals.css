@@ -272,3 +272,44 @@
 .horse-discovery-tags span{padding:7px 11px;border:1px solid #956d34;border-radius:18px;background:#51371d;color:#f3d4a6}
 .horse-discovery-advice p{font-size:12px;line-height:1.8;color:#d8c6ad;margin-bottom:0}
 @media(max-width:530px){.horse-discovery-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.horse-discovery-stat{min-height:55px}}
+
+/* My Derby private horse assessment report archive and printable report */
+.horse-report-masthead{text-align:center;background:linear-gradient(115deg,#332417,#201913);border:1px solid #87653b;border-radius:12px;padding:24px 15px;margin-bottom:16px}
+.horse-report-masthead h1{font-family:Georgia,serif;color:#ecd2a2;font-size:24px;letter-spacing:.3px;margin:11px 0}
+.horse-report-masthead p{font-size:12px;color:#b9a993;line-height:1.7;margin:7px 0 0}
+.horse-report-series,.horse-report-label{color:#d6b783;font-size:10px;letter-spacing:1.5px;font-weight:700}
+.horse-report-tools{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#332719;border:1px solid #5e4932;border-radius:10px;padding:13px;margin-bottom:12px;flex-wrap:wrap}
+.horse-report-tools .muted{margin-top:5px;font-size:11px}
+.horse-report-history{background:#2e241a;border:1px solid #59432e;border-radius:10px;padding:12px 14px;margin-bottom:15px}
+.horse-report-history label{display:block;font-size:12px;color:#c8b69e;margin-bottom:7px}
+.horse-report-history .field{margin-bottom:5px}
+.horse-report-paper{padding:23px 19px;background:#281f17;border:1px solid #9b7745;border-radius:12px;box-shadow:0 12px 30px #0003}
+.horse-report-paper-head{display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:2px solid #795d3e;padding-bottom:17px}
+.horse-report-paper-head h2{font-family:Georgia,serif;color:#f0d4a6;font-size:21px;margin:9px 0}
+.horse-report-seal{border:2px solid #9e783c;border-radius:50%;height:61px;width:61px;min-width:61px;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.1;color:#e5c68b;font-size:12px;font-weight:900;transform:rotate(-10deg)}
+.horse-report-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;background:#302519;border:1px solid #5c4932;border-radius:8px;padding:12px;margin:16px 0}
+.horse-report-meta span{font-size:11px;color:#bda990;display:flex;flex-direction:column;gap:6px}
+.horse-report-meta b{font-size:13px;color:#f2d5a5;overflow-wrap:anywhere}
+.horse-report-overview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:15px 0}
+.horse-report-overview div{text-align:center;border:1px solid #5d482e;border-radius:8px;background:#382a1c;padding:11px 6px}
+.horse-report-overview span{display:block;font-size:10px;color:#c9b698}
+.horse-report-overview strong{display:block;color:#f2d39d;font-size:15px;margin-top:7px}
+.horse-report-paper .section{margin-top:19px;margin-bottom:10px}
+.horse-report-summary{font-size:13px;color:#ddcaaf;line-height:1.8;padding:12px 14px;background:#372b1e;border-left:3px solid #c5a064;border-radius:0 8px 8px 0}
+.horse-report-evidence{display:grid;gap:8px}
+.horse-report-evidence>div{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px;border:1px solid #56432e;background:#34271b;border-radius:7px;font-size:11px;color:#d8c6ac}
+.horse-report-evidence b{color:#f0d09b}
+.horse-report-evidence small{color:#c8ad87}
+.horse-report-disclaimer{font-size:10px;line-height:1.7;border-top:1px solid #70583b;color:#bba88e;padding-top:14px;margin-top:22px}
+@media(max-width:440px){.horse-report-paper{padding:15px 12px}.horse-report-meta{gap:8px}.horse-report-paper-head h2{font-size:18px}.horse-report-overview strong{font-size:13px}}
+@media print{
+  @page{size:A4;margin:15mm}
+  html,body{background:#fff!important;color:#171717!important}
+  .no-print,.header,.footer{display:none!important}
+  .horse-report-shell,.horse-report-shell .area{background:#fff!important;max-width:none!important;margin:0!important;padding:0!important}
+  .horse-report-masthead{display:none!important}
+  .horse-report-paper,.horse-report-paper *{box-shadow:none!important;background:#fff!important;color:#151515!important;border-color:#999!important;break-inside:avoid}
+  .horse-report-paper{border:0!important;padding:0!important}
+  .horse-report-overview div,.horse-discovery-section,.horse-discovery-advice,.horse-discovery-stats>div{break-inside:avoid}
+  a{color:#151515!important;text-decoration:none!important}
+}
