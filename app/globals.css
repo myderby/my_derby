@@ -328,3 +328,11 @@
 .staff-growth-change{text-align:right;flex-shrink:0}
 .staff-growth-change strong{font-size:14px}
 @media(max-width:430px){.staff-growth-facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Owner-specific staff relationship */
+.staff-bond{border-color:#7b5a34;background:linear-gradient(130deg,#352519,#231a12)}
+.staff-bond-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.staff-bond-metrics>div{background:#2b2017;border:1px solid #6b5034;border-radius:9px;text-align:center;padding:12px 6px}
+.staff-bond-metrics small{display:block;font-size:10px;color:#c6b296}
+.staff-bond-metrics strong{display:block;color:#f2d49c;font-size:14px;margin-top:8px}
+@media(max-width:390px){.staff-bond-metrics strong{font-size:12px}}
