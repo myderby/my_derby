@@ -13,18 +13,11 @@ export async function GET(request:Request){
   ]);
   if(profileRes.error||horsesRes.error)throw profileRes.error||horsesRes.error;
   const horses=horsesRes.data??[];
-  const abilityResult=horses.length
-   ?await api.from("horse_abilities").select("horse_id,current_stats,distance_affinity").in("horse_id",horses.map(h=>h.id))
-   :{data:[],error:null};
-  if(abilityResult.error)throw abilityResult.error;
-  const byHorse=new Map((abilityResult.data??[]).map(a=>[a.horse_id,a]));
   return NextResponse.json({
    mode:"PLAYER_RANCH",joined:!!profileRes.data?.initial_setup_complete,
    profile:profileRes.data??null,
-   horses:horses.map(h=>({...h,
-     currentStats:byHorse.get(h.id)?.current_stats??null,
-     distanceAffinity:byHorse.get(h.id)?.distance_affinity??null})),
-   note:"Only current ability stats are returned. Hidden traits, gene data and future potential remain server-private."
+   horses,
+   note:"Actual horse abilities, gene data and hidden traits are private. Use the owner-only discovery report for estimates."
   },{headers:{"Cache-Control":"no-store"}});
  }catch(e){
   const status=(e as {status?:number}).status===401?401:500;
