@@ -28,7 +28,7 @@ function HorseCard({horse,recordMode}){
      horseId={horse.gameHorseId||(/^[0-9a-f]{8}-/i.test(horse.id)?horse.id:null)}
      sourceMeet={horse.sourceMeet} hrNo={horse.horseNo}>{horse.name}</HorseLink>
      <span className="dir-region">{horse.track||"소속 미정"}</span></div>
-    <div className="muted">#{horse.horseNo||horse.id.slice(0,8)} · {grade} · {horse.age==null?"나이 미등록":horse.age+"세"} · {sexText[horse.sex]||horse.sex||"-"} · {stageText[horse.stage]||horse.stage}</div></div>
+    <div className="muted">{grade} · {horse.age==null?"나이 미등록":horse.age+"세"} · {sexText[horse.sex]||horse.sex||"-"} · {stageText[horse.stage]||horse.stage}</div></div>
    <div className="dir-rating">{horse.rating==null?"미부여":horse.rating+"점"}<small>레이팅</small></div>
   </div>
   <div className="dir-records"><RecordCard title={recordMode==="world"?"게임 통산 전적":"원본 통산 전적"} record={horse.career}/>
@@ -131,9 +131,9 @@ export default function WorldDirectory({kind}){
     "My Derby의 게임 공식 경주 결과를 표시합니다. 최근 1년은 게임 364일 기준입니다."):
     "기수 통산·최근 1년은 게임 공식 경주 결과 기준이며, 최근 1년은 게임 364일입니다."}</p>
    <div className="card dir-filter">
-    <label htmlFor="directory-search" className="muted">이름{horses?" 또는 마번":""} 검색</label>
+    <label htmlFor="directory-search" className="muted">이름 검색</label>
     <input id="directory-search" className="field" value={search}
-     maxLength={50} placeholder={horses?"경주마 이름 또는 마번":"기수 이름"}
+     maxLength={50} placeholder={horses?"경주마 이름":"기수 이름"}
      onChange={e=>update(S,e.target.value)}/>
     <div className="dir-selects">
      <label>소속 지역
