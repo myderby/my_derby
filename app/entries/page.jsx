@@ -11,7 +11,10 @@ const readable={
  REGION_OR_GRADE_MISMATCH:"출전마의 지역이나 등급이 경주 조건과 다릅니다.",
  REGION_MISMATCH:"출전마의 소속 지역과 경주 지역이 다릅니다.",
  GRADE_ENTRY_NOT_ALLOWED:"경주마와 동일한 등급의 경주에만 출전 신청할 수 있습니다. 상위·하위 등급 경주는 모두 제한됩니다.",
- ENTRY_NOT_OPEN_YET:"아직 출전 신청 시작일이 아닙니다. OPEN 경주는 4일 전, 일반 경주는 2일 전부터 신청할 수 있습니다.",
+ ENTRY_NOT_OPEN_YET:"아직 출전 신청 시작일이 아닙니다. OPEN·대상경주는 4일 전, 일반 경주는 2일 전부터 신청할 수 있습니다.",
+ ENTRY_RACE_DAY_BLOCKED:"경주 당일에는 출전 신청할 수 없습니다. 전날까지 신청해주세요.",
+ AGE_COND_UNAVAILABLE:"이 OPEN·대상경주는 원본 ageCond(연령 조건)가 등록되지 않아 출전 신청이 제한됩니다.",
+ AGE_COND_NOT_ELIGIBLE:"경주마 나이가 해당 OPEN·대상경주의 ageCond 조건과 맞지 않습니다.",
  HORSE_ALREADY_ENTERED_THIS_DAY:"이 경주마는 같은 게임 날짜의 다른 경주에 이미 출전합니다.",
  RACE_FULL_NO_NPC_SLOT:"현재 경주에는 교체 가능한 NPC 출전 슬롯이 없습니다.",
  JOCKEY_ALREADY_BOOKED_FOR_RACE:"선택한 기수는 이 경주에 이미 출전합니다.",
@@ -29,12 +32,8 @@ function explain(message){
 const apiClient=()=>createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
 const currentKst=()=>new Intl.DateTimeFormat("sv-SE",{timeZone:"Asia/Seoul",
  year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false}).format(new Date()).replace(",","");
-const gradeEligible=(horseGrade,raceGrade)=>{
- const horse=Number(horseGrade),race=Number(raceGrade);
- return Number.isInteger(horse)&&Number.isInteger(race)&&
-  horse>=1&&horse<=6&&race>=1&&race<=6&&race===horse;
-};
-const eligible=(h,r)=>h.sourceMeet===r.sourceMeet&&gradeEligible(h.gradeNo,r.gradeNo)
+const eligible=(h,r)=>h.sourceMeet===r.sourceMeet
+ && Array.isArray(r.eligibleHorseIds)&&r.eligibleHorseIds.includes(h.id)
  && h.lifeStage==="RACING"&&!h.retired&&!h.breedingRetired
  && h.health==="HEALTHY"&&h.age>=2&&h.age<=10
  && h.saleState==="NOT_LISTED"&&Number(h.condition)>=50&&Number(h.fatigue)<80;
@@ -42,7 +41,7 @@ const entryWindowState=r=>{
  if(r.status!=="OPEN"||!r.kstDate)return "CLOSED";
  const now=currentKst();
  if(r.entryOpenDate&&now<r.entryOpenDate+" 00:00")return "NOT_OPEN";
- if(now>=r.kstDate+" "+(r.entryDeadline||r.startTime))return "CLOSED";
+ if(now.slice(0,10)>=r.kstDate)return "CLOSED";
  return "OPEN";
 };
 const beforeDeadline=r=>entryWindowState(r)==="OPEN";
@@ -118,7 +117,7 @@ export default function EntriesPage(){
 
  const submitEntry=async(race,horseId)=>{
   if(!horseId)return SetMessage("경주마를 선택해주세요.");
-  if(!beforeDeadline(race))return SetMessage("출전 신청 기간이 아닙니다. OPEN 경주는 4일 전, 일반 경주는 2일 전부터 접수합니다.");
+  if(!beforeDeadline(race))return SetMessage("출전 신청 기간이 아닙니다. 경주 당일에는 신청할 수 없으며 OPEN·대상경주는 4일 전, 일반 경주는 2일 전부터 접수합니다.");
   if(!window.confirm("선택한 경주에 공식 출전 신청하시겠습니까? 만석이면 NPC 출전 슬롯을 교체합니다."))return;
   SetBusy(true);SetMessage("");
   try{
@@ -181,6 +180,7 @@ export default function EntriesPage(){
   const can=beforeDeadline(r)&&(r.npcReplaceableCount>0||r.confirmedCount<r.capacity)
     &&horses.some(h=>eligible(h,r));
   if(view==="내 출전")return hasMine;
+  if(view==="연령 조건 확인")return r.isSpecialRace&&!r.ageCondValid;
   if(view==="신청 예정")return entryWindowState(r)==="NOT_OPEN"&&horses.some(h=>eligible(h,r));
   if(view==="신청 가능")return can||hasMine;
   return true;
@@ -195,9 +195,11 @@ export default function EntriesPage(){
    <div className="section"><h2>출전 및 기수 신청</h2><button onClick={()=>load(week)} disabled={!token||loading}>새로고침 ↻</button></div>
    <div className="notice">실제 공식 경주 편성에 저장됩니다. 신청과 기수 선택은 조건 충족 시 즉시 승인되며,
    기존 NPC 출전으로 만석이면 NPC 슬롯을 1개 교체합니다.
-   경주마는 소속 지역 및 출전 등급이 동일한 경주만 신청할 수 있습니다. 상위·하위 등급 모두 출전할 수 없습니다.
-   OPEN 등급 경주는 경주일 4일 전 00:00, 일반 경주는 2일 전 00:00(한국시간)부터 신청할 수 있습니다.
-   건강 상태, 게임 날짜 중복 출전 및 기존 마감 시각은 서버에서 검증합니다.
+   일반 경주는 경주마와 소속 지역·등급이 같아야 신청할 수 있습니다.
+   OPEN·대상경주는 소속 지역 및 해당 경주의 ageCond(연령 조건)를 충족하면 등급과 관계없이 신청할 수 있습니다.
+   OPEN·대상경주는 4일 전, 일반 경주는 2일 전 00:00(한국시간)부터 신청 가능하며, 경주 당일에는 신청할 수 없습니다.
+   ageCond가 확인되지 않은 OPEN·대상경주는 조건 등록 전까지 출전 신청을 제한합니다.
+   건강·피로도 및 중복 출전 제한은 유지합니다.
    기수는 경주당 한 마리, 게임 날짜당 최대 8회까지 기승할 수 있습니다.</div>
    {message&&<div className="notice" role="status">{message}</div>}
    {error&&<div className="notice" role="alert">{error}</div>}
@@ -215,10 +217,10 @@ export default function EntriesPage(){
      <button className="outline" disabled={busy||week<=board.currentWeek} onClick={()=>{SetWeek(w=>w-1);SetActive(null)}}>‹ 이전 주</button>
      <button className="outline" disabled={busy||week>=52} onClick={()=>{SetWeek(w=>w+1);SetActive(null)}}>다음 주 ›</button>
     </div>
-    <div className="muted" style={{marginTop:10}}>신청 가능한 경주가 없다면 다음 주차를 확인하세요.</div>
+    <div className="muted" style={{marginTop:10}}>신청 가능한 경주가 없다면 다음 주차 또는 ‘연령 조건 확인’ 탭을 확인하세요.</div>
    </div>
    <div className="tabs">{["전체","서울","부산","영천"].map(x=><button key={x} className={track===x?"active":""} onClick={()=>SetTrack(x)}>{x}</button>)}</div>
-   <div className="tabs">{["신청 가능","신청 예정","내 출전","전체 경주"].map(x=><button key={x} className={view===x?"active":""} onClick={()=>SetView(x)}>{x}</button>)}</div>
+   <div className="tabs">{["신청 가능","신청 예정","연령 조건 확인","내 출전","전체 경주"].map(x=><button key={x} className={view===x?"active":""} onClick={()=>SetView(x)}>{x}</button>)}</div>
    {loading&&<div className="notice">공식 경주 정보를 확인하는 중…</div>}
    {!races.length&&!loading&&<div className="notice">이 조건에 해당하는 경주가 없습니다. 주차 또는 필터를 변경하세요.</div>}
    {races.map(r=>{
@@ -233,8 +235,13 @@ export default function EntriesPage(){
     return <div className="card" key={r.id}>
      <div className="row"><div><b className="gold">{r.kstDate} {r.startTime} · {r.track} {r.raceNo}경주</b>
        <div className="muted">{r.grade} · {r.distance}m · {r.confirmedCount}/{r.capacity}두</div></div>
-       <span className="tag">{r.status==="FINISHED"?"종료":windowState==="NOT_OPEN"?"접수 예정":close?"신청 마감":"신청 가능"}</span></div>
-     <div className="muted" style={{marginTop:8}}>접수 시작 {r.entryOpenDate} 00:00 ({r.isOpenGrade?"OPEN 4일 전":"일반 2일 전"}) · 마감 {r.kstDate} {r.entryDeadline||r.startTime} (한국시간)</div>
+       <span className="tag">{r.status==="FINISHED"?"종료":r.isSpecialRace&&!r.ageCondValid?"연령 조건 미등록":windowState==="NOT_OPEN"?"접수 예정":close?"신청 마감":"신청 가능"}</span></div>
+     <div className="muted" style={{marginTop:8}}>접수 시작 {r.entryOpenDate} 00:00 ({r.isSpecialRace?"OPEN·대상 4일 전":"일반 2일 전"}) · 마감 {r.kstDate} 00:00 (경주 당일 신청 금지, 한국시간)</div>
+     {r.isSpecialRace&&<div className="notice" style={{marginTop:8,fontSize:12}}>
+      대상경주 출전 연령 조건(ageCond): <b>{r.ageCondValid?r.ageCond:"확인되지 않음"}</b>
+      {!r.ageCondValid&&" · 정확한 원본 경주 연령 조건이 등록될 때까지 신청할 수 없습니다."}
+      {r.ageCondValid&&" · 소속 지역 및 연령 조건을 충족하면 등급 제한 없이 신청할 수 있습니다."}
+     </div>}
      <div className="muted" style={{marginTop:4}}>지역 {r.sourceMeet} · 등급 {r.gradeNo} · NPC 교체 가능 {r.npcReplaceableCount}두</div>
      {mine.map(e=><div key={e.horseId} className="card" style={{padding:12,marginTop:12}}>
       <div className="row"><div><b>✓ {horses.find(h=>h.id===e.horseId)?.name||"내 경주마"} 출전 확정</b>
@@ -290,7 +297,7 @@ export default function EntriesPage(){
        </button>
       </div>}
      {!mine.length&&(!room||close||!candidate.length)&&<div className="muted" style={{marginTop:12}}>
-      {windowState==="NOT_OPEN"?"접수 대기: "+r.entryOpenDate+" 00:00부터 출전 신청할 수 있습니다.":close?"신청이 마감되었거나 공식 경주가 종료되었습니다.":!room?"출전 정원이 가득 찼습니다.":"같은 지역·같은 등급이며 건강 조건을 충족하는 경주마만 신청 가능합니다."}</div>}
+      {r.isSpecialRace&&!r.ageCondValid?"원본 ageCond 연령 조건이 등록되지 않아 출전 신청할 수 없습니다.":windowState==="NOT_OPEN"?"접수 대기: "+r.entryOpenDate+" 00:00부터 출전 신청할 수 있습니다.":close?"신청 기간 종료: 경주 당일에는 출전 신청할 수 없습니다.":!room?"출전 정원이 가득 찼습니다.":r.isSpecialRace?"소속 지역·ageCond·건강 조건을 충족하는 말이 없습니다.":"같은 지역·등급이며 건강 조건을 충족하는 경주마만 신청 가능합니다."}</div>}
     </div>;
    })}
    </>}
