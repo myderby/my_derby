@@ -31,3 +31,18 @@ export async function POST(request:Request){
   return respond(data);
  }catch(e){return err(e)}
 }
+
+export async function DELETE(request:Request){
+ try{
+  const {db}=await requireUser(request);
+  const body=await request.json();
+  if(!body||typeof body!=="object"||Array.isArray(body)||
+   Object.keys(body).sort().join(",")!=="horseId,raceId"||
+   !uuid.test(body.raceId)||!uuid.test(body.horseId))
+   return respond({error:"올바른 출전 취소 정보가 아닙니다."},400);
+  const {data,error}=await db.schema("my_derby").rpc("player_withdraw_race_entry",
+   {p_race_id:body.raceId,p_horse_id:body.horseId});
+  if(error)throw error;
+  return respond(data);
+ }catch(e){return err(e)}
+}
