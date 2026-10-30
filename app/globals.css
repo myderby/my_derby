@@ -226,3 +226,28 @@
 .news-empty{background:#2b2016;border:1px dashed #775838;border-radius:11px;padding:20px 14px;color:#c8b59d;font-size:12px;line-height:1.8;text-align:center}
 .news-footnote{font-size:11px;color:#ad9b83;line-height:1.7;margin:22px 0}
 @media(max-width:400px){.news-nav{gap:4px}.news-nav button{padding:10px 6px;font-size:11px}.news-masthead h1{font-size:27px}.news-rank{gap:6px}.news-rank-main small{font-size:10px}.news-rank-right span{font-size:9px}}
+
+/* Linked jockey and trainer profile panels */
+.staff-hero{border:1px solid #836239;background:linear-gradient(140deg,#312113,#241a13)}
+.staff-hero-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.staff-hero h1{font-size:26px;color:#eec88b;margin:6px 0}
+.staff-quick{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:17px}
+.staff-quick>div{background:#211910;border:1px solid #60482c;padding:11px 7px;border-radius:8px;text-align:center;min-width:0}
+.staff-quick small{display:block;color:#b9a891;font-size:10px;margin-bottom:7px}
+.staff-quick b{display:block;color:#ead0a0;font-size:13px;overflow-wrap:anywhere}
+.staff-record-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.staff-record .large{margin:10px 0 8px}
+.staff-rates{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin-top:12px}
+.staff-rates span{background:#362719;border-radius:6px;padding:7px 4px;font-size:10px;text-align:center;color:#cebb9b}
+.staff-rates b{display:block;color:#edca91;font-size:12px;margin-top:5px}
+.staff-skills{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.staff-skills>div{display:flex;justify-content:space-between;gap:10px;padding:9px 11px;background:#332519;border-radius:7px}
+.staff-skills span{color:#b9aa95;font-size:12px}
+.staff-skills b{color:#f0d29c}
+.staff-horse-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.staff-horse-grid>div{display:flex;flex-direction:column;gap:5px;padding:10px;background:#322419;border:1px solid #523f2b;border-radius:8px}
+.staff-horse-grid>div .muted{font-size:11px}
+.staff-inline-link{color:#e6c38b;text-decoration:underline;text-underline-offset:3}
+.staff-inline-link small{color:#bda486;font-size:10px}
+.news-meta a{color:#e5c58a;text-decoration:underline;text-underline-offset:3}
+@media(max-width:420px){.staff-record-grid{grid-template-columns:1fr}.staff-quick b{font-size:12px}}
