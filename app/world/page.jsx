@@ -161,7 +161,7 @@ export default function WorldPage(){
    <div className="card">
     {(overview?.topNpcOwners??[]).map((owner,i)=><div className="line row small" key={owner.ownerName}>
      <span>{i+1}. {owner.ownerName}</span><div><b>{owner.horseCount}두</b><div className="muted">{owner.risk==="CONSERVATIVE"?"안정형":owner.risk==="AGGRESSIVE"?"공격형":"균형형"}</div></div></div>)}
-    <div className="muted" style={{marginTop:9}}>상위 15명 표시 · NPC의 실제 경매·출전 판단과 상금 정산은 운영 엔진 구현 후 활성화됩니다.</div>
+    <div className="muted" style={{marginTop:9}}>상위 15명 표시 · NPC 마주는 성향에 따라 공식 출전과 경주마 매매를 진행하며, 실제 거래·경주 결과는 DB에 기록됩니다.</div>
    </div>
    <div className="footer">MY DERBY · WORLD CONFIG v4_world_v1 · 경제_v2 유지</div>
   </div>
