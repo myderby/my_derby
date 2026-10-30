@@ -127,7 +127,8 @@ export default function RaceDetailPage(){
      </div><span className="tag">{status}</span></div>
      <div className="muted" style={{marginTop:10}}>결과 공개 {race.resultTime||"미정"} (한국시간)</div>
      {race.status==="RUNNING"&&<div className="notice">🏇 공식 경주가 진행되고 있습니다. 결과가 확정되면 자동으로 표시됩니다. (약 15초 간격 조회)</div>}
-     {race.status==="OPEN"&&<div className="notice">출전표가 확정된 실제 공식 경주입니다. 출발 후 결과가 공개되면 이 화면에 공식 순위와 중계 로그가 표시됩니다.</div>}
+     {race.entryAnnouncementPending&&<div className="notice">⏰ 공식 출전마 발표 예정: {race.kstDate} 낮 12:00 (한국시간). NPC 마주·기수의 자동 출전 신청 및 배정이 완료되면 출전표가 공개됩니다.</div>}
+     {race.status==="OPEN"&&!race.entryAnnouncementPending&&<div className="notice">공식 출전표가 공개되었습니다. 출발 후 결과가 확정되면 순위와 중계 로그를 확인할 수 있습니다.</div>}
      {race.status==="CANCELLED"&&<div className="notice">이 경주는 취소되었습니다. 비공식 결과는 생성하지 않습니다.</div>}
     </div>
     {completed&&<div className="card" style={{borderColor:"#94662c"}}>
@@ -155,7 +156,7 @@ export default function RaceDetailPage(){
        <td>{e.jockeyName||"—"}</td><td>{e.trainerName||"—"}</td>
       </tr>)}</tbody>
      </table>
-    </div>:<div className="notice">출전마 정보가 없습니다.</div>}
+    </div>:<div className="notice">{race.entryAnnouncementPending?"공식 출전마는 낮 12시에 공개됩니다.":"출전마 정보가 없습니다."}</div>}
     <div className="muted" style={{margin:"-4px 0 18px"}}>마명을 누르면 상세정보를 확인할 수 있습니다. 제공되지 않는 항목은 — 로 표시됩니다. 모바일에서는 표를 좌우로 스크롤하세요.</div>
     {!completed&&race.status==="RESULT_NOT_AVAILABLE"&&<div className="notice">공식 결과를 저장하는 중입니다. 이 화면을 새로고침해 주세요.</div>}
     {completed&&tab==="result"&&<>
