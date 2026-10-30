@@ -2,6 +2,7 @@
 import {useEffect,useState} from "react";
 import {createClient} from "@supabase/supabase-js";
 import {selectRaceCommentary} from "../lib/racing/commentary";
+import {officialSlotSummaries} from "../lib/racing/slot-status";
 const horses=[{id:1,name:"가을바람",age:4,sex:"수",stage:"현역",condition:82,fatigue:18,stats:[81,74,68,76,70,73]},{id:2,name:"골든레이스",age:3,sex:"수",stage:"현역",condition:77,fatigue:22,stats:[74,76,69,72,70,66]},{id:3,name:"작은별",age:1,sex:"암",stage:"목장",condition:93,fatigue:4,stats:[35,39,42,32,36,41]},{id:4,name:"여왕의꿈",age:6,sex:"암",stage:"교배",breedingRetired:true,condition:89,fatigue:9,stats:[80,78,82,76,73,77]},{id:5,name:"블랙스톰",age:5,sex:"거",stage:"재활",condition:58,fatigue:42,stats:[83,73,77,82,69,74]}];
 const trainers=[["김도윤","스피드·가속",14],["박수진","지구력·회복",8],["이민호","파워·근성",19],["최은영","컨디션·기질",6],["정우석","마일·선입",20]];
 const jockeys=[["박준호","마일·선입",3],["김하늘","중거리·페이스",5],["이승민","출발·단거리",8],["정다은","추입·안정성",2]];
@@ -16,6 +17,7 @@ const liveSlots=(raceSchedule?.races||[]).map(r=>({
  displayNo:r.source_rc_no,status:r.status,entryStatus:r.entry_status,
  sourceTime:r.source_st_time,dusu:r.dusu,actual:r.actual_starters
 }));
+const todaySlotSummaries=officialSlotSummaries(raceSchedule?.races||[]);
 const go=x=>{const routes={allHorses:"/horses",allJockeys:"/jockeys",ratings:"/ratings",auction:"/auction",injuries:"/injuries",ranchManagement:"/ranch/management",notifications:"/notifications",races:"/schedule",training:"/training",breeding:"/breeding",horses:"/world",trainers:"/stable",ranch:"/ranch",market:"/market",finance:"/finance",entry:"/entries",jockey:"/entries",strategy:"/entries",results:"/schedule"};if(routes[x]&&typeof window!=="undefined"){window.location.assign(routes[x]);return;}S(x);if(typeof window!=="undefined")window.scrollTo(0,0)},msg=x=>{Q(x);setTimeout(()=>Q(""),3500)};
 const title=(x,sub)=><div className="pageTitle"><button className="back" onClick={()=>go("home")}>‹</button><div><h1>{x}</h1><div className="sub">{sub}</div></div></div>;
 const section=(x,next)=><div className="section"><h2>{x}</h2>{next&&<button onClick={()=>go(next)}>전체 보기 ›</button>}</div>;
@@ -137,16 +139,34 @@ useEffect(()=>{
   if(alive){SetRaceSchedule(data);SetScheduleError("");}
  }).catch(e=>{if(alive)SetScheduleError(e.message)});
  void refresh();
- const timer=setInterval(refresh,30000);
+ const timer=setInterval(refresh,15000);
  return ()=>{alive=false;clearInterval(timer)};
 },[screen]);
 return <main className="shell"><header className="header"><div onClick={()=>go("home")}><div className="brand">MY DERBY</div><div className="sub">{raceSchedule?.world?`${raceSchedule.world.season}시즌 · ${raceSchedule.world.week}주차 · ${raceSchedule.world.status==="ACTIVE"?"월드 운영 중":"운영 대기"}`:"경주 일정 조회 중"}</div></div><span className="coin">◉ 3,675 G</span><button className="hamburger" onClick={()=>go("menu")}>☰</button></header><div className="disclaimer">월드 시간표는 운영 중 · 일반 관리화면은 체험 UI 포함 · 공식 경기 결과는 별도 저장</div>
 {screen==="home"&&<><div className="hero"><div className="overline">🍂 오늘도 우리 말들과 함께 성장해요</div><h1>가을 목장</h1><div className="caption">마주의 새로운 하루</div><button className="primary" onClick={()=>go("ranch")}>목장 둘러보기 ›</button></div><div className="area">{section("오늘의 관리","horses")}<div className="card row"><div><div className="large gold">실제 경주마</div><div className="muted">마주 소유마는 월드에서 조회</div></div><div><div className="sub">평균 컨디션</div><div className="large green">{raceSchedule?.world?.status==="ACTIVE"?"ACTIVE":"확인 중"}</div></div><button className="outline" onClick={()=>go("testRaces")}>경주 테스트 ›</button></div>{section("오늘의 공식 경주 시간표","races")}
-{raceSchedule?.races?.length?<><div className="muted">오늘 총 {raceSchedule.raceCount}경주 · 출발 3분 간격 · 결과 3분 후</div>
- {raceSchedule.races.slice(0,8).map(r=>box(r.start_time.slice(0,5)+" · "+r.track+" "+r.source_rc_no+"경주",
- r.class_name+" · "+r.distance_m+"m · 출전 "+r.actual_starters+"/"+r.dusu+"두 · 결과 "+r.result_time,
- ()=>window.location.assign("/race/"+r.id),r.status==="FINISHED"?"공식 결과 ›":r.status==="RUNNING"?"진행 상황 ›":"출전표 ›"))}
- <a href="/schedule" className="outline wide" style={{display:"block",textAlign:"center",textDecoration:"none"}}>오늘 전체 {raceSchedule.raceCount}경주 보기 ›</a></>:
+{raceSchedule?<><div className="muted" style={{marginBottom:12}}>오늘 총 {raceSchedule.raceCount}경주 · 19시/20시/21시 시간대별 공식 진행 현황</div>
+ <div className="official-slot-grid">
+  {todaySlotSummaries.map(slot=><a key={slot.hour}
+    className={"official-slot-card official-slot-"+slot.state.toLowerCase()}
+    href={"/schedule?slot="+slot.hour}
+    aria-label={slot.hour+"시 경주 "+slot.total+"개, "+slot.label+", 전체 목록 보기"}>
+   <div className="official-slot-top">
+    <div><div className="official-slot-kicker">OFFICIAL RACE</div>
+     <div className="official-slot-hour">{slot.hour}<span>시 경주</span></div></div>
+    <span className={"official-slot-badge official-slot-badge-"+slot.state.toLowerCase()}>{slot.label}</span>
+   </div>
+   <div className="official-slot-detail">{slot.total
+     ?slot.total+"경주 · "+slot.firstStart+" ~ "+slot.lastStart
+     :"편성된 경주 없음"}</div>
+   <div className="official-slot-bottom">
+    <span>{slot.total?"완료 "+slot.completed+" / "+slot.total+"경주":"일정 없음"}</span>
+    <span className="official-slot-view">경주 목록 보기 ›</span>
+   </div>
+   {slot.total>0&&<div className="official-slot-progress" aria-hidden="true">
+    <span style={{width:slot.completed/slot.total*100+"%"}}/></div>}
+  </a>)}
+ </div>
+ <a href="/schedule" className="outline wide" style={{display:"block",textAlign:"center",textDecoration:"none",marginTop:10}}>오늘 전체 {raceSchedule.raceCount}경주 보기 ›</a></>:
  <div className="notice">{scheduleError||"오늘 경주시간표를 불러오는 중…"}</div>}
 {<a href="/breeding" className="card action row" style={{textDecoration:"none",color:"inherit",display:"flex",marginTop:14}}><div><b className="gold">✧ 교배 신청 · 임신 관리</b><div className="muted">시스템 씨수말 · 궁합 검사 · 임신 · 출산</div></div><span className="tag">교배 ›</span></a>}{<a href="/training" className="card action row" style={{textDecoration:"none",color:"inherit",display:"flex",marginTop:14}}><div><b className="gold">🐎 실제 훈련계획 · 리포트</b><div className="muted">거리·전개 스타일 선택 · 능력 성장 · 피로/컨디션 관리</div></div><span className="tag">훈련 ›</span></a>}{<a href="/entries" className="card action row" style={{textDecoration:"none",color:"inherit",display:"flex",marginTop:14}}><div><b className="gold">🏇 공식 출전 · 기수 신청</b><div className="muted">내 경주마 신청 및 NPC 기수 계약 · 실제 DB 저장</div></div><span className="tag">신청 ›</span></a>}{box("⚡ 경주시간표 강제 테스트","19시 부산·영천 / 20시 서울·영천 / 21시 서울·부산",()=>go("testRaces"),testRuns.length+"/"+liveSlots.length)}<a href="/schedule" className="card action row" style={{textDecoration:"none",color:"inherit",display:"flex",marginTop:14}}><div><b className="gold">📅 52주 공식 경주시간표</b><div className="muted">rank·stTime에 따른 매일 다경주 편성 · 결과 3분 후</div></div><span className="tag">시간표 ›</span></a><a href="/world" className="card action row" style={{textDecoration:"none",color:"inherit",display:"flex",marginTop:14}}><div><b className="gold">🌍 월드 운영 · 실제 보유마</b><div className="muted">NPC 마주 현황 · 시즌 일정 · 사용자 마주 등록</div></div><span className="tag">열기 ›</span></a>{section("게임 메뉴")}<div className="grid">{[["⌂","목장","휴양 · 재활 · 어린말 육성","ranch"],["♞","마방","조교사 · 훈련 리포트","horses"],["♜","경주","출전 · 전략 · 로그 결과","races"],["✧","교배","씨수말 · 교배 · 자마","breeding"]].map(([i,n,d,p])=><button className="card action" onClick={()=>go(p)} key={n}><div className="icon">{i}</div><b>{n}</b><div className="muted">{d}</div></button>)}</div></div></>}
 {screen==="testRaces"&&<>{title("공식 시간표 경주 강제 테스트","19시 부산·영천 / 20시 서울·영천 / 21시 서울·부산")}
