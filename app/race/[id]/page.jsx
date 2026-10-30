@@ -1,5 +1,6 @@
 "use client";
 import HorseLink, {HorseMentions} from "../../components/HorseLink";
+import StaffLink from "../../components/StaffLink";
 import {useEffect,useMemo,useState} from "react";
 import {useParams} from "next/navigation";
 import {selectRaceCommentary} from "../../../lib/racing/commentary";
@@ -153,7 +154,7 @@ export default function RaceDetailPage(){
        <td className="race-entry-name"><HorseLink horseId={e.horseId} title={e.name+" 상세정보"}>{e.name}</HorseLink></td>
        <td>{e.origin||e.country||"—"}</td><td>{sexLabel[e.sex]||e.sex||"—"}</td><td>{e.age??"—"}</td>
        <td>{e.weightKg??"—"}</td><td>{e.rating??"—"}</td>
-       <td>{e.jockeyName||"—"}</td><td>{e.trainerName||"—"}</td>
+       <td><StaffLink kind="jockey" staffId={e.jockeyId}>{e.jockeyName||"—"}</StaffLink></td><td><StaffLink kind="trainer" staffId={e.trainerId}>{e.trainerName||"—"}</StaffLink></td>
       </tr>)}</tbody>
      </table>
     </div>:<div className="notice">{race.entryAnnouncementPending?"공식 출전마는 낮 12시에 공개됩니다.":"출전마 정보가 없습니다."}</div>}
@@ -166,7 +167,7 @@ export default function RaceDetailPage(){
       return <div className="line row" key={x.horseId}>
        <div style={{flex:1}}><b className="gold">{x.rank}위</b>
         <b style={{marginLeft:12}}>{x.number}번 <HorseLink horseId={x.horseId}>{x.name}</HorseLink></b>
-        <div className="muted">기수 {e?.jockeyName||"정보 없음"} · {e?.weightKg??"-"}kg</div></div>
+        <div className="muted">기수 <StaffLink kind="jockey" staffId={e?.jockeyId}>{e?.jockeyName||"정보 없음"}</StaffLink> · {e?.weightKg??"-"}kg</div></div>
        <div style={{whiteSpace:"nowrap",fontSize:13}}>{sec(x.timeSec)}초</div>
       </div>;
      })}</div>
