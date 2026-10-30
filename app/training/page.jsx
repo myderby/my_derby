@@ -1,5 +1,6 @@
 "use client";
 import HorseLink from "../components/HorseLink";
+import StaffLink from "../components/StaffLink";
 import {useCallback,useEffect,useMemo,useState} from "react";
 import {createClient} from "@supabase/supabase-js";
 
@@ -137,7 +138,7 @@ export default function TrainingPage(){
      <div className="bar"><div className="fill" style={{width:Math.max(0,Math.min(100,Number(horse.condition)))+"%"}}/></div>
      <div className="row small line"><span>피로도</span><b>{Number(horse.fatigue).toFixed(1)}</b></div>
      <div className="bar"><div className="fill" style={{width:Math.max(0,Math.min(100,Number(horse.fatigue)))+"%"}}/></div>
-     <div className="muted" style={{marginTop:11}}>{horse.trainer?("담당 조교사: "+horse.trainer.name+" · "+(horse.trainer.specialties||[]).join(", ")):"NPC 조교사 미계약 · 기본 자율 훈련(성장 효율 감소)"}</div>
+     <div className="muted" style={{marginTop:11}}>{horse.trainer?<>담당 조교사: <StaffLink kind="trainer" staffId={horse.trainer.id}>{horse.trainer.name}</StaffLink> · {(horse.trainer.specialties||[]).join(", ")}</>:"NPC 조교사 미계약 · 기본 자율 훈련(성장 효율 감소)"}</div>
     </div>
     <div className="section"><h2>성장 방향 · 훈련 강도</h2></div>
     <div className="card">
@@ -192,7 +193,7 @@ export default function TrainingPage(){
       </div>:<div className="muted" style={{marginTop:8}}>능력치 변화 없음</div>}
       <div className="row small" style={{marginTop:9}}>
        <span>피로 {signed(r.fatigueChange)}</span><span>컨디션 {signed(r.conditionChange)}</span></div>
-      {r.trainerName&&<div className="muted" style={{marginTop:7}}>조교사 {r.trainerName}</div>}
+      {r.trainerName&&<div className="muted" style={{marginTop:7}}>조교사 <StaffLink kind="trainer" staffId={r.trainerId}>{r.trainerName}</StaffLink></div>}
      </div>;
     })}
     {reports.length>12&&<button className="outline wide" onClick={()=>SetShowAll(v=>!v)}>
