@@ -1,9 +1,10 @@
 -- Use original 2025 jockey roster to canonically identify track & jockey.
--- Display '강수한' instead of '2025 영천 강수한 (003077)'.
--- The source number remains for matching; identities/skills/race results
+-- Keep globally unique internal name; display '강수한' for source roster.
+-- Source number, internal identity, and skill/race results
 -- and existing rider assignments are not deleted or rewritten.
 
 ALTER TABLE my_derby.npc_jockeys
+ ADD COLUMN IF NOT EXISTS display_name text,
  ADD COLUMN IF NOT EXISTS source_jk_no text,
  ADD COLUMN IF NOT EXISTS source_meet text;
 
@@ -49,7 +50,7 @@ BEGIN
  WHERE j.name LIKE '2025 %'
  )
  UPDATE my_derby.npc_jockeys j
- SET name=m.clean_name,source_meet=m.source_meet,source_jk_no=m.jk_no
+ SET display_name=m.clean_name,source_meet=m.source_meet,source_jk_no=m.jk_no
  FROM matches m WHERE j.id=m.id;
  GET DIAGNOSTICS v_cleaned=ROW_COUNT;
  IF v_cleaned<>156 THEN RAISE EXCEPTION 'NAMES_CLEANED_INVALID_%',v_cleaned;END IF;
@@ -57,7 +58,7 @@ BEGIN
  SELECT count(*) INTO v_bad FROM my_derby.npc_jockeys j
  JOIN my_derby.schedule_jockey_roster_2025 r
    ON j.source_meet=r.source_meet AND j.source_jk_no=r.jk_no
- WHERE j.name<>regexp_replace(r.name,'^[（(][-]?[0-9]+[)）]','')
+ WHERE j.display_name<>regexp_replace(r.name,'^[（(][-]?[0-9]+[)）]','')
    OR j.home_track<>CASE r.source_meet WHEN '부산경남' THEN '부산'
    WHEN '제주' THEN '영천' ELSE r.source_meet END;
  IF v_bad<>0 THEN RAISE EXCEPTION 'SOURCE_MISMATCH_AFTER_NORMALIZATION_%',v_bad;END IF;
@@ -122,7 +123,7 @@ BEGIN
   OR regexp_replace(v_roster.name,'^[（(][-]?[0-9]+[)）]','')<>v_match[2]
   OR NEW.home_track<>v_expect_track
  THEN RAISE EXCEPTION 'JOCKEY_ROSTER_IDENTITY_OR_TRACK_MISMATCH';END IF;
- NEW.name:=v_match[2];
+ NEW.display_name:=v_match[2];
  NEW.source_meet:=v_roster.source_meet;
  NEW.source_jk_no:=v_roster.jk_no;
  RETURN NEW;
