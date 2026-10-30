@@ -46,7 +46,7 @@ export default function FixtureRace(){
      <div className="section"><h2>{grade}등급 경주마 · 5두</h2></div>
      {sorted.filter(x=>x.gradeNo===grade).map(x=><div className="card row" key={x.id}>
       <div><b className="gold">{x.number}번 <HorseLink horseId={x.sourceHorseId||x.id}>{x.name}</HorseLink></b>
-       <div className="muted">마번 {x.horseNo} · 현재 능력치 속도 {x.horse.speed} /
+       <div className="muted">현재 능력치 속도 {x.horse.speed} /
         지구력 {x.horse.stamina} / 가속 {x.horse.acceleration}</div></div>
       <span className="tag">{grade}등급</span></div>)}
     </div>)}
