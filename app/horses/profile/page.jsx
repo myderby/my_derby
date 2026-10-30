@@ -3,6 +3,8 @@ import {useEffect,useState} from "react";
 import {useSearchParams} from "next/navigation";
 import {Suspense} from "react";
 import StaffLink from "../../components/StaffLink";
+import HorseDiscovery from "../../components/HorseDiscovery";
+import {createClient} from "@supabase/supabase-js";
 
 const fmt=x=>x==null?"-":Number(x).toLocaleString("ko-KR");
 const sex={MALE:"수말",FEMALE:"암말",GELDING:"거세마"};
@@ -31,8 +33,14 @@ function Detail(){
   async function load(){
    L(true);
    try{
+    let headers={};
+    try{
+     const client=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
+     const {data:sessionData}=await client.auth.getSession();
+     if(sessionData?.session?.access_token)headers={Authorization:"Bearer "+sessionData.session.access_token};
+    }catch{}
     const r=await fetch("/api/world/horse-profile?"+params.toString(),
-     {cache:"no-store",signal:controller.signal});
+     {headers,cache:"no-store",signal:controller.signal});
     const x=await r.json();
     if(!r.ok)throw new Error(x.error||"경주마 정보를 불러올 수 없습니다.");
     if(!controller.signal.aborted){D(x);E("")}
@@ -42,7 +50,7 @@ function Detail(){
   void load();return()=>controller.abort();
  },[horseId,meet,hrNo]);
  const source=data?.source;
- const abilities=data?.abilities?.current||{};
+ const discovery=data?.discovery;
  return <main className="shell directory-shell">
   <header className="header"><a href="/" className="brand" style={{textDecoration:"none"}}>MY DERBY</a>
    <span className="coin">🐎 경주마 정보</span></header>
@@ -80,11 +88,8 @@ function Detail(){
      <div className="dir-records">
       <Record title="게임 통산" stats={data.game?.career}/>
       <Record title="게임 최근 364일" stats={data.game?.recentYear}/></div>
-     <div className="section"><h2>현재 능력치</h2></div>
-     <div className="card horse-profile-stats">
-      {Object.entries(skills).map(([key,label])=><div key={key}>
-       <span>{label}</span><strong>{abilities[key]??"—"}</strong></div>)}
-     </div>
+     <div className="section"><h2>🔍 능력·잠재력 발견 보고서</h2></div>
+     <HorseDiscovery discovery={discovery}/> 
     </>}
     {data.gameTrainer&&<div className="card"><div className="muted">현재 게임 담당 조교사</div><strong><StaffLink kind="trainer" staffId={data.gameTrainer.id}>{data.gameTrainer.name}</StaffLink></strong></div>}
     {source&&<><div className="section"><h2>혈통 · 관계자</h2></div>
