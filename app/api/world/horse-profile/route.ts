@@ -1,5 +1,5 @@
 import {NextResponse} from "next/server";
-import {createPublicDb} from "../../../../lib/server/supabase";
+import {createPublicDb,requireUser} from "../../../../lib/server/supabase";
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -14,7 +14,8 @@ export async function GET(req:Request){
    !/^[0-9a-z]{1,24}$/i.test(hrNo||""))))
    return NextResponse.json({error:"경주마 식별정보가 올바르지 않습니다."},{status:400});
  try{
-  const {data,error}=await createPublicDb().schema("my_derby")
+  const db=req.headers.get("authorization")? (await requireUser(req)).db:createPublicDb();
+  const {data,error}=await db.schema("my_derby")
    .rpc("world_horse_profile",{
     p_horse_id:byHorse?horseId:null,
     p_source_meet:byHorse?null:meet,
