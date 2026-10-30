@@ -31,12 +31,15 @@ WHERE j.source_jk_no='080599' AND j.home_track='부산'
 -- Five jockeys newly present in user CSV but absent from 2025 roster.
 -- Seed their initial GAME skill estimates from the mean skills of existing
 -- same-track source jockeys; do not claim these are user-provided skill scores.
-WITH stats AS (
- SELECT j.home_track,jsonb_object_agg(x.key,round(avg(x.value::numeric))::int) skill_base
+WITH averages AS (
+ SELECT j.home_track,x.key,round(avg(x.value::numeric))::int score
  FROM my_derby.npc_jockeys j
  CROSS JOIN LATERAL jsonb_each_text(j.skill_stats) x(key,value)
  WHERE j.source_jk_no IS NOT NULL
- GROUP BY j.home_track
+ GROUP BY j.home_track,x.key
+),stats AS (
+ SELECT home_track,jsonb_object_agg(key,score) skill_base
+ FROM averages GROUP BY home_track
 )
 INSERT INTO my_derby.npc_jockeys
  (world_id,name,display_name,home_track,source_meet,source_jk_no,
