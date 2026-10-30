@@ -10,6 +10,8 @@ export async function GET(request:Request){
   const page=Number(rawPage),size=Number(rawSize);
   const gradeRaw=q.get("grade");
   const grade=gradeRaw===null||gradeRaw===""?null:Number(gradeRaw);
+  const mode=q.get("mode")||"uploaded";
+  if(!["uploaded","world"].includes(mode))return result({error:"알 수 없는 검색 범위입니다."},400);
   const search=(q.get("q")||"").trim();
   const track=q.get("track")||null,sex=q.get("sex")||null,
    stage=q.get("stage")||null,sort=q.get("sort")||"name";
@@ -19,12 +21,17 @@ export async function GET(request:Request){
    search.length>50||!["name","rating","age","grade"].includes(sort)||
    (track!==null&&!["서울","부산","영천","제주"].includes(track))||
    (sex!==null&&!["MALE","FEMALE","GELDING"].includes(sex))||
-   (stage!==null&&!["RACING","RETIRED","FOAL","YEARLING","STALLION","BROODMARE","DECEASED"].includes(stage)))
+   (stage!==null&&mode==="world"&&!["RACING","RETIRED","FOAL","YEARLING","STALLION","BROODMARE","DECEASED"].includes(stage)))
    return result({error:"검색 조건이 올바르지 않습니다."},400);
-  const {data,error}=await createPublicDb().schema("my_derby").rpc("world_horse_directory",{
-    p_search:search||null,p_track:track,p_grade:grade,p_sex:sex,
-    p_stage:stage,p_page:page,p_page_size:size,p_sort:sort
-  });
+  const {data,error}=mode==="uploaded"?
+    await createPublicDb().schema("my_derby").rpc("world_uploaded_horse_directory",{
+      p_search:search||null,p_track:track,p_grade:grade,p_sex:sex,
+      p_page:page,p_page_size:size,p_sort:sort
+    }):
+    await createPublicDb().schema("my_derby").rpc("world_horse_directory",{
+      p_search:search||null,p_track:track,p_grade:grade,p_sex:sex,
+      p_stage:stage,p_page:page,p_page_size:size,p_sort:sort
+    });
   if(error)throw error;
   return result(data);
  }catch(e){
