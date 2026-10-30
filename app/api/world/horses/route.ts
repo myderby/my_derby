@@ -18,7 +18,7 @@ export async function GET(request:Request){
   if(!Number.isInteger(page)||page<1||page>10000||
    !Number.isInteger(size)||size<1||size>50||
    (grade!==null&&(!Number.isInteger(grade)||grade<1||grade>6))||
-   search.length>50||!["name","rating","age","grade"].includes(sort)||
+   search.length>50||!(mode==="uploaded"?["name","rating","age","grade","wins","starts"]:["name","rating","age","grade"]).includes(sort)||
    (track!==null&&!["서울","부산","영천","제주"].includes(track))||
    (sex!==null&&!["MALE","FEMALE","GELDING"].includes(sex))||
    (stage!==null&&mode==="world"&&!["RACING","RETIRED","FOAL","YEARLING","STALLION","BROODMARE","DECEASED"].includes(stage)))
