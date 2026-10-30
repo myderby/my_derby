@@ -50,8 +50,8 @@ export default function SchedulePage(){
  <button className="outline" disabled={week>=52} onClick={()=>load(week+1)}>다음 주 ›</button></div>
  <div className="muted" style={{marginTop:9}}>{program.world.status==="ACTIVE"?"● 월드 운영 중":"월드 대기"} · {program.world.schedulerConfigured?"자동 경주 스케줄러 설정됨":"자동 스케줄러 미설정"}</div></div>}
  {error&&<div className="notice">{error}</div>}
- <div className="notice">19시 부산·영천 (원본 금요일) / 20시 서울·영천 (원본 토요일) / 21시 서울·부산 (원본 일요일).
- 원본 CSV의 rank, rcNo, stTime 순서를 보존했으며 게임 시작 시각으로 재배치했습니다. 영천은 부산의 거리 비율에 맞춘 1000~2000m 게임 거리를 사용하며 제주 원본 거리는 별도 보존합니다. 실제 결과는 출발 후 3분에 확정됩니다.</div>
+ <div className="notice">19시 부산·영천 / 20시 서울·영천 / 21시 서울·부산 경주가 진행됩니다.
+    각 경주는 3분 간격으로 출발하며, 결과는 출발 3분 후 확정됩니다.</div>
  <div className="section"><h2>{slot==="전체"?"경주 시간대 선택":slot+"시 전체 경주 목록"}</h2>
   {slot!=="전체"&&<button onClick={()=>chooseSlot("전체")}>모든 시간대 ›</button>}</div>
  <div className="official-slot-tabs" aria-label="경주 시간대">
@@ -71,13 +71,12 @@ export default function SchedulePage(){
  {!error&&program&&events.length===0&&<div className="notice">선택한 시간대와 지역에 편성된 경주가 없습니다.</div>}
  {Object.entries(grouped).map(([slot,list])=><div key={slot}><div className="section"><h2>{slot} 시작 · {list.length}경주</h2></div>
  {list.map(r=><a key={r.id} href={"/race/"+r.id} className="card row" style={{display:"flex",textDecoration:"none",color:"inherit",cursor:"pointer"}}>
- <div><b className="gold">{r.time} {r.track} {r.sourceRaceNo}경주</b>
+ <div><b className="gold">{r.time} · {r.track} {r.raceNo}경주</b>
  <div className="muted">{r.grade} · {r.distance}m · 출전 {r.actualStarters}/{r.dusu}두 · 결과 {r.resultTime}</div>
- <div className="muted">원본 {r.sourceMeet} {r.sourceDate} / stTime {r.sourceStTime}{r.sourceWeekReused?" · 원본 주간 재사용":""}</div>
- {r.track==="영천"&&r.sourceDistance!=null&&<div className="muted">원본 제주 {r.sourceDistance}m → 게임 영천 {r.distance}m</div>}</div>
+ <div className="muted">경주일 {r.date}</div></div>
  <div style={{textAlign:"right"}}><span className="tag">{r.status==="FINISHED"?"공식 결과":r.status==="RUNNING"?"진행 중":r.status==="CANCELLED"?"취소":"예정"}</span>
  <div className="gold" style={{fontSize:12,marginTop:13}}>{r.status==="FINISHED"?"기록 보기 ›":"경주 상세 ›"}</div></div>
  </a>)}</div>)}
  {!program&&!error&&<div className="notice">경주 시간표를 불러오는 중…</div>}
- <div className="footer">MY DERBY · 원본 rank·stTime 기반 시즌 편성</div></div></main>;
+ <div className="footer">MY DERBY · 공식 경주 일정</div></div></main>;
 }
