@@ -15,8 +15,8 @@ useEffect(()=>{if(!playing||pos>=events.length)return;const id=setTimeout(()=>E(
 const liveSlots=(raceSchedule?.races||[]).map(r=>({
  id:r.id,time:r.start_time?.slice(0,5)||"--:--",resultTime:r.result_time,
  track:r.track,distance:r.distance_m,grade:r.class_name,
- displayNo:r.source_rc_no,status:r.status,entryStatus:r.entry_status,
- sourceTime:r.source_st_time,dusu:r.dusu,actual:r.actual_starters
+ displayNo:r.race_no,status:r.status,entryStatus:r.entry_status,
+ dusu:r.dusu,actual:r.actual_starters
 }));
 const todaySlotSummaries=officialSlotSummaries(raceSchedule?.races||[]);
 const go=x=>{const routes={testFixture:"/test-race",allHorses:"/horses",allJockeys:"/jockeys",ratings:"/ratings",auction:"/auction",injuries:"/injuries",ranchManagement:"/ranch/management",notifications:"/notifications",races:"/schedule",training:"/training",breeding:"/breeding",horses:"/world",trainers:"/stable",ranch:"/ranch",market:"/market",finance:"/finance",entry:"/entries",jockey:"/entries",strategy:"/entries",results:"/schedule"};if(routes[x]&&typeof window!=="undefined"){window.location.assign(routes[x]);return;}S(x);if(typeof window!=="undefined")window.scrollTo(0,0)},msg=x=>{Q(x);setTimeout(()=>Q(""),3500)};
@@ -183,7 +183,7 @@ return <main className="shell"><header className="header"><div onClick={()=>go("
  </div>
  <a href="/schedule" className="outline wide" style={{display:"block",textAlign:"center",textDecoration:"none",marginTop:10}}>오늘 전체 {raceSchedule.raceCount}경주 보기 ›</a></>:
  <div className="notice">{scheduleError||"오늘 경주시간표를 불러오는 중…"}</div>}
-{<a href="/breeding" className="card action row" style={{textDecoration:"none",color:"inherit",display:"flex",marginTop:14}}><div><b className="gold">✧ 교배 신청 · 임신 관리</b><div className="muted">시스템 씨수말 · 궁합 검사 · 임신 · 출산</div></div><span className="tag">교배 ›</span></a>}{<a href="/training" className="card action row" style={{textDecoration:"none",color:"inherit",display:"flex",marginTop:14}}><div><b className="gold">🐎 실제 훈련계획 · 리포트</b><div className="muted">거리·전개 스타일 선택 · 능력 성장 · 피로/컨디션 관리</div></div><span className="tag">훈련 ›</span></a>}{<a href="/entries" className="card action row" style={{textDecoration:"none",color:"inherit",display:"flex",marginTop:14}}><div><b className="gold">🏇 공식 출전 · 기수 신청</b><div className="muted">내 경주마 신청 및 NPC 기수 계약 · 실제 DB 저장</div></div><span className="tag">신청 ›</span></a>}<a href="/test-race" className="card action row" style={{textDecoration:"none",color:"inherit",display:"flex",marginTop:14}}><div><b className="gold">🧪 19시 1경주 테스트</b><div className="muted">1등급 5두 vs 5등급 5두 · 10두 출전표 · 비공식 경주 시뮬레이션</div></div><span className="tag">실행 ›</span></a>{box("⚡ 공식 시간표 강제 테스트","공식 출전마를 복사해 비공식 경주 계산 · 기존 기능 유지",()=>go("testRaces"),testRuns.length+"/"+liveSlots.length)}<a href="/schedule" className="card action row" style={{textDecoration:"none",color:"inherit",display:"flex",marginTop:14}}><div><b className="gold">📅 52주 공식 경주시간표</b><div className="muted">rank·stTime에 따른 매일 다경주 편성 · 결과 3분 후</div></div><span className="tag">시간표 ›</span></a><a href="/world" className="card action row" style={{textDecoration:"none",color:"inherit",display:"flex",marginTop:14}}><div><b className="gold">🌍 월드 운영 · 실제 보유마</b><div className="muted">NPC 마주 현황 · 시즌 일정 · 사용자 마주 등록</div></div><span className="tag">열기 ›</span></a>{section("게임 메뉴")}<div className="grid">{[["⌂","목장","휴양 · 재활 · 어린말 육성","ranch"],["♞","마방","조교사 · 훈련 리포트","horses"],["♜","경주","출전 · 전략 · 로그 결과","races"],["✧","교배","씨수말 · 교배 · 자마","breeding"]].map(([i,n,d,p])=><button className="card action" onClick={()=>go(p)} key={n}><div className="icon">{i}</div><b>{n}</b><div className="muted">{d}</div></button>)}</div></div></>}
+{<a href="/breeding" className="card action row" style={{textDecoration:"none",color:"inherit",display:"flex",marginTop:14}}><div><b className="gold">✧ 교배 신청 · 임신 관리</b><div className="muted">시스템 씨수말 · 궁합 검사 · 임신 · 출산</div></div><span className="tag">교배 ›</span></a>}{<a href="/training" className="card action row" style={{textDecoration:"none",color:"inherit",display:"flex",marginTop:14}}><div><b className="gold">🐎 실제 훈련계획 · 리포트</b><div className="muted">거리·전개 스타일 선택 · 능력 성장 · 피로/컨디션 관리</div></div><span className="tag">훈련 ›</span></a>}{<a href="/entries" className="card action row" style={{textDecoration:"none",color:"inherit",display:"flex",marginTop:14}}><div><b className="gold">🏇 공식 출전 · 기수 신청</b><div className="muted">내 경주마 신청 및 NPC 기수 계약 · 실제 DB 저장</div></div><span className="tag">신청 ›</span></a>}<a href="/test-race" className="card action row" style={{textDecoration:"none",color:"inherit",display:"flex",marginTop:14}}><div><b className="gold">🧪 19시 1경주 테스트</b><div className="muted">1등급 5두 vs 5등급 5두 · 10두 출전표 · 비공식 경주 시뮬레이션</div></div><span className="tag">실행 ›</span></a>{box("⚡ 공식 시간표 강제 테스트","공식 출전마를 복사해 비공식 경주 계산 · 기존 기능 유지",()=>go("testRaces"),testRuns.length+"/"+liveSlots.length)}<a href="/schedule" className="card action row" style={{textDecoration:"none",color:"inherit",display:"flex",marginTop:14}}><div><b className="gold">📅 52주 공식 경주시간표</b><div className="muted">19시·20시·21시 경주 시간표 · 결과 3분 후</div></div><span className="tag">시간표 ›</span></a><a href="/world" className="card action row" style={{textDecoration:"none",color:"inherit",display:"flex",marginTop:14}}><div><b className="gold">🌍 월드 운영 · 실제 보유마</b><div className="muted">NPC 마주 현황 · 시즌 일정 · 사용자 마주 등록</div></div><span className="tag">열기 ›</span></a>{section("게임 메뉴")}<div className="grid">{[["⌂","목장","휴양 · 재활 · 어린말 육성","ranch"],["♞","마방","조교사 · 훈련 리포트","horses"],["♜","경주","출전 · 전략 · 로그 결과","races"],["✧","교배","씨수말 · 교배 · 자마","breeding"]].map(([i,n,d,p])=><button className="card action" onClick={()=>go(p)} key={n}><div className="icon">{i}</div><b>{n}</b><div className="muted">{d}</div></button>)}</div></div></>}
 {screen==="testRaces"&&<>{title("공식 시간표 경주 강제 테스트","19시 부산·영천 / 20시 서울·영천 / 21시 서울·부산")}
 <div className="area">
 <div className="card row" style={{borderColor:"#b8924e",marginBottom:12}}>
@@ -203,7 +203,7 @@ return <main className="shell"><header className="header"><div onClick={()=>go("
  전체 출전표 및 구간 중계 보기 ›</a>
 </div>}
 <div className="notice"><b>아래 버튼은 공식 시간표의 비공식 미리보기이며, 위 19시 1경주 등급 비교 테스트와 별개입니다.</b><br/>
-CSV의 rank, rcNo, stTime 순서를 반영한 오늘의 경주를 시간표 순서로 하나씩 계산합니다.
+오늘 편성된 경주를 출발 시각순으로 하나씩 테스트합니다.
 각 경주는 3분 간격으로 시작하며 공식 결과는 시작 3분 후 공개됩니다.
 테스트에서는 시계를 기다리지 않고 같은 엔진을 강제로 계산하지만
 경주 상태, 공식 기록, 상금에는 영향을 주지 않습니다.</div>
@@ -220,7 +220,7 @@ CSV의 rank, rcNo, stTime 순서를 반영한 오늘의 경주를 시간표 순�
 <div style={{height:14}}/>
 {liveSlots.map((race,i)=><div className="card row" key={race.id} onClick={()=>{if(testResults[i])SetActiveTestIndex(i)}} style={{cursor:testResults[i]?"pointer":"default",padding:"11px 13px"}}>
  <div><b className="gold">{race.time} · {race.track} {race.displayNo}경주</b>
- <div className="muted">{race.grade} · {race.distance}m · 출전 {race.actual}/{race.dusu}두 · 결과 {race.resultTime} · 원본 {race.sourceTime}</div></div>
+ <div className="muted">{race.grade} · {race.distance}m · 출전 {race.actual}/{race.dusu}두 · 결과 {race.resultTime}</div></div>
  <span className="tag">{testRuns.includes(i)?"✓ 테스트 완료":race.entryStatus==="INSUFFICIENT_ELIGIBLE_HORSES"?"출전마 부족":i===testRuns.length?"다음":"대기"}</span>
 </div>)}
 {activeTestIndex>=0&&testResults[activeTestIndex]&&(()=>{
