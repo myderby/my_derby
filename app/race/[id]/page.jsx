@@ -85,10 +85,10 @@ export default function RaceDetailPage(){
     <div className="card">
      <div className="row"><div>
       <div className="muted">{today} · {race.startTime} 출발</div>
-      <h1 style={{fontSize:24,margin:"9px 0 5px"}}>{race.track} {race.raceNo||race.gameRaceNo}경주</h1>
+      <h1 style={{fontSize:24,margin:"9px 0 5px"}}>{race.track} {race.gameRaceNo||race.raceNo}경주</h1>
       <div className="muted">{race.className} · {race.distanceM}m · {race.entries?.length||0}두 출전</div>
      </div><span className="tag">{status}</span></div>
-     <div className="muted" style={{marginTop:10}}>공식 경주 ID: {String(race.raceId||id).slice(0,8)} · 결과 공개 {race.resultTime||"미정"} (한국시간)</div>
+     <div className="muted" style={{marginTop:10}}>결과 공개 {race.resultTime||"미정"} (한국시간)</div>
      {race.status==="RUNNING"&&<div className="notice">🏇 공식 경주가 진행되고 있습니다. 결과가 확정되면 자동으로 표시됩니다. (약 15초 간격 조회)</div>}
      {race.status==="OPEN"&&<div className="notice">출전표가 확정된 실제 공식 경주입니다. 출발 후 결과가 공개되면 이 화면에 공식 순위와 중계 로그가 표시됩니다.</div>}
      {race.status==="CANCELLED"&&<div className="notice">이 경주는 취소되었습니다. 비공식 결과는 생성하지 않습니다.</div>}
@@ -109,8 +109,8 @@ export default function RaceDetailPage(){
     {!completed&&<><div className="section"><h2>공식 출전표</h2></div>
       {race.entries?.length?<div className="card">
        {race.entries.map(e=><div className="line" key={e.horseId}>
-        <div className="row"><b className="gold">{e.number??"-"}번 <HorseLink horseId={e.horseId}>{e.name}</HorseLink></b><span className="tag">{e.entryStatus==="CONFIRMED"?"출전 확정":e.entryStatus}</span></div>
-        <div className="muted">{e.age}세 · {sexLabel[e.sex]||e.sex} · 기수 {e.jockeyName||"미배정"} · 부담중량 {e.weightKg??"-"}kg</div>
+        <div className="row"><b className="gold">{e.number??"-"}번 <HorseLink horseId={e.horseId} title={e.name+" 기본정보 · 통산 및 최근 1년 전적"}>{e.name}</HorseLink></b><span className="tag">{e.entryStatus==="CONFIRMED"?"출전 확정":e.entryStatus}</span></div>
+        <div className="muted">{e.age}세 · {sexLabel[e.sex]||e.sex} · 기수 {e.jockeyName||"미배정"} · 부담중량 {e.weightKg??"-"}kg <span style={{color:"#c9a45c"}}>· 말 이름 선택 시 기본정보 ›</span></div>
        </div>)}
       </div>:<div className="notice">출전마 정보가 없습니다.</div>}
       {race.status==="RESULT_NOT_AVAILABLE"&&<div className="notice">공식 결과를 저장하는 중입니다. 이 화면을 새로고침해 주세요.</div>}
