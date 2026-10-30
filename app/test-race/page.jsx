@@ -1,5 +1,5 @@
 "use client";
-import HorseLink from "../components/HorseLink";
+import HorseLink, {HorseMentions} from "../components/HorseLink";
 import {useEffect,useState} from "react";
 import {selectRaceCommentary} from "../../lib/racing/commentary";
 
@@ -67,7 +67,7 @@ export default function FixtureRace(){
     <div className="section"><h2>경주 중계 로그</h2></div>
     {selectRaceCommentary(result.events).map(x=><div className="card" key={x.seq}>
       <div className="muted">{x.timeSec.toFixed(1)}초 · {x.distanceM.toFixed(0)}m</div>
-      <div className="small">{x.text}</div></div>)}
+      <div className="small"><HorseMentions text={x.text} horseList={sorted.map(h=>({id:h.id,name:h.name}))}/></div></div>)}
    </>}
    <div className="footer">MY DERBY · test-only fixture · 공식 레이팅·경제 정산 미반영</div>
   </div>
