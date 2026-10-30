@@ -54,8 +54,8 @@ export default function StablePage(){
     <a className="outline" href="/training" style={{textDecoration:"none"}}>훈련 관리 ›</a></div>
    <div className="section"><h2>조교사 위탁 제안 · 심사</h2><button onClick={()=>reload()} disabled={!token||busy}>새로고침 ↻</button></div>
    <div className="notice">마주가 조교사에게 위탁을 제안하면 즉시 확정되지 않고 신청 목록에 접수됩니다.
-    조교사는 경주마 능력(40점) · 전문 분야 궁합(25점) · 과거 협업(15점) · 등급(10점) · 조교사 역량(10점)을 비교하여
-    남은 정원 안에서 선호하는 경주마를 선택합니다. 매일 09:00~23:50(한국시간) 10분 간격으로 심사합니다.
+    조교사는 경주마 능력(40점) · 전문 분야 궁합(25점) · 과거 협업(5점) · 마주와의 친밀도·신뢰도(10점) · 등급(10점) · 조교사 역량(10점)을 비교하여
+    남은 정원 안에서 선호하는 경주마를 선택합니다. 경주마 기본 능력 차이가 8점 이상이면 뛰어난 말을 우선 선택하며, 친밀도 100도 계약을 보장하지 않습니다. 매일 09:00~23:50(한국시간) 10분 간격으로 심사합니다.
     신청이 거절되면 다른 조교사를 선택할 수 있습니다. 기존 계약은 새 신청이 승인될 때까지 유지됩니다.
     조교사는 같은 경마장 소속 말만 맡으며, 1인 최대 40두까지 담당합니다.</div>
    {error&&<div className="notice" role="alert">{error}</div>}
@@ -77,9 +77,10 @@ export default function StablePage(){
     <div className="section"><h2>조교사 선택</h2></div>
     <select className="field" value={selected?.id||""} onChange={e=>N(e.target.value)}>
      {trainers.map(t=><option key={t.id} value={t.id} disabled={t.occupied>=t.capacity}>
-      {t.name} · 담당 {t.occupied}/{t.capacity}두 · 심사대기 {t.pendingOffers||0}건</option>)}
+      {t.name} · 친밀도 {t.ownerFamiliarity??0} / 신뢰도 {t.ownerTrust??0} · 담당 {t.occupied}/{t.capacity}두 · 심사대기 {t.pendingOffers||0}건</option>)}
     </select>
     {selected&&<div className="muted" style={{marginTop:12}}>
+      나와의 친밀도 {selected.ownerFamiliarity??0}/100 · 신뢰도 {selected.ownerTrust??0}/100 · 관계 점수 {selected.ownerAffinity??0}/100<br/>
       신청 심사 대기: {selected.pendingOffers||0}건 · 잔여 정원: {Math.max(0,selected.capacity-selected.occupied)}두<br/>
       전문 분야: {(selected.specialties||[]).join(" · ")||"종합"}<br/>
       <StaffLink kind="trainer" staffId={selected.id}>{selected.name} 상세정보 보기 ›</StaffLink><br/>
