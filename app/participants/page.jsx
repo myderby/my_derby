@@ -1,5 +1,6 @@
 "use client";
 import {useEffect,useMemo,useState} from "react";
+import StaffLink from "../components/StaffLink";
 export default function Participants(){
  const [people,setPeople]=useState([]),[view,setView]=useState("records"),[kind,setKind]=useState("jockey"),[meet,setMeet]=useState("전체"),[term,setTerm]=useState(""),[error,setError]=useState("");
  useEffect(()=>{const v=new URLSearchParams(location.search).get("view");if(["owners","trainers","records"].includes(v))setView(v);fetch("/api/world/participants",{cache:"no-store"}).then(async r=>{const j=await r.json();if(!r.ok)throw Error(j.error);setPeople(j.people||[])}).catch(e=>setError(e.message))},[]);
@@ -13,7 +14,7 @@ export default function Participants(){
  <input className="field" placeholder="이름 검색" value={term} onChange={e=>setTerm(e.target.value)}/>
  <p className="muted">{rows.length}명 · 실제 공식 경주 결과 기준</p>
  {error&&<div className="notice">{error}</div>}
- <div className="race-entry-wrap"><table className="race-entry-table"><thead><tr>{["이름","소속","출전","1위","2위","3위","승률","복승률","연승률"].map(x=><th key={x}>{x}</th>)}</tr></thead><tbody>{rows.map(p=><tr key={p.type+p.id}><td className="race-entry-name">{p.name}</td><td>{p.track}</td><td>{p.starts}</td><td>{p.wins}</td><td>{p.seconds}</td><td>{p.thirds}</td><td>{p.starts?(p.wins/p.starts*100).toFixed(1)+"%":"—"}</td><td>{p.starts?((p.wins+p.seconds)/p.starts*100).toFixed(1)+"%":"—"}</td><td>{p.starts?((p.wins+p.seconds+p.thirds)/p.starts*100).toFixed(1)+"%":"—"}</td></tr>)}</tbody></table></div>
+ <div className="race-entry-wrap"><table className="race-entry-table"><thead><tr>{["이름","소속","출전","1위","2위","3위","승률","복승률","연승률"].map(x=><th key={x}>{x}</th>)}</tr></thead><tbody>{rows.map(p=><tr key={p.type+p.id}><td className="race-entry-name"><StaffLink kind={p.type} staffId={p.id}>{p.name}</StaffLink></td><td>{p.track}</td><td>{p.starts}</td><td>{p.wins}</td><td>{p.seconds}</td><td>{p.thirds}</td><td>{p.starts?(p.wins/p.starts*100).toFixed(1)+"%":"—"}</td><td>{p.starts?((p.wins+p.seconds)/p.starts*100).toFixed(1)+"%":"—"}</td><td>{p.starts?((p.wins+p.seconds+p.thirds)/p.starts*100).toFixed(1)+"%":"—"}</td></tr>)}</tbody></table></div>
  <p className="muted">조교사는 경마장별로 소속이 고정됩니다. 공식 경주 기록이 없는 경우 0전으로 표시됩니다.</p>
  </div></main>;
 }
