@@ -1,4 +1,5 @@
 "use client";
+import HorseLink from "../components/HorseLink";
 import {useEffect,useMemo,useState} from "react";
 import {createClient} from "@supabase/supabase-js";
 const create=()=>createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
@@ -49,7 +50,7 @@ export default function Market(){
    <div className="tabs">{["전체","서울","부산","영천"].map(t=><button className={track===t?"active":""} key={t} onClick={()=>Track(t)}>{t}</button>)}</div>
    {!listings.length&&<div className="notice">현재 구매 가능한 매물이 없습니다.</div>}
    {listings.map(l=><div className="card" key={l.id}>
-    <div className="row"><div><b className="gold">{l.name}</b><div className="muted">{l.track} · {l.grade??"-"}등급 · {l.age}세 · {l.sex}</div>
+    <div className="row"><div><b className="gold"><HorseLink horseId={l.horseId}>{l.name}</HorseLink></b><div className="muted">{l.track} · {l.grade??"-"}등급 · {l.age}세 · {l.sex}</div>
      <div className="muted">{l.sellerType==="SYSTEM"?"시스템 매물":l.sellerType==="NPC"?"NPC 마주 매물":l.sellerType==="MY_LISTING"?"내 판매 매물":"다른 플레이어 매물"}</div></div>
     <div style={{textAlign:"right"}}><b>{format(l.price)} G</b>
      {l.sellerType==="MY_LISTING"?<button className="outline" disabled={busy} onClick={()=>transact({action:"CANCEL",listingId:l.id})}>판매 취소</button>:
@@ -61,6 +62,7 @@ export default function Market(){
     <select className="field" id="horse" value={horse} onChange={e=>H(e.target.value)}>
      {(board.horses||[]).filter(h=>h.saleState==="NOT_LISTED").map(h=><option value={h.id} key={h.id}>{h.name} · {h.grade??"-"}등급 · {h.age}세</option>)}
     </select>
+    {horse&&<div className="muted"><HorseLink horseId={horse}>선택한 경주마 기본정보 ›</HorseLink></div>}
     <label className="muted" htmlFor="price">즉시판매 가격 (게임머니)</label>
     <input className="field" id="price" type="number" min="50000" max="20000000" step="10000" value={price} onChange={e=>P(Number(e.target.value))}/>
     <div className="muted">판매 성사 시 게임머니가 지급됩니다. 출전 신청 중이거나 임신 중인 말은 등록할 수 없습니다.</div>
