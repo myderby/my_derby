@@ -2,6 +2,7 @@
 import {useEffect,useState} from "react";
 import {useSearchParams} from "next/navigation";
 import {Suspense} from "react";
+import StaffLink from "../../components/StaffLink";
 
 const fmt=x=>x==null?"-":Number(x).toLocaleString("ko-KR");
 const sex={MALE:"수말",FEMALE:"암말",GELDING:"거세마"};
@@ -85,6 +86,7 @@ function Detail(){
        <span>{label}</span><strong>{abilities[key]??"—"}</strong></div>)}
      </div>
     </>}
+    {data.gameTrainer&&<div className="card"><div className="muted">현재 게임 담당 조교사</div><strong><StaffLink kind="trainer" staffId={data.gameTrainer.id}>{data.gameTrainer.name}</StaffLink></strong></div>}
     {source&&<><div className="section"><h2>혈통 · 관계자</h2></div>
      <div className="card horse-profile-attributes">
       <div><span>부마</span><strong>{source.fatherName||"-"}</strong></div>
