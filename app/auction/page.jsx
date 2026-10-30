@@ -1,4 +1,5 @@
 "use client";
+import HorseLink from "../components/HorseLink";
 import {useEffect,useState} from "react";
 import {createClient} from "@supabase/supabase-js";
 const fmt=v=>new Intl.NumberFormat("ko-KR").format(v||0);
@@ -46,7 +47,7 @@ export default function Auctions(){
   const minimum=a.highestBid>0?a.highestBid+a.minIncrement:a.startPrice;
   const amount=bidAmounts[a.listingId]??minimum;
   return <div className="card" key={a.listingId}>
-    <div className="row"><div><b className="gold">{a.horseName}</b><div className="muted">{a.track} · {a.horseGrade??"-"}등급 · {a.age}세</div></div><span className="tag">게임 {a.endGameDay}일 마감</span></div>
+    <div className="row"><div><b className="gold"><HorseLink horseId={a.horseId}>{a.horseName}</HorseLink></b><div className="muted">{a.track} · {a.horseGrade??"-"}등급 · {a.age}세</div></div><span className="tag">게임 {a.endGameDay}일 마감</span></div>
     <div className="row small line"><span>시작가</span><b>{fmt(a.startPrice)} G</b></div>
     <div className="row small"><span>현재 최고입찰가</span><b>{a.highestBid?fmt(a.highestBid)+" G":"입찰 없음"}</b></div>
     {!a.sellerIsMe&&<>
@@ -64,6 +65,7 @@ export default function Auctions(){
  <select className="field" value={horse} onChange={e=>H(e.target.value)}>
  {mine.map(h=><option key={h.id} value={h.id}>{h.name} · {h.grade??"-"}등급</option>)}
  </select>
+ {horse&&<div className="muted"><HorseLink horseId={horse}>선택한 경주마 기본정보 ›</HorseLink></div>}
  <label className="muted">경매 시작가 (G)</label><input className="field" type="number" min={50000} max={20000000} step={10000} value={start} onChange={e=>P(Number(e.target.value))}/>
  <label className="muted">경매 기간 (게임일)</label>
  <select className="field" value={days} onChange={e=>Y(Number(e.target.value))}>
