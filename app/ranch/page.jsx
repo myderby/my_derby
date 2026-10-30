@@ -50,7 +50,8 @@ export default function Ranch(){
  <div className="area">
   <div className="controls" style={{marginBottom:14}}><a className="outline" href="/world" style={{textDecoration:"none"}}>‹ 내 경주마</a><a href="/finance" className="outline" style={{textDecoration:"none"}}>재무 현황 ›</a><a href="/ranch/management" className="outline" style={{textDecoration:"none"}}>목장 확장·직원 ›</a></div>
   <div className="section"><h2>목장 휴양 · 재활 · 어린말 육성</h2><button disabled={!token||busy} onClick={()=>refresh()}>새로고침 ↻</button></div>
-  <div className="notice">실제 게임 DB에 코스 신청·비용·회복을 기록합니다. 매일 22:50(한국시간) 종료 대상 코스를 정산합니다.
+  <div className="notice">🔍 개인목장은 단순 회복 시설이 아니라 경주마를 알아가는 공간입니다. 휴양은 안정성과 기질, 회복은 회복력, 재활은 신체 균형, 어린말 육성은 성장 가능성을 관찰합니다. 시설 레벨이 높을수록 코스 종료 시 관찰 정보가 더 많이 축적됩니다. 정확한 능력치나 히든 특성은 즉시 공개되지 않습니다.<br/>
+    실제 게임 DB에 코스 신청·비용·회복을 기록합니다. 매일 22:50(한국시간) 종료 대상 코스를 정산합니다.
    코스 기간 중에는 출전 예정 경주와 겹치지 않도록 제한합니다.</div>
   {error&&<div className="notice" role="alert">⚠ {error}</div>}
   {notice&&<div className="notice" role="status">✓ {notice}</div>}
