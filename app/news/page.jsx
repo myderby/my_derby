@@ -1,6 +1,8 @@
 "use client";
 import {useEffect,useMemo,useState} from "react";
 import {createClient} from "@supabase/supabase-js";
+import StaffLink from "../components/StaffLink";
+import HorseLink from "../components/HorseLink";
 
 const won=n=>Number(n||0).toLocaleString("ko-KR")+" G";
 const num=n=>Number(n||0).toLocaleString("ko-KR");
@@ -14,16 +16,17 @@ const rate=p=>p?.starts?(Number(p.wins)/Number(p.starts)*100).toFixed(1)+"%":"0.
 
 function NewsRanking({icon,label,subject,people}) {
  const lead=people?.[0];
+ const staffKind=subject==="기수"?"jockey":subject==="조교사"?"trainer":null;
  return <section className="news-section">
   <div className="section"><h2>{icon} {label}</h2><span className="tag">TOP {Math.min(5,people?.length||0)}</span></div>
   {!lead?<div className="news-empty">{subject} 기록이 없습니다.</div>:<>
    <div className="news-feature">
     <div className="news-flag">{subject} 주요 소식</div>
-    <div className="news-feature-title">{lead.person_name}, {num(lead.wins)}승으로 눈길</div>
+    <div className="news-feature-title"><StaffLink kind={staffKind} staffId={staffKind?lead.person_key:null}>{lead.person_name}</StaffLink>, {num(lead.wins)}승으로 눈길</div>
     <p>{num(lead.starts)}전에서 {num(lead.wins)}승, 2위 {num(lead.seconds)}회, 3위 {num(lead.thirds)}회. 승률 {rate(lead)}를 기록했습니다.</p>
    </div>
    <div className="news-leaderboard">{people.map((item,i)=><div className="news-rank" key={item.person_key||item.person_name}>
-     <div className="news-position">{i+1}</div><div className="news-rank-main"><b>{item.person_name}</b>
+     <div className="news-position">{i+1}</div><div className="news-rank-main"><b><StaffLink kind={staffKind} staffId={staffKind?item.person_key:null}>{item.person_name}</StaffLink></b>
       <small>{num(item.starts)}전 · {num(item.wins)}승 · 2위 {num(item.seconds)}회 · 3위 {num(item.thirds)}회</small></div>
      <div className="news-rank-right"><b>{rate(item)}</b><span>{won(item.prize)}</span></div>
     </div>)}</div>
@@ -33,13 +36,13 @@ function NewsRanking({icon,label,subject,people}) {
 function OpenNews({items}) {
  return <section className="news-section"><div className="section"><h2>🏆 OPEN · 대상경주 우승 소식</h2></div>
   {!items?.length?<div className="news-empty">이 날짜에 공식 결과가 확정된 OPEN·대상경주 우승 기록이 없습니다.</div>:
-   items.map((x,i)=><a className="news-open-card" href={"/race/"+x.race_id} key={x.race_id+"-"+i}>
+   items.map((x,i)=><article className="news-open-card" key={x.race_id+"-"+i}>
     <div className="news-flag">대상경주 우승 · {x.track} {pad(x.start_time?.slice(0,2))}:00</div>
     <h3>{x.official_race_name&&x.official_race_name!=="일반"?x.official_race_name:x.class_name}</h3>
-    <div className="news-feature-title">🥇 {x.horse_name} 우승!</div>
-    <p>마주 {x.owner_name} · 기수 {x.jockey_name} · 조교사 {x.trainer_name}</p>
-    <div className="news-meta">{x.track} {x.race_no}경주 · {num(x.distance_m)}m · 우승 상금 {won(x.prize)} <span>경주 결과 ›</span></div>
-   </a>)}
+    <div className="news-feature-title">🥇 <HorseLink horseId={x.horse_id}>{x.horse_name}</HorseLink> 우승!</div>
+    <p>마주 {x.owner_name} · 기수 <StaffLink kind="jockey" staffId={x.jockey_id}>{x.jockey_name}</StaffLink> · 조교사 <StaffLink kind="trainer" staffId={x.trainer_id}>{x.trainer_name}</StaffLink></p>
+    <div className="news-meta">{x.track} {x.race_no}경주 · {num(x.distance_m)}m · 우승 상금 {won(x.prize)} <a href={"/race/"+x.race_id}>경주 결과 ›</a></div>
+   </article>)}
  </section>;
 }
 function MyNews({data}) {
@@ -53,14 +56,14 @@ function MyNews({data}) {
   <div className="news-total-prize">해당 날짜 내 경주마 획득 상금 <strong>{won(summary.prize)}</strong></div>
   {!mine.length?<div className="news-empty">이 날짜에는 내 소유 경주마의 확정된 경주 결과가 없습니다.<br/>
     경주에 출전하지 않았거나 공식 결과가 아직 확정되지 않았을 수 있습니다.</div>:
-   mine.map(x=><a className="news-personal-card" key={x.race_id+"-"+x.horse_id} href={"/race/"+x.race_id}>
+   mine.map(x=><article className="news-personal-card" key={x.race_id+"-"+x.horse_id}>
     <div className="news-personal-head"><span className={"news-placing"+(x.finish_rank===1?" first":"")}>{rankText(x.finish_rank)}</span>
      <span className="news-meta">{x.track} {x.start_time?.slice(0,5)} · {x.race_no}경주 · {x.class_name}</span></div>
-    <h3>{x.horse_name}{x.finish_rank<=3?" · 입상 소식":""}</h3>
+    <h3><HorseLink horseId={x.horse_id}>{x.horse_name}</HorseLink>{x.finish_rank<=3?" · 입상 소식":""}</h3>
     <p>{x.horse_name}이(가) {x.track} {x.race_no}경주에서 {rankText(x.finish_rank)}을(를) 기록했습니다.
       {Number(x.prize)>0?" 획득 상금은 "+won(x.prize)+"입니다.":""}</p>
-    <div className="news-meta">기수 {x.jockey_name} · 조교사 {x.trainer_name} <span>경주 상세 ›</span></div>
-   </a>)}
+    <div className="news-meta">기수 <StaffLink kind="jockey" staffId={x.jockey_id}>{x.jockey_name}</StaffLink> · 조교사 <StaffLink kind="trainer" staffId={x.trainer_id}>{x.trainer_name}</StaffLink> <a href={"/race/"+x.race_id} style={{float:"right"}}>경주 상세 ›</a></div>
+   </article>)}
  </section>;
 }
 
