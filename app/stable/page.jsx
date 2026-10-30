@@ -1,5 +1,6 @@
 "use client";
 import HorseLink from "../components/HorseLink";
+import StaffLink from "../components/StaffLink";
 import {useEffect,useState} from "react";
 import {createClient} from "@supabase/supabase-js";
 const origin=()=>createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
@@ -67,11 +68,11 @@ export default function StablePage(){
      {data.horses.map(h=><option key={h.id} value={h.id}>{h.name} · {track(h.sourceMeet)} · {h.age}세</option>)}
     </select>
     {horse&&<div className="muted" style={{marginBottom:9}}><HorseLink horseId={horse}>선택한 경주마 기본정보 ›</HorseLink></div>}
-    {horseData&&<div className="muted">현재 담당 조교사: {horseData.trainerName||"미계약"}
+    {horseData&&<div className="muted">현재 담당 조교사: <StaffLink kind="trainer" staffId={horseData.trainerId}>{horseData.trainerName||"미계약"}</StaffLink>
      {horseData.trainerId?" · 이해도 "+horseData.familiarity+"/100":""}
     </div>}
-    {horseData?.trainerOfferStatus==="PENDING"&&<div className="notice" role="status" style={{marginTop:9}}>⌛ {horseData.trainerOfferName} 조교사에게 신청 접수 · 선호도 심사 대기 중</div>}
-    {horseData?.trainerOfferStatus==="ACCEPTED"&&<div className="muted" style={{color:"#91d8ad",marginTop:9}}>✓ {horseData.trainerOfferName} 조교사 위탁 신청 승인</div>}
+    {horseData?.trainerOfferStatus==="PENDING"&&<div className="notice" role="status" style={{marginTop:9}}>⌛ <StaffLink kind="trainer" staffId={horseData.trainerOfferId}>{horseData.trainerOfferName}</StaffLink> 조교사에게 신청 접수 · 선호도 심사 대기 중</div>}
+    {horseData?.trainerOfferStatus==="ACCEPTED"&&<div className="muted" style={{color:"#91d8ad",marginTop:9}}>✓ <StaffLink kind="trainer" staffId={horseData.trainerOfferId}>{horseData.trainerOfferName}</StaffLink> 조교사 위탁 신청 승인</div>}
     {horseData?.trainerOfferStatus==="REJECTED"&&<div className="muted" style={{color:"#f0c572",marginTop:9}}>위탁 신청 거절 · 다른 조교사에게 신청할 수 있습니다.</div>}
     <div className="section"><h2>조교사 선택</h2></div>
     <select className="field" value={selected?.id||""} onChange={e=>N(e.target.value)}>
@@ -81,6 +82,7 @@ export default function StablePage(){
     {selected&&<div className="muted" style={{marginTop:12}}>
       신청 심사 대기: {selected.pendingOffers||0}건 · 잔여 정원: {Math.max(0,selected.capacity-selected.occupied)}두<br/>
       전문 분야: {(selected.specialties||[]).join(" · ")||"종합"}<br/>
+      <StaffLink kind="trainer" staffId={selected.id}>{selected.name} 상세정보 보기 ›</StaffLink><br/>
       조교사 능력치: {Object.entries(selected.skills||{}).slice(0,8).map(([k,v])=>k+" "+v).join(" · ")}
     </div>}
     <button className="primary wide" style={{marginTop:16}} disabled={!selected||busy||!horseData||horseData.trainerId===selected.id}
@@ -88,7 +90,7 @@ export default function StablePage(){
     </div>
     <div className="section"><h2>현재 내 마방</h2></div>
     {data.horses.map(h=><div className="card row" key={h.id}><b><HorseLink horseId={h.id}>{h.name}</HorseLink></b>
-      <span className="tag">{h.trainerName||"조교사 미계약"}</span></div>)}
+      <span className="tag"><StaffLink kind="trainer" staffId={h.trainerId}>{h.trainerName||"조교사 미계약"}</StaffLink></span></div>)}
     </>}
    <div className="footer">MY DERBY · 실제 조교사 정원 및 계약 DB 연동</div>
   </div>
