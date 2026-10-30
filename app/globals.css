@@ -251,3 +251,24 @@
 .staff-inline-link small{color:#bda486;font-size:10px}
 .news-meta a{color:#e5c58a;text-decoration:underline;text-underline-offset:3}
 @media(max-width:420px){.staff-record-grid{grid-template-columns:1fr}.staff-quick b{font-size:12px}}
+
+/* Owner-only observational discovery: never render the actual horse ability values. */
+.horse-discovery{display:grid;gap:12px}
+.horse-discovery-counts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.horse-discovery-counts span{background:#2b231b;border:1px solid #604b33;border-radius:8px;text-align:center;padding:12px 5px;color:#c8b59b;font-size:11px}
+.horse-discovery-counts strong{display:block;color:#ebc98b;font-size:16px;margin-top:6px}
+.horse-discovery-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.horse-discovery-stat{display:flex;justify-content:space-between;align-items:flex-start;gap:7px;padding:12px 10px;border:1px solid #60472d;border-radius:9px;background:#2d2218}
+.horse-discovery-stat>span{font-size:12px;color:#dbcaaf}
+.horse-discovery-stat>div{text-align:right;min-width:0}
+.horse-discovery-stat b{display:block;color:#eed098;font-size:13px;white-space:nowrap}
+.horse-discovery-stat small{display:block;color:#b9a78f;font-size:10px;margin-top:5px}
+.horse-discovery-section,.horse-discovery-advice{background:#2c2118;border:1px solid #59442c;border-radius:10px;padding:14px}
+.horse-discovery-section>div{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #55412c}
+.horse-discovery-section>div:last-child{border-bottom:0}
+.horse-discovery-section b,.horse-discovery-advice b{color:#f0d29c}
+.horse-discovery-section span{font-size:12px;text-align:right;color:#d3c1a8}
+.horse-discovery-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.horse-discovery-tags span{padding:7px 11px;border:1px solid #956d34;border-radius:18px;background:#51371d;color:#f3d4a6}
+.horse-discovery-advice p{font-size:12px;line-height:1.8;color:#d8c6ad;margin-bottom:0}
+@media(max-width:530px){.horse-discovery-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.horse-discovery-stat{min-height:55px}}
