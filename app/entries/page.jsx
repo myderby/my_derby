@@ -15,6 +15,7 @@ const readable={
  ENTRY_RACE_DAY_BLOCKED:"경주 당일에는 출전 신청할 수 없습니다. 전날까지 신청해주세요.",
  AGE_COND_UNAVAILABLE:"이 OPEN·대상경주는 원본 ageCond(연령 조건)가 등록되지 않아 출전 신청이 제한됩니다.",
  AGE_COND_NOT_ELIGIBLE:"경주마 나이가 해당 OPEN·대상경주의 ageCond 조건과 맞지 않습니다.",
+ HORSE_BIRTH_HEMISPHERE_REQUIRED:"이 경주는 남·북반구 출생 조건이 있습니다. 경주마의 출생 반구 정보가 확인되어야 출전할 수 있습니다.",
  HORSE_ALREADY_ENTERED_THIS_DAY:"이 경주마는 같은 게임 날짜의 다른 경주에 이미 출전합니다.",
  RACE_FULL_NO_NPC_SLOT:"현재 경주에는 교체 가능한 NPC 출전 슬롯이 없습니다.",
  JOCKEY_ALREADY_BOOKED_FOR_RACE:"선택한 기수는 이 경주에 이미 출전합니다.",
@@ -180,7 +181,7 @@ export default function EntriesPage(){
   const can=beforeDeadline(r)&&(r.npcReplaceableCount>0||r.confirmedCount<r.capacity)
     &&horses.some(h=>eligible(h,r));
   if(view==="내 출전")return hasMine;
-  if(view==="연령 조건 확인")return r.isSpecialRace&&!r.ageCondValid;
+  if(view==="연령 조건 확인")return r.isSpecialRace;
   if(view==="신청 예정")return entryWindowState(r)==="NOT_OPEN"&&horses.some(h=>eligible(h,r));
   if(view==="신청 가능")return can||hasMine;
   return true;
@@ -241,6 +242,9 @@ export default function EntriesPage(){
       대상경주 출전 연령 조건(ageCond): <b>{r.ageCondValid?r.ageCond:"확인되지 않음"}</b>
       {!r.ageCondValid&&" · 정확한 원본 경주 연령 조건이 등록될 때까지 신청할 수 없습니다."}
       {r.ageCondValid&&" · 소속 지역 및 연령 조건을 충족하면 등급 제한 없이 신청할 수 있습니다."}
+      {r.ageCondRequiresBirthHemisphere&&<span style={{display:"block",marginTop:4}}>
+       ※ 남·북반구 출생마에 따라 나이 자격이 달라집니다. 출생 반구가 확인되지 않은 말은 출전할 수 없습니다.
+       </span>}
      </div>}
      <div className="muted" style={{marginTop:4}}>지역 {r.sourceMeet} · 등급 {r.gradeNo} · NPC 교체 가능 {r.npcReplaceableCount}두</div>
      {mine.map(e=><div key={e.horseId} className="card" style={{padding:12,marginTop:12}}>
@@ -290,6 +294,7 @@ export default function EntriesPage(){
         value={selected} onChange={e=>SetChoice(prev=>({...prev,[r.id]:e.target.value}))}>
         {candidate.map(h=><option key={h.id} value={h.id}>
          {h.name} · {h.age}세 · {h.sourceMeet} {h.gradeNo}등급
+         {r.ageCondRequiresBirthHemisphere&&(" · "+(h.birthHemisphere==="NORTH"?"북반구 출생":h.birthHemisphere==="SOUTH"?"남반구 출생":"출생 반구 미확인"))}
         </option>)}
        </select>
        <button className="primary wide" disabled={busy||loading} onClick={()=>submitEntry(r,selected)}>
@@ -297,7 +302,9 @@ export default function EntriesPage(){
        </button>
       </div>}
      {!mine.length&&(!room||close||!candidate.length)&&<div className="muted" style={{marginTop:12}}>
-      {r.isSpecialRace&&!r.ageCondValid?"원본 ageCond 연령 조건이 등록되지 않아 출전 신청할 수 없습니다.":windowState==="NOT_OPEN"?"접수 대기: "+r.entryOpenDate+" 00:00부터 출전 신청할 수 있습니다.":close?"신청 기간 종료: 경주 당일에는 출전 신청할 수 없습니다.":!room?"출전 정원이 가득 찼습니다.":r.isSpecialRace?"소속 지역·ageCond·건강 조건을 충족하는 말이 없습니다.":"같은 지역·등급이며 건강 조건을 충족하는 경주마만 신청 가능합니다."}</div>}
+      {r.isSpecialRace&&!r.ageCondValid?"원본 ageCond 연령 조건이 등록되지 않아 출전 신청할 수 없습니다.":windowState==="NOT_OPEN"?"접수 대기: "+r.entryOpenDate+" 00:00부터 출전 신청할 수 있습니다.":close?"신청 기간 종료: 경주 당일에는 출전 신청할 수 없습니다.":!room?"출전 정원이 가득 찼습니다.":r.isSpecialRace?(r.ageCondRequiresBirthHemisphere?
+ "경주마의 출생 반구(남/북)를 확인해야 합니다. 반구 정보가 없거나 연령 조건을 충족하지 않는 말은 신청할 수 없습니다.":
+ "소속 지역·ageCond·건강 조건을 충족하는 말이 없습니다."):"같은 지역·등급이며 건강 조건을 충족하는 경주마만 신청 가능합니다."}</div>}
     </div>;
    })}
    </>}
