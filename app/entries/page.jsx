@@ -293,13 +293,13 @@ export default function EntriesPage(){
        </div>}
       {active?.raceId===r.id&&active?.horseId===e.horseId&&
        <div style={{marginTop:14}}>
-        <div className="muted">기승 제안을 접수하면 같은 기수의 다른 제안과 점수를 비교해 선택합니다. 현재 기본 배정 기수는 심사 중 유지되며, 계약이 확정되면 교체되지 않습니다.</div>
+        <div className="muted">기승 제안을 접수하면 경주마 능력(40점)과 전법 궁합(25점)을 우선하며, 마주와의 친밀도·신뢰도는 최대 10점 반영합니다. 기본 능력 차이가 8점 이상이면 뛰어난 말을 우선 선택합니다. 친밀도가 100이어도 계약을 보장하지 않습니다. 확정 계약은 유지됩니다.</div>
         <select className="field" aria-label="기수 선택" value={jockeyChoice} onChange={e=>SetJockeyChoice(e.target.value)}>
          {jockeys.map(j=><option key={j.id} value={j.id} disabled={!j.selected&&!j.myApplicationStatus&&(j.committedInRace||j.dailyRides>=j.maxDailyRides&&!j.busyInRace)}>
-          {j.name} · {j.dailyRides}/{j.maxDailyRides}회 {j.myApplicationStatus==="PENDING"?"(내 신청 심사 대기)":j.myApplicationStatus==="ACCEPTED"?"(내 계약 확정)":j.myApplicationStatus==="REJECTED"?"(내 신청 거절)":j.committedInRace?"(계약 확정)":j.busyInRace?"(자동 배정 중)":""} · 신청 {j.pendingOffers||0}건
+          {j.name} · 친밀도 {j.ownerFamiliarity??0} / 신뢰도 {j.ownerTrust??0} · {j.dailyRides}/{j.maxDailyRides}회 {j.myApplicationStatus==="PENDING"?"(내 신청 심사 대기)":j.myApplicationStatus==="ACCEPTED"?"(내 계약 확정)":j.myApplicationStatus==="REJECTED"?"(내 신청 거절)":j.committedInRace?"(계약 확정)":j.busyInRace?"(자동 배정 중)":""} · 신청 {j.pendingOffers||0}건
          </option>)}
         </select>
-        {jockeyChoice&&<div className="muted" style={{marginTop:8}}>선택한 기수: <StaffLink kind="jockey" staffId={jockeyChoice}>{jockeys.find(j=>j.id===jockeyChoice)?.name||"기수"}</StaffLink> 상세정보 보기</div>}
+        {jockeyChoice&&<div className="muted" style={{marginTop:8}}>선택한 기수: <StaffLink kind="jockey" staffId={jockeyChoice}>{jockeys.find(j=>j.id===jockeyChoice)?.name||"기수"}</StaffLink> 상세정보 보기 · 친밀도 {jockeys.find(j=>j.id===jockeyChoice)?.ownerFamiliarity??0}/100 · 신뢰도 {jockeys.find(j=>j.id===jockeyChoice)?.ownerTrust??0}/100</div>}
         <div className="controls">
          <button className="primary" disabled={jockeyBusy||!jockeyChoice} onClick={submitJockey}>{jockeyBusy?"신청 중…":"기수에게 제안 보내기"}</button>
          <button className="outline" onClick={()=>SetActive(null)}>닫기</button>
