@@ -131,6 +131,11 @@ export default function EntriesPage(){
     headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},
     body:JSON.stringify({raceId:active.raceId,horseId:active.horseId,jockeyId:jockeyChoice})});
    const data=await r.json();if(!r.ok)throw new Error(data.error||"기수 신청 실패");
+   if(data.status==="REJECTED"){
+    SetMessage("기수 신청 거절: "+data.jockeyName+" · "+(data.reason==="ALREADY_DECLINED_THIS_RACE"?"이미 거절한 기수입니다.":"기수 성향에 따른 수락 가능성 "+data.acceptanceChance+"%")+
+     " · 다른 기수에게 신청할 수 있습니다.");
+    return;
+   }
    SetMessage("기수 신청 승인: "+data.jockeyName+" · 이번 게임 날짜 "+data.dailyRidesAfter+"/"+data.maxDailyRides+"회");
    SetActive(null);SetJockeys([]);await load(week);
   }catch(e){SetMessage(explain(e.message))}finally{SetJockeyBusy(false)}
