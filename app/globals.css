@@ -176,3 +176,53 @@
 
 /* Three-level game menu */
 .menu-depth-one{border:1px solid #644727;border-radius:13px;background:#2b1e14;margin-bottom:12px;overflow:hidden}.menu-depth-one>summary{list-style:none;cursor:pointer;padding:17px 15px;display:flex;flex-direction:column;gap:7px}.menu-depth-one>summary::-webkit-details-marker,.menu-depth-two>summary::-webkit-details-marker{display:none}.menu-depth-one>summary:after{content:"⌄";position:absolute;right:33px;color:#e8bc6b}.menu-depth-one[open]>summary:after{content:"⌃"}.menu-depth-content{padding:0 12px 12px}.menu-depth-two{background:#21170f;border:1px solid #4b3421;border-radius:9px;margin-top:8px}.menu-depth-two>summary{cursor:pointer;list-style:none;color:#e9c793;font-size:13px;font-weight:700;padding:13px}.menu-depth-two>summary:after{content:" +";float:right}.menu-depth-two[open]>summary:after{content:" −"}.menu-depth-links{border-top:1px solid #4b3421;padding:6px}.menu-depth-link{border:0;background:transparent;display:flex;justify-content:space-between;align-items:center;color:#eadbcc;padding:12px;width:100%;text-align:left;font-size:13px;border-radius:7px}.menu-depth-link:hover,.menu-depth-link:focus-visible{background:#483321;color:#f6d69d}
+
+/* My Derby daily racing newspaper */
+.news-masthead{position:relative;overflow:hidden;text-align:center;background:linear-gradient(135deg,#372212 0%,#21170f 58%,#49311b 100%);border:1px solid #a2773d;border-radius:15px;padding:25px 14px;margin-bottom:13px;box-shadow:inset 0 0 0 1px #483421}
+.news-edition{font-size:10px;font-weight:700;letter-spacing:2.4px;color:#c9a465}
+.news-masthead h1{font-size:31px;letter-spacing:3px;color:#f3d5a0;margin:11px 0 5px;font-family:Georgia,serif}
+.news-masthead p{font-size:12px;color:#d4bf9f;line-height:1.6;margin:5px 0 15px}
+.news-date{display:inline-block;border-top:1px solid #84603b;border-bottom:1px solid #84603b;padding:7px 24px;color:#e4c391;font-size:12px}
+.news-nav{display:flex;gap:7px;align-items:center;justify-content:space-between;margin:0 0 16px}
+.news-nav button{white-space:nowrap;padding:11px 9px}
+.news-nav label{font-size:11px;color:#c9b394;min-width:0;flex:1;text-align:center}
+.news-nav .field{margin-top:4px;margin-bottom:0;padding:7px 5px;width:100%;max-width:210px;font-size:12px;color-scheme:dark}
+.news-digest{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:16px 0}
+.news-digest>div{text-align:center;border:1px solid #5f482c;border-radius:10px;padding:13px 5px;background:#2d2116}
+.news-digest b{display:block;color:#ebc782;font-size:21px}
+.news-digest span{display:block;color:#c0ad94;font-size:11px;margin-top:5px}
+.news-intro{font-size:12px;line-height:1.7;background:#362719;padding:13px;border:1px solid #755637;border-radius:10px;color:#e8d5bd}
+.news-section{margin:22px 0 25px}
+.news-section .section{margin:10px 0}
+.news-feature{border-left:3px solid #dcb06c;padding:17px 15px;background:linear-gradient(100deg,#37271a,#281c14);border-radius:0 10px 10px 0;margin:8px 0 13px}
+.news-flag{font-size:10px;font-weight:700;letter-spacing:1px;color:#d9b678;margin-bottom:8px}
+.news-feature-title{font-size:18px;color:#f3dba5;font-weight:800;line-height:1.45}
+.news-feature p,.news-open-card p,.news-personal-card p{margin:10px 0 0;color:#dbccba;font-size:12px;line-height:1.8}
+.news-leaderboard{background:#251b13;border:1px solid #57412b;border-radius:11px;overflow:hidden}
+.news-rank{display:flex;align-items:center;gap:10px;padding:13px 11px;border-bottom:1px solid #433321}
+.news-rank:last-child{border-bottom:0}
+.news-rank:nth-child(2n){background:#2d2117}
+.news-position{font-family:Georgia,serif;color:#e6c689;font-size:20px;min-width:22px;text-align:center}
+.news-rank-main{flex:1;min-width:0}
+.news-rank-main b{display:block;color:#f0dcbb;font-size:13px}
+.news-rank-main small{display:block;color:#bba991;margin-top:6px;font-size:11px;line-height:1.5}
+.news-rank-right{text-align:right;white-space:nowrap}
+.news-rank-right b{display:block;color:#e9ca89;font-size:13px}
+.news-rank-right span{display:block;color:#b7a18c;font-size:10px;margin-top:5px}
+.news-open-card,.news-personal-card{display:block;text-decoration:none;color:inherit;border:1px solid #675035;border-radius:12px;background:linear-gradient(125deg,#392717,#251a13);padding:16px;margin:10px 0}
+.news-open-card h3,.news-personal-card h3{font-size:15px;color:#f2d39c;margin:0}
+.news-meta{font-size:11px;color:#bca98f;line-height:1.6;margin-top:11px}
+.news-meta span{float:right;color:#dabc84}
+.news-my-overview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:10px}
+.news-my-overview span{text-align:center;background:#332316;border:1px solid #735537;border-radius:9px;padding:11px 5px}
+.news-my-overview strong{display:block;color:#f0cc86;font-size:22px}
+.news-my-overview small{display:block;color:#ccb79a;font-size:11px;margin-top:5px}
+.news-total-prize{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #62452a;padding:13px 4px;margin-bottom:14px;color:#ccbca6;font-size:12px;gap:8px}
+.news-total-prize strong{color:#f4d293;font-size:15px}
+.news-personal-head{display:flex;align-items:center;gap:9px;margin-bottom:12px;flex-wrap:wrap}
+.news-personal-head .news-meta{margin-top:0}
+.news-placing{display:inline-block;border-radius:7px;background:#4b3726;padding:5px 9px;font-size:12px;font-weight:700;color:#e5c8a2}
+.news-placing.first{background:#775326;color:#ffdda3}
+.news-empty{background:#2b2016;border:1px dashed #775838;border-radius:11px;padding:20px 14px;color:#c8b59d;font-size:12px;line-height:1.8;text-align:center}
+.news-footnote{font-size:11px;color:#ad9b83;line-height:1.7;margin:22px 0}
+@media(max-width:400px){.news-nav{gap:4px}.news-nav button{padding:10px 6px;font-size:11px}.news-masthead h1{font-size:27px}.news-rank{gap:6px}.news-rank-main small{font-size:10px}.news-rank-right span{font-size:9px}}
