@@ -20,12 +20,12 @@ export default function Auctions(){
  };
  useEffect(()=>{if(token)void load(token)},[token]);
  const send=async(body)=>{
-  if(!window.confirm(body.action==="BID"?"이 금액을 경매에 예치하고 입찰하시겠습니까?":"경주마를 경매에 등록하시겠습니까?"))return;
+  if(!window.confirm(body.action==="BID"?"이 금액을 경매에 예치하고 입찰하시겠습니까?":body.action==="CANCEL"?"경매를 취소하고 현재 최고 입찰자의 예치금을 환불하시겠습니까?":"경주마를 경매에 등록하시겠습니까?"))return;
   B(true);E("");M("");
   try{
    const r=await fetch("/api/player/auction",{method:"POST",headers:{"Authorization":"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify(body)});
    const v=await r.json();if(!r.ok)throw new Error(v.error||"경매 요청 실패");
-   M(body.action==="BID"?"입찰 성공 · 낙찰 전까지 예치금이 잠깁니다.":"경매 등록 완료 · 기간 종료 시 자동 정산됩니다.");
+   M(body.action==="BID"?"입찰 성공 · 낙찰 전까지 예치금이 잠깁니다.":body.action==="CANCEL"?"경매 취소 및 최고 입찰금 환불이 완료되었습니다.":"경매 등록 완료 · 기간 종료 시 자동 정산됩니다.");
    await load();
   }catch(e){E(e.message)}finally{B(false)}
  };
@@ -55,7 +55,8 @@ export default function Auctions(){
      <button className="primary wide" disabled={busy||amount<minimum||!Number.isSafeInteger(amount)}
       onClick={()=>send({action:"BID",listingId:a.listingId,amount})}>입찰하기 (최소 {fmt(minimum)} G)</button>
     </>}
-    {a.sellerIsMe&&<div className="muted">내가 등록한 경매입니다. 본인 경매에는 입찰할 수 없습니다.</div>}
+    {a.sellerIsMe&&<div><div className="muted">내가 등록한 경매입니다. 본인 경매에는 입찰할 수 없습니다.</div>
+     <button className="outline" disabled={busy} onClick={()=>send({action:"CANCEL",listingId:a.listingId})}>경매 취소 및 입찰금 환불</button></div>}
   </div>
  })}
  <div className="section"><h2>내 말 경매 등록</h2></div>
