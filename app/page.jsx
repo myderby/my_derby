@@ -1,5 +1,5 @@
 "use client";
-import HorseLink from "../components/HorseLink";
+import HorseLink from "./components/HorseLink";
 import {useEffect,useState} from "react";
 import {createClient} from "@supabase/supabase-js";
 import {selectRaceCommentary} from "../lib/racing/commentary";
