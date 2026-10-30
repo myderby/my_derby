@@ -33,3 +33,4 @@ export default function Notifications(){
  </div>)}</>}
  <div className="footer">MY DERBY · 마주 본인 전용 알림 보관함</div>
  </div></main>;
+}
