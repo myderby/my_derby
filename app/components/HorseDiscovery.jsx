@@ -1,6 +1,6 @@
 "use client";
 const LABELS={start:"출발",speed:"스피드",acceleration:"가속력",stamina:"지구력",finishing:"막판 탄력",power:"파워",grit:"근성",stability:"안정성",recovery:"회복력"};
-export default function HorseDiscovery({discovery,compact=false}){
+export default function HorseDiscovery({discovery,compact=false,horseId=null}){
  if(!discovery||discovery.status!=="OK")return <div className="notice">
   🔒 경주마의 실제 능력·잠재력·히든 특성은 공개되지 않습니다.
   {discovery?.status==="NO_ABILITY"?" 아직 이 말의 능력 데이터가 없습니다.":" 내가 소유한 말의 관찰 보고서만 확인할 수 있습니다."}
@@ -33,6 +33,7 @@ export default function HorseDiscovery({discovery,compact=false}){
   </div>
   <div className="horse-discovery-advice"><b>🏠 담당 조교사 분석</b>
    <p>{discovery.trainerAdvice||"아직 평가 자료가 없습니다."}</p></div>
+  {horseId&&<div className="controls" style={{marginTop:9}}><a href={"/horses/reports?horseId="+encodeURIComponent(horseId)} className="primary" style={{textDecoration:"none"}}>📑 능력·기질 분석 리포트 발급·열람 ›</a></div>}
   {!compact&&<div className="controls" style={{marginTop:12}}>
     <a href="/training" className="outline" style={{textDecoration:"none"}}>조교 훈련 ›</a>
     <a href="/ranch" className="outline" style={{textDecoration:"none"}}>개인목장 관찰 ›</a>
