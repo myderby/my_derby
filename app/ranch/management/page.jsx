@@ -38,6 +38,8 @@ export default function RanchManagement(){
  <div className="row"><div><b className="gold">{data.name}</b><div className="muted">목장 Lv.{data.level}/10 · 정원 {data.horseCapacity}두 · 현재 {data.horses}두</div></div>
  <button className="primary" disabled={busy||data.level>=10} onClick={()=>apply("EXPAND")}>확장 {fmt(data.prices.expand)} G</button></div></div>
  <div className="section"><h2>시설 업그레이드</h2></div>
+   <div className="notice">🔍 시설 레벨이 높을수록 코스 종료 시 경주마 능력·기질에 대한 관찰 정보가 더 많이 축적됩니다.
+   훈련·경주 관찰과 함께 종합해 성장 여력 및 히든 특성을 발견할 수 있습니다. 업그레이드만으로 비밀이 즉시 공개되지는 않습니다.</div>
  {data.facilities.map(f=><div className="card row" key={f.id}>
  <div><b>{facility[f.type]||f.type}</b><div className="muted">Lv.{f.level}/10 · 코스 정원 {f.capacity}두</div></div>
  <button className="outline" disabled={busy||f.level>=10} onClick={()=>apply("UPGRADE_FACILITY",f.id)}>강화 {fmt(f.upgradePrice)} G</button></div>)}
