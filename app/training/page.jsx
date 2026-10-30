@@ -1,4 +1,5 @@
 "use client";
+import HorseLink from "../components/HorseLink";
 import {useCallback,useEffect,useMemo,useState} from "react";
 import {createClient} from "@supabase/supabase-js";
 
@@ -129,7 +130,7 @@ export default function TrainingPage(){
    {!board.horses?.length&&<div className="notice">보유 중인 말이 없습니다. 월드에서 마주 등록을 완료하세요.</div>}
    {horse&&<>
     <div className="card">
-     <div className="row"><div><b className="gold">{horse.name}</b>
+     <div className="row"><div><b className="gold"><HorseLink horseId={horse.id}>{horse.name}</HorseLink></b>
       <div className="muted">{horse.age}세 · {horse.lifeStage==="RACING"?"현역":horse.lifeStage} · {horse.health}</div></div>
       <span className="tag">{canTrain?"훈련 가능":"훈련 불가"}</span></div>
      <div className="row small line"><span>컨디션</span><b>{Number(horse.condition).toFixed(1)}</b></div>
