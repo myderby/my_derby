@@ -171,10 +171,7 @@ export default function BreedingPage(){
        {s.name} · {s.age}세 · 시즌 예약 {s.booked}/40회
       </option>)}
      </select>
-     {sire&&<div className="muted">추정 유전 능력 · 스피드 {sire.geneSummary?.speed??"-"} /
-      지구력 {sire.geneSummary?.stamina??"-"} /
-      막판탄력 {sire.geneSummary?.finishing??"-"}
-     </div>}
+     {sire&&<div className="muted">부마의 실제 유전 잠재력은 공개되지 않습니다. 혈통 및 교배 궁합으로만 판단할 수 있습니다.</div>}
      <div className="controls" style={{marginTop:15}}>
       <button className="outline" disabled={!mareId||!sireId||!!busy}
        onClick={()=>send({action:"PREVIEW",mareId,sireId})}>
