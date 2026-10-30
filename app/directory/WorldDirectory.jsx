@@ -1,9 +1,10 @@
 "use client";
 import {useEffect,useState} from "react";
+import HorseLink from "../components/HorseLink";
 
 const sexText={MALE:"수",FEMALE:"암",GELDING:"거"};
 const stageText={RACING:"현역",RETIRED:"은퇴",FOAL:"망아지",YEARLING:"1세마",
- STALLION:"씨수말",BROODMARE:"번식암말",DECEASED:"폐사"};
+ STALLION:"씨수말",BROODMARE:"번식암말",DECEASED:"폐사",SOURCE_ONLY:"CSV 원본 등록"};
 const skillText={start:"출발",pace:"페이스",urging:"추진",control:"제어",
  judgment:"판단",stability:"안정",aggression:"적극성",positioning:"위치 선정"};
 const fmt=n=>Number(n||0).toLocaleString("ko-KR");
@@ -23,21 +24,25 @@ function HorseCard({horse}){
  const grade=horse.grade==null?"등급 미정":horse.grade+"등급";
  return <article className="card dir-entry">
   <div className="dir-entry-head">
-   <div><div className="dir-horse-name">{horse.name}
+   <div><div className="dir-horse-name"><HorseLink
+     horseId={horse.gameHorseId||(/^[0-9a-f]{8}-/i.test(horse.id)?horse.id:null)}
+     sourceMeet={horse.sourceMeet} hrNo={horse.horseNo}>{horse.name}</HorseLink>
      <span className="dir-region">{horse.track||"소속 미정"}</span></div>
     <div className="muted">#{horse.horseNo||horse.id.slice(0,8)} · {grade} · {horse.age}세 · {sexText[horse.sex]||horse.sex||"-"} · {stageText[horse.stage]||horse.stage}</div></div>
    <div className="dir-rating">{horse.rating==null?"미부여":horse.rating+"점"}<small>레이팅</small></div>
   </div>
-  <div className="dir-records"><RecordCard title="통산 게임 전적" record={horse.career}/>
-    <RecordCard title="최근 1년 게임 전적" record={horse.recentYear}/></div>
+  <div className="dir-records"><RecordCard title={horse.recordMode==="WORLD"?"게임 통산 전적":"원본 통산 전적"} record={horse.career}/>
+    <RecordCard title={horse.recordMode==="WORLD"?"게임 최근 364일":"원본 최근 1년"} record={horse.recentYear}/></div>
   {horse.ratingPending&&<div className="dir-alert">레이팅 기준 {horse.ratingProposedGrade}등급 전환 대기 · 기존 확정 출전표 유지</div>}
   <div className="dir-footer">
-   <span className="muted">실제 자료 수집 {fmt(horse.sourceRecordCount)}경주 (입상 집계와 별도)</span>
+   <span className="muted">{horse.recordMode==="WORLD"?"게임 경주 기준":horse.gameLinked?"게임 경주마 연결 완료":"CSV 원본 등록 · 게임 미연결"}</span>
+   <HorseLink horseId={horse.gameHorseId||(/^[0-9a-f]{8}-/i.test(horse.id)?horse.id:null)} sourceMeet={horse.sourceMeet} hrNo={horse.horseNo}>상세정보 ›</HorseLink>
    <button className="dir-expand" type="button" onClick={()=>show(v=>!v)}>
     {expanded?"간략히":"기록 기준 보기"} {expanded?"⌃":"⌄"}</button>
   </div>
   {expanded&&<div className="dir-explain">통산·최근 1년은 My Derby에서 종료된 공식 경주만 집계합니다.
-    원본 경주자료의 수집 건수는 승·2착·3착 정보와 별개로 제공됩니다.
+    CSV 등록모드에서 표시되는 통산·최근 1년 전적은 제공받은 원본 파일의 승·2착·3착 집계입니다.
+    게임 전체모드에서는 게임 경주 결과를 사용합니다.
     6등급은 레이팅이 부여되지 않을 수 있습니다.</div>}
  </article>;
 }
@@ -69,7 +74,8 @@ function JockeyCard({jockey}){
 
 export default function WorldDirectory({kind}){
  const horses=kind==="horses";
- const [search,S]=useState(""),[track,T]=useState(""),[grade,G]=useState(""),
+ const [mode,Mode]=useState("uploaded"),
+ [search,S]=useState(""),[track,T]=useState(""),[grade,G]=useState(""),
  [sex,X]=useState(""),[stage,F]=useState(""),
  [sort,O]=useState("name"),[page,P]=useState(1),[jump,J]=useState("1"),
  [data,D]=useState(null),[loading,L]=useState(true),[error,E]=useState(""),[retry,Retry]=useState(0);
@@ -79,10 +85,11 @@ export default function WorldDirectory({kind}){
   const timer=setTimeout(async()=>{
    L(true);
    const q=new URLSearchParams({page:String(page),size:"24",sort,q:search.trim()});
+   if(horses)q.set("mode",mode);
    if(track)q.set("track",track);
    if(horses&&grade)q.set("grade",grade);
    if(horses&&sex)q.set("sex",sex);
-   if(horses&&stage)q.set("stage",stage);
+   if(horses&&stage&&mode==="world")q.set("stage",stage);
    try{
     const r=await fetch((horses?"/api/world/horses":"/api/world/jockeys")+"?"+q.toString(),{
      signal:controller.signal,cache:"no-store"});
@@ -94,7 +101,7 @@ export default function WorldDirectory({kind}){
    }finally{if(!controller.signal.aborted)L(false);}
   },240);
   return()=>{clearTimeout(timer);controller.abort()};
- },[horses,search,track,grade,sex,stage,page,sort,retry]);
+ },[horses,mode,search,track,grade,sex,stage,page,sort,retry]);
  const last=Math.max(1,data?.pages||1);
  const goPage=v=>{const next=Math.min(last,Math.max(1,Number(v)||1));P(next);J(String(next));};
  const tracks=horses?["서울","부산","영천","제주"]:["서울","부산","영천"];
@@ -109,8 +116,20 @@ export default function WorldDirectory({kind}){
    </nav>
    <div className="section"><h2>{horses?"경주마 전체 목록":"기수 전체 목록"}</h2>
     <span className="tag">{data?fmt(data.total)+(horses?"두":"명"):"조회 중"}</span></div>
-   <p className="muted">실제 My Derby 월드 데이터에서 조회합니다. 전체 전적과 최근 1년은
-    <b> 완료된 게임 공식 경주</b> 기준이며, 최근 1년은 게임 364일(52주)입니다.</p>
+   {horses&&<div className="dir-main-nav" style={{marginBottom:12}}>
+    <button type="button" className={mode==="uploaded"?"selected":""}
+      onClick={()=>{Mode("uploaded");P(1);J("1");O("name")}}>
+     CSV 등록마 4,060두
+    </button>
+    <button type="button" className={mode==="world"?"selected":""}
+      onClick={()=>{Mode("world");P(1);J("1");O("name")}}>
+     게임 전체 경주마
+    </button>
+   </div>}
+   <p className="muted">{horses?(mode==="uploaded"?
+    "업로드한 CSV의 통산·최근 1년 전적을 표시합니다. 기존 게임 전적과 합산하지 않습니다. 이름을 누르면 경주마 기본정보가 열립니다.":
+    "My Derby의 게임 공식 경주 결과를 표시합니다. 최근 1년은 게임 364일 기준입니다."):
+    "기수 통산·최근 1년은 게임 공식 경주 결과 기준이며, 최근 1년은 게임 364일입니다."}</p>
    <div className="card dir-filter">
     <label htmlFor="directory-search" className="muted">이름{horses?" 또는 마번":""} 검색</label>
     <input id="directory-search" className="field" value={search}
@@ -133,7 +152,7 @@ export default function WorldDirectory({kind}){
        <option value="MALE">수말</option><option value="FEMALE">암말</option>
        <option value="GELDING">거세마</option>
       </select></label>}
-     {horses&&<label>활동 상태
+     {horses&&mode==="world"&&<label>활동 상태
       <select className="field" value={stage} onChange={e=>update(F,e.target.value)}>
        <option value="">모든 경주마</option>
        {Object.entries(stageText).map(([key,v])=><option key={key} value={key}>{v}</option>)}
@@ -142,7 +161,7 @@ export default function WorldDirectory({kind}){
       <select className="field" value={sort} onChange={e=>update(O,e.target.value)}>
        <option value="name">이름순</option>
        {horses?<><option value="rating">레이팅 높은 순</option>
-         <option value="grade">등급순</option><option value="age">나이 많은 순</option></>:
+         <option value="grade">등급순</option><option value="age">나이 많은 순</option>{mode==="uploaded"&&<><option value="wins">원본 통산 승수순</option><option value="starts">원본 통산 출전순</option></>}</>:
          <><option value="wins">게임 승수순</option><option value="rides">게임 기승 횟수순</option></>}
       </select></label>
     </div>
@@ -172,7 +191,7 @@ export default function WorldDirectory({kind}){
       <button type="button" className="primary" onClick={()=>goPage(jump)}>이동</button>
     </div>
    </nav>}
-   <div className="footer">MY DERBY · {horses?"경주마":"기수"} 전체 도감 · 공식 게임 결과 기반 통계</div>
+   <div className="footer">MY DERBY · {horses?(mode==="uploaded"?"CSV 4,060두 원본 자료":"게임 경주마"):"기수"} 전체 도감</div>
   </div>
  </main>;
 }
