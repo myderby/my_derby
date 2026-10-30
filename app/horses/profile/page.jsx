@@ -54,7 +54,7 @@ function Detail(){
     <div className="card">
      <div className="dir-horse-name" style={{fontSize:24}}>{data.name}
       <span className="dir-region">{data.track}</span></div>
-     <div className="muted">마번 {data.horseNo} · {data.sourceRank||((data.grade||"-")+"등급")}
+     <div className="muted">{data.sourceRank||((data.grade||"-")+"등급")}
       {data.stage?" · "+(stages[data.stage]||data.stage):" · CSV 기본정보 등록마"}</div>
      <div className="horse-profile-attributes">
       <div><span>나이</span><strong>{data.age!=null?data.age+"세":"게임 나이 미등록"}</strong></div>
