@@ -15,7 +15,8 @@ const readable={
  JOCKEY_DAILY_LIMIT:"기수의 하루 최대 기승 횟수(8회)에 도달했습니다.",
  JOCKEY_NOT_ELIGIBLE:"선택한 기수가 해당 지역에서 활동하지 않거나 비활성 상태입니다.",
  OWN_CONFIRMED_ENTRY_REQUIRED:"먼저 내 경주마를 공식 경주에 출전 신청하세요.",
- NO_JOCKEY_AVAILABLE:"배정 가능한 기수가 없습니다."
+ NO_JOCKEY_AVAILABLE:"배정 가능한 기수가 없습니다.",
+ NPC_REPLACEMENT_UNAVAILABLE:"출전 정원을 유지할 대체 NPC 말이 없어 현재는 취소할 수 없습니다."
 };
 function explain(message){
  const m=String(message||"").trim();
@@ -108,6 +109,19 @@ export default function EntriesPage(){
    SetMessage(data.status==="ALREADY_CONFIRMED"?"이미 출전 확정된 경주입니다.":
      "출전 확정! "+race.track+" "+race.raceNo+"경주 · "+data.gateNo+"번 게이트 · 기수는 기본 배정되었습니다.");
    await load(week);
+  }catch(e){SetMessage(explain(e.message))}finally{SetBusy(false)}
+ };
+ const withdrawEntry=async(raceId,horseId)=>{
+  if(!window.confirm("공식 출전을 취소하시겠습니까? 신청금이 납부된 경우 전액 환불되고 NPC 출전마로 대체됩니다."))return;
+  SetBusy(true);SetMessage("");
+  try{
+   const r=await fetch("/api/player/entries",{method:"DELETE",cache:"no-store",
+    headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},
+    body:JSON.stringify({raceId,horseId})});
+   const data=await r.json();if(!r.ok)throw new Error(data.error||"출전 취소 실패");
+   SetMessage("출전 취소 완료 · 신청금 "+new Intl.NumberFormat("ko-KR").format(data.refund||0)+
+    " G 환급 · NPC 출전마가 기존 게이트로 복구됐습니다.");
+   SetActive(null);SetStrategyFocus(null);await load(week);
   }catch(e){SetMessage(explain(e.message))}finally{SetBusy(false)}
  };
  const showJockeys=async(raceId,horseId)=>{
@@ -205,6 +219,8 @@ export default function EntriesPage(){
         <button className="outline" disabled={close||busy||strategyBusy}
          onClick={()=>SetStrategyFocus(strategyFocus===e.horseId?null:e.horseId)}>
          전략 1·2·3안 ›</button>
+        <button className="outline" disabled={close||busy||strategyBusy||jockeyBusy}
+         onClick={()=>withdrawEntry(r.id,e.horseId)}>출전 취소</button>
        </div></div>
       {strategyFocus===e.horseId&&
        <div style={{marginTop:12}}>
@@ -222,7 +238,7 @@ export default function EntriesPage(){
        </div>}
       {active?.raceId===r.id&&active?.horseId===e.horseId&&
        <div style={{marginTop:14}}>
-        <div className="muted">NPC 기수에게 신청하면 조건 확인 후 즉시 승인됩니다.</div>
+        <div className="muted">NPC 기수에게 신청하면 기수의 성향·기승일정에 따라 수락 또는 거절됩니다.</div>
         <select className="field" aria-label="기수 선택" value={jockeyChoice} onChange={e=>SetJockeyChoice(e.target.value)}>
          {jockeys.map(j=><option key={j.id} value={j.id} disabled={!j.selected&&(j.busyInRace||j.dailyRides>=j.maxDailyRides)}>
           {j.name} · {j.dailyRides}/{j.maxDailyRides}회 {j.busyInRace?"(해당 경주 기승 중)":""}
