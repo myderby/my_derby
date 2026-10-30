@@ -26,6 +26,8 @@ export async function POST(req:Request){
    Number.isSafeInteger(b.price)&&b.price>=50000&&b.price<=20000000&&
    [7,14,21].includes(b.days)){
     rpc="player_auction_create";params={p_horse:b.horseId,p_start:b.price,p_days:b.days};
+  }else if(b?.action==="CANCEL"&&uuid.test(b.listingId)){
+    rpc="player_auction_cancel";params={p_listing:b.listingId};
   }else return NextResponse.json({error:"입찰 정보 또는 판매 기간을 확인해주세요."},{status:400});
   const {data,error}=await db.schema("my_derby").rpc(rpc,params);
   if(error)throw error;
