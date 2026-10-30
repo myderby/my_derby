@@ -160,3 +160,16 @@
 
 /* Owner career / trophy room */
 .record-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:12px}.record-stat{background:#1d150e;border:1px solid #4b3620;border-radius:9px;padding:10px 4px;text-align:center}.record-stat span{display:block;color:#baaa96;font-size:11px}.record-stat strong{display:block;color:#f0cb7b;font-size:20px;margin-top:6px}.record-prize{grid-column:1/-1;display:flex;justify-content:space-between;color:#bea98d;padding:9px 1px;font-size:12px}.record-prize strong{color:#e8c47f}
+
+/* Official racecard: compact, scrollable table in My Derby colors */
+.race-entry-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid #6c4d29;border-radius:12px;background:#24190f;margin:8px 0 13px;scrollbar-color:#9b7542 #2c1e13}
+.race-entry-table{width:100%;min-width:650px;border-collapse:collapse;white-space:nowrap;font-size:12px;text-align:center}
+.race-entry-table thead{background:#513720;color:#f4cd81}
+.race-entry-table th{padding:12px 9px;font-weight:700;border-bottom:1px solid #8c663b}
+.race-entry-table td{padding:13px 9px;border-bottom:1px solid #473321;color:#e9d9c2}
+.race-entry-table tbody tr:nth-child(even){background:#302215}
+.race-entry-table tbody tr:hover{background:#49311d}
+.race-entry-table tbody tr:last-child td{border-bottom:0}
+.race-entry-table .race-entry-name{text-align:left;min-width:110px;font-weight:700;color:#f2c778}
+.race-entry-table .race-entry-name a{color:#f2c778;text-decoration:underline;text-underline-offset:3px}
+.race-entry-table .race-entry-number{font-weight:800;color:#f4d79e;background:#44301c}
