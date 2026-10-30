@@ -1,6 +1,7 @@
 "use client";
 import {useEffect,useState} from "react";
 import HorseLink from "../components/HorseLink";
+import StaffLink from "../components/StaffLink";
 
 const sexText={MALE:"수",FEMALE:"암",GELDING:"거"};
 const stageText={RACING:"현역",RETIRED:"은퇴",FOAL:"망아지",YEARLING:"1세마",
@@ -53,7 +54,7 @@ function JockeyCard({jockey}){
  const estimated=(jockey.specialties||[]).includes("2025_SOURCE_RECORD_ESTIMATE");
  return <article className="card dir-entry">
   <div className="dir-entry-head"><div>
-   <div className="dir-horse-name">{jockey.name}
+   <div className="dir-horse-name"><StaffLink kind="jockey" staffId={jockey.id}>{jockey.name}</StaffLink>
     <span className="dir-region">{jockey.track}</span></div>
    <div className="muted">{jockey.active?"활동 중":"비활동"} · 게임 하루 최대 {jockey.maxDailyRides}회 기승</div>
   </div><span className="tag">{jockey.career?.wins||0}승</span></div>
@@ -61,6 +62,7 @@ function JockeyCard({jockey}){
    <RecordCard title="최근 1년 기승" record={jockey.recentYear}/></div>
   <div className="dir-footer">
    <div className="muted">{specialty.length?specialty.join(" · "):"능력치 8종 보유"}</div>
+   <StaffLink kind="jockey" staffId={jockey.id}>상세정보 ›</StaffLink>
    <button className="dir-expand" type="button" onClick={()=>show(v=>!v)}>
     {expanded?"능력치 닫기":"능력치 보기"} {expanded?"⌃":"⌄"}</button>
   </div>
