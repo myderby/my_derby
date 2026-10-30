@@ -19,6 +19,81 @@ const liveSlots=(raceSchedule?.races||[]).map(r=>({
  dusu:r.dusu,actual:r.actual_starters
 }));
 const todaySlotSummaries=officialSlotSummaries(raceSchedule?.races||[]);
+// Same authenticated finance endpoint as /finance: never display fake balances.
+const [walletBalance,SetWalletBalance]=useState({status:"LOADING",balance:null});
+useEffect(()=>{
+ let mounted=true;
+ let requestNumber=0;
+ let client;
+ try{
+  const url=process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  if(!url||!key)throw new Error("Supabase 설정이 없습니다.");
+  client=createClient(url,key);
+ }catch(_error){
+  SetWalletBalance({status:"ERROR",balance:null});
+  return;
+ }
+ const refreshWallet=async()=>{
+  const request=++requestNumber;
+  try{
+   const {data:sessionData,error:sessionError}=await client.auth.getSession();
+   if(!mounted||request!==requestNumber)return;
+   if(sessionError)throw sessionError;
+   const token=sessionData.session?.access_token;
+   if(!token){
+    SetWalletBalance({status:"SIGNED_OUT",balance:null});
+    return;
+   }
+   const response=await fetch("/api/player/finance",{
+    headers:{Authorization:"Bearer "+token},
+    cache:"no-store"
+   });
+   const result=await response.json();
+   if(!mounted||request!==requestNumber)return;
+   if(!response.ok){
+    if(result.error==="JOIN_WORLD_FIRST"){
+     SetWalletBalance({status:"NOT_JOINED",balance:null});
+     return;
+    }
+    throw new Error(result.error||"잔액 조회 실패");
+   }
+   // Response comes from the very same player_finance_dashboard RPC as /finance.
+   if(!/^-?\\d+$/.test(String(result.balance)))
+    throw new Error("잔액 데이터 형식이 올바르지 않습니다.");
+   SetWalletBalance({status:"READY",balance:String(result.balance)});
+  }catch(_error){
+   if(mounted&&request===requestNumber)
+    SetWalletBalance({status:"ERROR",balance:null});
+  }
+ };
+ void refreshWallet();
+ const handleFocus=()=>{if(document.visibilityState==="visible")void refreshWallet()};
+ window.addEventListener("focus",handleFocus);
+ document.addEventListener("visibilitychange",handleFocus);
+ const {data:{subscription}}=client.auth.onAuthStateChange(()=>{
+  // Avoid making an awaited Supabase call inside its auth callback.
+  setTimeout(()=>{if(mounted)void refreshWallet()},0);
+ });
+ const timer=setInterval(()=>{
+  if(document.visibilityState==="visible")void refreshWallet();
+ },30000);
+ return ()=>{
+  mounted=false;
+  requestNumber++;
+  subscription.unsubscribe();
+  window.removeEventListener("focus",handleFocus);
+  document.removeEventListener("visibilitychange",handleFocus);
+  clearInterval(timer);
+ };
+},[]);
+const walletText=walletBalance.status==="READY"
+ ?"◉ "+BigInt(walletBalance.balance).toLocaleString("ko-KR")+" G"
+ :walletBalance.status==="SIGNED_OUT"?"◉ 로그인 후 확인"
+ :walletBalance.status==="NOT_JOINED"?"◉ 마주 등록 필요"
+ :walletBalance.status==="ERROR"?"◉ 잔액 조회 실패"
+ :"◉ 잔액 조회 중";
+
 const go=x=>{const routes={testFixture:"/test-race",allHorses:"/horses",allJockeys:"/jockeys",ratings:"/ratings",auction:"/auction",injuries:"/injuries",ranchManagement:"/ranch/management",notifications:"/notifications",races:"/schedule",training:"/training",breeding:"/breeding",horses:"/world",trainers:"/stable",ranch:"/ranch",market:"/market",finance:"/finance",entry:"/entries",jockey:"/entries",strategy:"/entries",results:"/schedule"};if(routes[x]&&typeof window!=="undefined"){window.location.assign(routes[x]);return;}S(x);if(typeof window!=="undefined")window.scrollTo(0,0)},msg=x=>{Q(x);setTimeout(()=>Q(""),3500)};
 const title=(x,sub)=><div className="pageTitle"><button className="back" onClick={()=>go("home")}>‹</button><div><h1>{x}</h1><div className="sub">{sub}</div></div></div>;
 const section=(x,next)=><div className="section"><h2>{x}</h2>{next&&<button onClick={()=>go(next)}>전체 보기 ›</button>}</div>;
@@ -157,7 +232,9 @@ useEffect(()=>{
  const timer=setInterval(refresh,15000);
  return ()=>{alive=false;clearInterval(timer)};
 },[screen]);
-return <main className="shell"><header className="header"><div onClick={()=>go("home")}><div className="brand">MY DERBY</div><div className="sub">{raceSchedule?.world?`${raceSchedule.world.season}시즌 · ${raceSchedule.world.week}주차 · ${raceSchedule.world.status==="ACTIVE"?"월드 운영 중":"운영 대기"}`:"경주 일정 조회 중"}</div></div><span className="coin">◉ 3,675 G</span><button className="hamburger" onClick={()=>go("menu")}>☰</button></header><div className="disclaimer">월드 시간표는 운영 중 · 일반 관리화면은 체험 UI 포함 · 공식 경기 결과는 별도 저장</div>
+return <main className="shell"><header className="header"><div onClick={()=>go("home")}><div className="brand">MY DERBY</div><div className="sub">{raceSchedule?.world?`${raceSchedule.world.season}시즌 · ${raceSchedule.world.week}주차 · ${raceSchedule.world.status==="ACTIVE"?"월드 운영 중":"운영 대기"}`:"경주 일정 조회 중"}</div></div><a className="coin" href={walletBalance.status==="READY"?"/finance":"/world"}
+ title={walletBalance.status==="READY"?"내 실제 게임머니 잔액 · 재무 관리로 이동":"로그인 또는 마주 등록 후 잔액을 확인할 수 있습니다."}
+ style={{textDecoration:"none",whiteSpace:"nowrap"}} aria-live="polite">{walletText}</a><button className="hamburger" onClick={()=>go("menu")}>☰</button></header><div className="disclaimer">월드 시간표는 운영 중 · 일반 관리화면은 체험 UI 포함 · 공식 경기 결과는 별도 저장</div>
 {screen==="home"&&<><div className="hero"><div className="overline">🍂 오늘도 우리 말들과 함께 성장해요</div><h1>가을 목장</h1><div className="caption">마주의 새로운 하루</div><button className="primary" onClick={()=>go("ranch")}>목장 둘러보기 ›</button></div><div className="area">{section("오늘의 관리","horses")}<div className="card row"><div><div className="large gold">내 보유마</div><div className="muted">내 말 관리에서 소유마와 전적 확인</div></div><div><button className="outline" onClick={()=>go("horses")}>내 말 관리 ›</button></div><button className="outline" onClick={()=>window.location.assign("/test-race")}>경주 테스트 · 10두 ›</button></div>{section("오늘의 공식 경주 시간표","races")}
 {raceSchedule?<><div className="muted" style={{marginBottom:12}}>오늘 총 {raceSchedule.raceCount}경주 · 19시/20시/21시 시간대별 공식 진행 현황</div>
  <div className="official-slot-grid">
