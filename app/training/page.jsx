@@ -174,7 +174,7 @@ export default function TrainingPage(){
      {!horse.plan&&<div className="muted" style={{marginTop:9}}>훈련계획을 저장하면 자동 정산이 시작됩니다.</div>}
     </div>
     <div className="section"><h2>🔍 조교사 능력 평가</h2></div>
-    <HorseDiscovery discovery={horse.discovery} compact/>
+    <HorseDiscovery discovery={horse.discovery} horseId={horse.id} compact/>
     <div className="section"><h2>일일 훈련 리포트</h2><span className="tag">{reports.length}건</span></div>
     {!reports.length&&<div className="notice">아직 생성된 리포트가 없습니다. 훈련계획을 저장한 뒤 자동 정산을 확인하세요.</div>}
     {(showAll?reports:reports.slice(0,12)).map(r=>{
