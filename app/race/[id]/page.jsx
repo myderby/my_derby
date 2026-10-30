@@ -143,15 +143,21 @@ export default function RaceDetailPage(){
       {[["result","최종 순위"],["sections","구간 순위"],["log","전체 중계"]].map(([key,label])=>
        <button key={key} className={tab===key?"active":""} onClick={()=>SetTab(key)}>{label}</button>)}
     </div>}
-    {!completed&&<><div className="section"><h2>공식 출전표</h2></div>
-      {race.entries?.length?<div className="card">
-       {race.entries.map(e=><div className="line" key={e.horseId}>
-        <div className="row"><b className="gold">{e.number??"-"}번 <HorseLink horseId={e.horseId} title={e.name+" 기본정보 · 통산 및 최근 1년 전적"}>{e.name}</HorseLink></b><span className="tag">{e.entryStatus==="CONFIRMED"?"출전 확정":e.entryStatus}</span></div>
-        <div className="muted">{e.age}세 · {sexLabel[e.sex]||e.sex} · 기수 {e.jockeyName||"미배정"} · 부담중량 {e.weightKg??"-"}kg <span style={{color:"#c9a45c"}}>· 말 이름 선택 시 기본정보 ›</span></div>
-       </div>)}
-      </div>:<div className="notice">출전마 정보가 없습니다.</div>}
-      {race.status==="RESULT_NOT_AVAILABLE"&&<div className="notice">공식 결과를 저장하는 중입니다. 이 화면을 새로고침해 주세요.</div>}
-    </>}
+    <div className="section"><h2>🏇 출전마 정보</h2><span className="tag">{race.entries?.length||0}두</span></div>
+    {race.entries?.length?<div className="race-entry-wrap" role="region" aria-label="경주 출전표" tabIndex={0}>
+     <table className="race-entry-table">
+      <thead><tr><th scope="col">번호</th><th scope="col">마명</th><th scope="col">산지</th><th scope="col">성별</th><th scope="col">연령</th><th scope="col">부담중량</th><th scope="col">레이팅</th><th scope="col">기수</th><th scope="col">조교사</th></tr></thead>
+      <tbody>{[...race.entries].sort((a,b)=>Number(a.number||999)-Number(b.number||999)).map(e=><tr key={e.horseId}>
+       <td className="race-entry-number">{e.number??"-"}</td>
+       <td className="race-entry-name"><HorseLink horseId={e.horseId} title={e.name+" 상세정보"}>{e.name}</HorseLink></td>
+       <td>{e.origin||e.country||"—"}</td><td>{sexLabel[e.sex]||e.sex||"—"}</td><td>{e.age??"—"}</td>
+       <td>{e.weightKg??"—"}</td><td>{e.rating??"—"}</td>
+       <td>{e.jockeyName||"—"}</td><td>{e.trainerName||"—"}</td>
+      </tr>)}</tbody>
+     </table>
+    </div>:<div className="notice">출전마 정보가 없습니다.</div>}
+    <div className="muted" style={{margin:"-4px 0 18px"}}>마명을 누르면 상세정보를 확인할 수 있습니다. 제공되지 않는 항목은 — 로 표시됩니다. 모바일에서는 표를 좌우로 스크롤하세요.</div>
+    {!completed&&race.status==="RESULT_NOT_AVAILABLE"&&<div className="notice">공식 결과를 저장하는 중입니다. 이 화면을 새로고침해 주세요.</div>}
     {completed&&tab==="result"&&<>
      <div className="section"><h2>🏁 공식 최종 순위</h2></div>
      <div className="card">{race.results.map(x=>{
