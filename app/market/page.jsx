@@ -35,7 +35,7 @@ export default function Market(){
  const listings=useMemo(()=>board?.listings?.filter(l=>track==="전체"||l.track===track)||[],[board,track]);
  return <main className="shell"><header className="header"><a className="brand" href="/" style={{textDecoration:"none"}}>MY DERBY</a><span className="coin">💰 경주마 시장</span></header>
  <div className="area">
-  <div className="controls" style={{marginBottom:12}}><a className="outline" style={{textDecoration:"none"}} href="/world">‹ 월드</a><a className="outline" style={{textDecoration:"none"}} href="/finance">재무 내역 ›</a></div>
+  <div className="controls" style={{marginBottom:12}}><a className="outline" style={{textDecoration:"none"}} href="/world">‹ 월드</a><a className="outline" style={{textDecoration:"none"}} href="/finance">재무 내역 ›</a><a className="outline" style={{textDecoration:"none"}} href="/auction">경매 입찰 ›</a></div>
   <div className="section"><h2>실제 경주마 거래</h2><button onClick={()=>load()} disabled={!token||busy}>새로고침 ↻</button></div>
   {error&&<div className="notice" role="alert">⚠ {error}</div>}
   {message&&<div className="notice" role="status">✓ {message}</div>}
@@ -68,6 +68,6 @@ export default function Market(){
       onClick={()=>transact({action:"LIST",horseId:horse,price})}>내 말 시장에 등록</button>
    </div>
   </>}
-  <div className="footer">MY DERBY · DB 소유권 이전 및 원장 이체 · 온라인 입찰 경매는 준비 중</div>
+  <div className="footer">MY DERBY · DB 소유권 이전 및 원장 이체 · 입찰·낙찰은 경매 메뉴에서 이용</div>
  </div></main>
 }
