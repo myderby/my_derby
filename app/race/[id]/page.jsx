@@ -1,4 +1,5 @@
 "use client";
+import HorseLink from "../../components/HorseLink";
 import {useEffect,useMemo,useState} from "react";
 import {useParams} from "next/navigation";
 import {selectRaceCommentary} from "../../../lib/racing/commentary";
@@ -94,7 +95,7 @@ export default function RaceDetailPage(){
     </div>
     {completed&&<div className="card" style={{borderColor:"#94662c"}}>
      <div className="muted">🏆 공식 우승마</div>
-     <div className="large gold" style={{marginTop:7}}>{race.results[0].number}번 {race.results[0].name}</div>
+     <div className="large gold" style={{marginTop:7}}>{race.results[0].number}번 <HorseLink horseId={race.results[0].horseId}>{race.results[0].name}</HorseLink></div>
      <div className="muted">우승 기록 {sec(race.results[0].timeSec)}초 · 공식 완료 {race.completedAt?new Date(race.completedAt).toLocaleString("ko-KR",{timeZone:"Asia/Seoul"}):"확정"}</div>
      <div className="controls" style={{marginTop:12}}>
       <button className="primary" onClick={goReplay}>▶ 실제 중계 다시보기</button>
@@ -108,7 +109,7 @@ export default function RaceDetailPage(){
     {!completed&&<><div className="section"><h2>공식 출전표</h2></div>
       {race.entries?.length?<div className="card">
        {race.entries.map(e=><div className="line" key={e.horseId}>
-        <div className="row"><b className="gold">{e.number??"-"}번 {e.name}</b><span className="tag">{e.entryStatus==="CONFIRMED"?"출전 확정":e.entryStatus}</span></div>
+        <div className="row"><b className="gold">{e.number??"-"}번 <HorseLink horseId={e.horseId}>{e.name}</HorseLink></b><span className="tag">{e.entryStatus==="CONFIRMED"?"출전 확정":e.entryStatus}</span></div>
         <div className="muted">{e.age}세 · {sexLabel[e.sex]||e.sex} · 기수 {e.jockeyName||"미배정"} · 부담중량 {e.weightKg??"-"}kg</div>
        </div>)}
       </div>:<div className="notice">출전마 정보가 없습니다.</div>}
@@ -120,7 +121,7 @@ export default function RaceDetailPage(){
       const e=entrants.get(x.horseId);
       return <div className="line row" key={x.horseId}>
        <div style={{flex:1}}><b className="gold">{x.rank}위</b>
-        <b style={{marginLeft:12}}>{x.number}번 {x.name}</b>
+        <b style={{marginLeft:12}}>{x.number}번 <HorseLink horseId={x.horseId}>{x.name}</HorseLink></b>
         <div className="muted">기수 {e?.jockeyName||"정보 없음"} · {e?.weightKg??"-"}kg</div></div>
        <div style={{whiteSpace:"nowrap",fontSize:13}}>{sec(x.timeSec)}초</div>
       </div>;
@@ -133,7 +134,7 @@ export default function RaceDetailPage(){
      {(race.sections||[]).map(segment=><div className="card" key={segment.distanceM}>
       <div className="row"><b className="gold">{segment.distanceM}m</b><span className="tag">{segment.ranks?.length||0}두</span></div>
       {(segment.ranks||[]).map(h=><div className="line row small" key={segment.distanceM+"-"+h.number}>
-       <b style={{minWidth:38}}>{h.rank}위</b><span style={{flex:1}}>{h.number}번 {h.name}</span>
+       <b style={{minWidth:38}}>{h.rank}위</b><span style={{flex:1}}>{h.number}번 <HorseLink horseId={race.entries?.find(e=>e.number===h.number)?.horseId}>{h.name}</HorseLink></span>
        <span className="muted">{Number(h.gapM)<0.01?"선두":"+"+sec(h.gapM)+"m"}</span>
       </div>)}
      </div>)}
