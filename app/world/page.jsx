@@ -1,4 +1,5 @@
 "use client";
+import HorseLink from "../components/HorseLink";
 import {useCallback,useEffect,useState} from "react";
 import {createClient} from "@supabase/supabase-js";
 
@@ -108,7 +109,7 @@ export default function WorldPage(){
      <div className="muted">내 보유 경주마: {mine.horses?.length??0}두 · 개인목장 생성됨</div></div>
     {(mine.horses??[]).map(h=><div key={h.id} className="card">
      <div className="row" onClick={()=>Expand(expanded===h.id?null:h.id)} style={{cursor:"pointer"}}>
-      <div><b className="gold">♞ {h.name}</b><div className="muted">hrNo {h.source_hr_no} · {h.age_years}세 · {sexName[h.sex]||h.sex} · {stageName[h.life_stage]||h.life_stage}</div></div>
+      <div><b className="gold">♞ <HorseLink horseId={h.id}>{h.name}</HorseLink></b><div className="muted">hrNo {h.source_hr_no} · {h.age_years}세 · {sexName[h.sex]||h.sex} · {stageName[h.life_stage]||h.life_stage}</div></div>
       <span className="tag">{expanded===h.id?"접기":"능력치 보기 ›"}</span></div>
       {expanded===h.id&&<><div className="grid" style={{marginTop:12}}>
        {Object.entries(h.currentStats??{}).map(([k,v])=><div className="card" key={k} style={{margin:0,padding:10}}>
@@ -149,7 +150,7 @@ export default function WorldPage(){
      </div>
      {(npcRetirements.recent||[]).length>0&&
       <div style={{marginTop:14}}>{npcRetirements.recent.map((entry,i)=><div className="line row small" key={i}>
-       <div><b>{entry.horseName}</b>
+       <div><b><HorseLink horseId={entry.horseId}>{entry.horseName}</HorseLink></b>
         <div className="muted">마주 {entry.ownerName||"NPC"} · {entry.ownerRisk==="CONSERVATIVE"?"안정형":entry.ownerRisk==="AGGRESSIVE"?"공격형":"균형형"}</div>
         <div className="muted">{entry.reason==="POOR_FORM"?"지속적인 경주 성적 부진":"경주 복귀 불가 부상"} · 게임 {entry.gameDay}일</div></div>
        <span className="tag">{entry.newStage==="STALLION"?"씨수말":entry.newStage==="BROODMARE"?"번식암말":"기존 기록"}</span>
