@@ -266,7 +266,7 @@ export default function EntriesPage(){
         <div className="muted">{e.gateNo}번 게이트 · 현재 기수 {e.jockeyName||"미배정"}</div>
         {e.jockeyOfferStatus==="PENDING"&&<div className="muted" style={{color:"#f0c572"}}>⌛ {e.jockeyOfferName} 기수 신청 심사 대기 · 결과 확인 후 재신청 가능</div>}
         {e.jockeyOfferStatus==="ACCEPTED"&&<div className="muted" style={{color:"#91d8ad"}}>✓ {e.jockeyOfferName||e.jockeyName} 기승 계약 확정</div>}
-        {e.jockeyOfferStatus==="REJECTED"&&<div className="muted" style={{color:"#f0c572"}}>신청 거절됨 · 다른 기수에게 재신청할 수 있습니다.</div></div>
+        {e.jockeyOfferStatus==="REJECTED"&&<div className="muted" style={{color:"#f0c572"}}>신청 거절됨 · 다른 기수에게 재신청할 수 있습니다.</div>}</div>
        <div className="controls">
         <button className="outline" disabled={close||busy||jockeyBusy}
          onClick={()=>showJockeys(r.id,e.horseId)}>기수 선택 ›</button>
