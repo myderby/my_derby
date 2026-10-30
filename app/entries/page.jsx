@@ -43,7 +43,11 @@ const entryWindowState=r=>{
  if(r.status!=="OPEN"||!r.kstDate)return "CLOSED";
  const now=currentKst();
  if(r.entryOpenDate&&now<r.entryOpenDate+" 00:00")return "NOT_OPEN";
- if(now.slice(0,10)>=r.kstDate)return "CLOSED";
+ if(now.slice(0,10)>r.kstDate)return "CLOSED";
+ if(now.slice(0,10)===r.kstDate){
+  if(Number(r.gradeNo)!==6||r.isSpecialRace)return "CLOSED";
+  return now.slice(11,16)<(r.startTime||"00:00")?"OPEN":"CLOSED";
+ }
  return "OPEN";
 };
 const beforeDeadline=r=>entryWindowState(r)==="OPEN";
@@ -238,7 +242,7 @@ export default function EntriesPage(){
      <div className="row"><div><b className="gold">{r.kstDate} {r.startTime} · {r.track} {r.raceNo}경주</b>
        <div className="muted">{r.grade} · {r.distance}m · {r.confirmedCount}/{r.capacity}두</div></div>
        <span className="tag">{r.status==="FINISHED"?"종료":r.isSpecialRace&&!r.ageCondValid?"연령 조건 미등록":windowState==="NOT_OPEN"?"접수 예정":close?"신청 마감":"신청 가능"}</span></div>
-     <div className="muted" style={{marginTop:8}}>접수 시작 {r.entryOpenDate} 00:00 ({r.isSpecialRace?"OPEN·대상 4일 전":"일반 2일 전"}) · 마감 {r.kstDate} 00:00 (경주 당일 신청 금지, 한국시간)</div>
+     <div className="muted" style={{marginTop:8}}>접수 시작 {r.entryOpenDate} 00:00 ({r.isSpecialRace?"OPEN·대상 4일 전":"일반 2일 전"}) · 마감 {r.kstDate} {Number(r.gradeNo)===6&&!r.isSpecialRace?(r.startTime||"경주 출발"):"00:00"} ({Number(r.gradeNo)===6&&!r.isSpecialRace?"6등급은 당일 출발 전까지 신청 가능":"경주 당일 신청 불가"}, 한국시간)</div>
      {r.isSpecialRace&&<div className="notice" style={{marginTop:8,fontSize:12}}>
       대상경주 출전 연령 조건(ageCond): <b>{r.ageCondValid?r.ageCond:"확인되지 않음"}</b>
       {!r.ageCondValid&&" · 정확한 원본 경주 연령 조건이 등록될 때까지 신청할 수 없습니다."}
@@ -303,7 +307,7 @@ export default function EntriesPage(){
        </button>
       </div>}
      {!mine.length&&(!room||close||!candidate.length)&&<div className="muted" style={{marginTop:12}}>
-      {r.isSpecialRace&&!r.ageCondValid?"원본 ageCond 연령 조건이 등록되지 않아 출전 신청할 수 없습니다.":windowState==="NOT_OPEN"?"접수 대기: "+r.entryOpenDate+" 00:00부터 출전 신청할 수 있습니다.":close?"신청 기간 종료: 경주 당일에는 출전 신청할 수 없습니다.":!room?"출전 정원이 가득 찼습니다.":r.isSpecialRace?(r.ageCondRequiresBirthHemisphere?
+      {r.isSpecialRace&&!r.ageCondValid?"원본 ageCond 연령 조건이 등록되지 않아 출전 신청할 수 없습니다.":windowState==="NOT_OPEN"?"접수 대기: "+r.entryOpenDate+" 00:00부터 출전 신청할 수 있습니다.":close?"신청 기간이 종료되었습니다.":!room?"출전 정원이 가득 찼습니다.":r.isSpecialRace?(r.ageCondRequiresBirthHemisphere?
  "경주마의 출생 반구(남/북)를 확인해야 합니다. 반구 정보가 없거나 연령 조건을 충족하지 않는 말은 신청할 수 없습니다.":
  "소속 지역·ageCond·건강 조건을 충족하는 말이 없습니다."):"같은 지역·등급이며 건강 조건을 충족하는 경주마만 신청 가능합니다."}</div>}
     </div>;
