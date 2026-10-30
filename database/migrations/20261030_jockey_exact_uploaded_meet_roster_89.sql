@@ -19,6 +19,41 @@ SELECT v."jkNo",v.meet,v.name FROM jsonb_to_recordset('[{"meet":"제주","jkNo":
 ON CONFLICT(jk_no) DO UPDATE SET
  source_meet=EXCLUDED.source_meet,jockey_name=EXCLUDED.jockey_name;
 
+
+-- Correct the sole 2025-to-current meet move in the 89-row source file:
+-- jkNo 080599 Kim Taehyun is now Seoul (previous 2025 fixture was Busan).
+UPDATE my_derby.npc_jockeys j
+SET home_track='서울', source_meet='서울',
+ name='2025 서울 김태현 (080599)'
+WHERE j.source_jk_no='080599' AND j.home_track='부산'
+ AND j.source_meet='부산경남' AND j.display_name='김태현';
+
+-- Five jockeys newly present in user CSV but absent from 2025 roster.
+-- Seed their initial GAME skill estimates from the mean skills of existing
+-- same-track source jockeys; do not claim these are user-provided skill scores.
+WITH stats AS (
+ SELECT j.home_track,jsonb_object_agg(x.key,round(avg(x.value::numeric))::int) skill_base
+ FROM my_derby.npc_jockeys j
+ CROSS JOIN LATERAL jsonb_each_text(j.skill_stats) x(key,value)
+ WHERE j.source_jk_no IS NOT NULL
+ GROUP BY j.home_track
+)
+INSERT INTO my_derby.npc_jockeys
+ (world_id,name,display_name,home_track,source_meet,source_jk_no,
+  skill_stats,specialties,max_daily_rides,is_active)
+SELECT w.id,
+ '2026 '||src.game_track||' '||src.jockey_name||' ('||src.jk_no||')',
+ src.jockey_name,src.game_track,src.source_meet,src.jk_no,
+ stats.skill_base,ARRAY['USER_FILE_SKILLS_ESTIMATED_FROM_TRACK_MEAN']::text[],
+ 8,true
+FROM my_derby.jockey_current_source_roster src
+CROSS JOIN (SELECT id FROM my_derby.worlds WHERE world_key='kra_roster_v1') w
+JOIN stats ON stats.home_track=src.game_track
+WHERE NOT EXISTS(
+  SELECT 1 FROM my_derby.npc_jockeys j WHERE j.source_jk_no=src.jk_no
+)
+ON CONFLICT(name) DO NOTHING;
+
 DO $validate$
 DECLARE n integer;matching integer;
 BEGIN
