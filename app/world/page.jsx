@@ -165,7 +165,7 @@ export default function WorldPage(){
      <div className="card">
       <div className="row">
        <div><b className="gold">{mine.profile?.nickname||"내 마방"}</b>
-        <div className="muted">내가 소유한 경주마의 상태와 능력치를 관리합니다.</div></div>
+        <div className="muted">내가 소유한 경주마의 상태와 관찰 리포트를 관리합니다.</div></div>
        <span className="tag">마주</span>
       </div>
       <div className="my-horse-summary">
@@ -207,16 +207,9 @@ export default function WorldPage(){
         <HorseLink horseId={h.id} className="outline" style={{textDecoration:"none",fontSize:12}}>
          기본정보·전적 보기 ›
         </HorseLink>
-        <button className="outline" onClick={()=>Expand(expanded===h.id?null:h.id)}>
-         {expanded===h.id?"능력치 접기":"현재 능력치"}
-        </button>
+        <a className="outline" href={"/horses/reports?horseId="+encodeURIComponent(h.id)}
+         style={{textDecoration:"none",fontSize:12}}>📑 능력·기질 분석 리포트 ›</a>
        </div>
-       {expanded===h.id&&<div className="my-horse-skills">
-        {Object.entries(h.currentStats||{}).map(([k,value])=><div key={k}>
-         <span>{skillNames[k]||k}</span><strong>{value}</strong>
-        </div>)}
-        {!h.currentStats&&<div className="muted">현재 능력치가 등록되지 않았습니다.</div>}
-       </div>}
       </div>)}
      </>:<>
       <div className="section"><h2>{active}</h2></div>
