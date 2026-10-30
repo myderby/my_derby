@@ -1,6 +1,7 @@
 "use client";
 import HorseLink from "../components/HorseLink";
 import StaffLink from "../components/StaffLink";
+import HorseDiscovery from "../components/HorseDiscovery";
 import {useCallback,useEffect,useMemo,useState} from "react";
 import {createClient} from "@supabase/supabase-js";
 
@@ -172,13 +173,8 @@ export default function TrainingPage(){
       {busy==="PROCESS"?"훈련 리포트 생성 중…":isDone?"이번 주 정산 완료":!isLate?"22:05 이후 실행 가능":"이번 주 훈련 리포트 생성"}</button>
      {!horse.plan&&<div className="muted" style={{marginTop:9}}>훈련계획을 저장하면 자동 정산이 시작됩니다.</div>}
     </div>
-    <div className="section"><h2>현재 능력치</h2></div>
-    <div className="card">
-     {Object.entries(statNames).map(([key,label])=><div className="line" key={key}>
-      <div className="row small"><span>{label}</span><b>{Number(horse.currentStats?.[key]||0).toFixed(2)}</b></div>
-      <div className="bar"><div className="fill" style={{width:Math.min(100,Number(horse.currentStats?.[key]||0))+"%"}}/></div>
-     </div>)}
-    </div>
+    <div className="section"><h2>🔍 조교사 능력 평가</h2></div>
+    <HorseDiscovery discovery={horse.discovery} compact/>
     <div className="section"><h2>일일 훈련 리포트</h2><span className="tag">{reports.length}건</span></div>
     {!reports.length&&<div className="notice">아직 생성된 리포트가 없습니다. 훈련계획을 저장한 뒤 자동 정산을 확인하세요.</div>}
     {(showAll?reports:reports.slice(0,12)).map(r=>{
