@@ -100,3 +100,22 @@
  .official-slot-tabs button{padding:6px 2px}
  .official-slot-tabs button small{font-size:9px}
 }
+
+/* Reusable horse records and source-linked detail screen */
+.dir-main-nav button{padding:10px 13px;border-radius:9px;border:1px solid #6d5035;
+ background:#342419;color:#d8b77e;font-size:13px;font-weight:700;cursor:pointer}
+.dir-main-nav button.selected{background:#dba952;color:#29190a;border-color:#dba952}
+.horse-profile-record{min-width:0;margin:0;padding:13px}
+.horse-profile-record-top{font-size:21px;font-weight:750;color:#eac481;margin:11px 0 6px}
+.horse-profile-record-top b{margin-left:7px}
+.horse-profile-attributes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}
+.horse-profile-attributes>div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.horse-profile-attributes>div>span{font-size:11px;color:#a89a88}
+.horse-profile-attributes>div>strong{font-size:14px;word-break:break-word;color:#f2d49b}
+.horse-profile-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px}
+.horse-profile-stats>div{border-radius:8px;background:#211a13;display:flex;flex-direction:column;
+ gap:5px;align-items:center;padding:11px 5px}
+.horse-profile-stats span{font-size:11px;color:#af9c85}
+.horse-profile-stats strong{font-size:19px;color:#f0c686}
+@media(max-width:470px){.horse-profile-attributes{gap:9px}
+ .horse-profile-stats{grid-template-columns:repeat(3,minmax(0,1fr))}}
