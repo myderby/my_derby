@@ -50,7 +50,7 @@ export default function Market(){
    {!listings.length&&<div className="notice">현재 구매 가능한 매물이 없습니다.</div>}
    {listings.map(l=><div className="card" key={l.id}>
     <div className="row"><div><b className="gold">{l.name}</b><div className="muted">{l.track} · {l.grade??"-"}등급 · {l.age}세 · {l.sex}</div>
-     <div className="muted">{l.sellerType==="SYSTEM"?"시스템 매물":l.sellerType==="MY_LISTING"?"내 판매 매물":"다른 마주 매물"}</div></div>
+     <div className="muted">{l.sellerType==="SYSTEM"?"시스템 매물":l.sellerType==="NPC"?"NPC 마주 매물":l.sellerType==="MY_LISTING"?"내 판매 매물":"다른 플레이어 매물"}</div></div>
     <div style={{textAlign:"right"}}><b>{format(l.price)} G</b>
      {l.sellerType==="MY_LISTING"?<button className="outline" disabled={busy} onClick={()=>transact({action:"CANCEL",listingId:l.id})}>판매 취소</button>:
      <button className="primary" disabled={busy||board.balance<l.price} onClick={()=>transact({action:"BUY",listingId:l.id})}>구매하기</button>}</div></div>
