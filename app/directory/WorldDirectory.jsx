@@ -72,7 +72,7 @@ export default function WorldDirectory({kind}){
  const [search,S]=useState(""),[track,T]=useState(""),[grade,G]=useState(""),
  [sex,X]=useState(""),[stage,F]=useState(""),
  [sort,O]=useState("name"),[page,P]=useState(1),[jump,J]=useState("1"),
- [data,D]=useState(null),[loading,L]=useState(true),[error,E]=useState("");
+ [data,D]=useState(null),[loading,L]=useState(true),[error,E]=useState(""),[retry,Retry]=useState(0);
  const update=(fn,v)=>{fn(v);P(1);J("1")};
  useEffect(()=>{
   const controller=new AbortController();
@@ -90,11 +90,11 @@ export default function WorldDirectory({kind}){
     if(!r.ok)throw new Error(body.error||"목록을 불러오지 못했습니다.");
     if(!controller.signal.aborted){D(body);E("");}
    }catch(e){
-    if(!controller.signal.aborted)E(e.message||"조회 오류");
+    if(!controller.signal.aborted){E(e.message||"조회 오류");D(null);}
    }finally{if(!controller.signal.aborted)L(false);}
   },240);
   return()=>{clearTimeout(timer);controller.abort()};
- },[horses,search,track,grade,sex,stage,page,sort]);
+ },[horses,search,track,grade,sex,stage,page,sort,retry]);
  const last=Math.max(1,data?.pages||1);
  const goPage=v=>{const next=Math.min(last,Math.max(1,Number(v)||1));P(next);J(String(next));};
  const tracks=horses?["서울","부산","영천","제주"]:["서울","부산","영천"];
@@ -108,7 +108,7 @@ export default function WorldDirectory({kind}){
     <a className={!horses?"selected":""} href="/jockeys">전체 기수</a>
    </nav>
    <div className="section"><h2>{horses?"경주마 전체 목록":"기수 전체 목록"}</h2>
-    <span className="tag">{data?fmt(data.total)+"명/두":"조회 중"}</span></div>
+    <span className="tag">{data?fmt(data.total)+(horses?"두":"명"):"조회 중"}</span></div>
    <p className="muted">실제 My Derby 월드 데이터에서 조회합니다. 전체 전적과 최근 1년은
     <b> 완료된 게임 공식 경주</b> 기준이며, 최근 1년은 게임 364일(52주)입니다.</p>
    <div className="card dir-filter">
@@ -154,7 +154,7 @@ export default function WorldDirectory({kind}){
    <div className="section"><h2>{horses?"경주마 명단":"기수 명단"}</h2>
     <span className="muted">{data?fmt(data.total)+"건 · "+data.page+"/"+last+"페이지":""}</span></div>
    {error&&<div className="notice" role="alert">{error}
-     <button className="outline" onClick={()=>{S(v=>v+" ");setTimeout(()=>S(v=>v.trim()),0)}}>재시도</button></div>}
+     <button className="outline" onClick={()=>Retry(v=>v+1)}>재시도</button></div>}
    {loading&&<div className="notice" aria-live="polite">실제 경주 기록을 조회하고 있습니다…</div>}
    {!loading&&data?.items?.length===0&&<div className="notice">조건에 맞는 {horses?"경주마":"기수"}가 없습니다. 필터를 변경해주세요.</div>}
    {!loading&&(data?.items||[]).map(item=>horses?
