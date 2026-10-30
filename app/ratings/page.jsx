@@ -1,4 +1,5 @@
 "use client";
+import HorseLink from "../components/HorseLink";
 import {useEffect,useState} from "react";
 import {createClient} from "@supabase/supabase-js";
 export default function Ratings(){
@@ -31,7 +32,7 @@ export default function Ratings(){
  <div className="card small"><b className="gold">기본 등급 기준</b><div className="muted">1등급 81+ · 2등급 66~80 · 3등급 51~65 · 4등급 36~50 · 5등급 ≤35 · 6등급 미부여</div>
  <div className="muted">6등급 우승·누적 입상 시 최초 26~32점. 1~5등급 핸디캡: 1점당 0.5kg, 암말 2kg 감량.</div></div>
  {(board.horses||[]).map(h=><div className="card" key={h.id}>
- <div className="row"><div><b className="gold">{h.name}</b><div className="muted">현재 출전등급 {h.grade??"-"}등급 · 레이팅 기준 {h.ratingGrade??"-"}등급</div></div>
+ <div className="row"><div><b className="gold"><HorseLink horseId={h.id}>{h.name}</HorseLink></b><div className="muted">현재 출전등급 {h.grade??"-"}등급 · 레이팅 기준 {h.ratingGrade??"-"}등급</div></div>
  <div style={{textAlign:"right"}}><b>{h.rating==null?"미부여":h.rating+"점"}</b><div className="tag">{h.pendingGrade?"등급 전환 대기":"적용 중"}</div></div></div>
  {h.seed==="LEGACY_GRADE_ESTIMATE_NOT_KRA_OFFICIAL"&&<div className="muted">※ 기존 등급에서 추정한 초기 레이팅을 사용했습니다.</div>}
  {(h.recent||[]).length>0&&<div style={{marginTop:12}}>
