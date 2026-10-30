@@ -1,5 +1,5 @@
 "use client";
-import HorseLink from "../../components/HorseLink";
+import HorseLink, {HorseMentions} from "../../components/HorseLink";
 import {useEffect,useMemo,useState} from "react";
 import {useParams} from "next/navigation";
 import {selectRaceCommentary} from "../../../lib/racing/commentary";
@@ -158,7 +158,7 @@ export default function RaceDetailPage(){
      </div>
      {visibleEvents.length?visibleEvents.map((e,i)=><div className="card" key={e.seq+"-"+i} style={{marginBottom:8}}>
       <div className="muted">{stamp(e.timeSec)}초 · {Math.min(Number(e.distanceM)||0,race.distanceM).toFixed(0)}m · {e.eventType==="FINISH"?"🏁 결승":e.eventType==="START"?"출발":"경주 진행"}</div>
-      <div className="small" style={{marginTop:4,lineHeight:1.65}}>{e.text}</div>
+      <div className="small" style={{marginTop:4,lineHeight:1.65}}><HorseMentions text={e.text} horseList={(race.entries||[]).map(h=>({id:h.horseId,name:h.name}))}/></div>
      </div>):<div className="notice">중계 이벤트가 아직 표시되지 않았습니다.</div>}
     </>}
    </>}
