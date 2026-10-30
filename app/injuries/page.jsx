@@ -1,4 +1,5 @@
 "use client";
+import HorseLink from "../components/HorseLink";
 import {useEffect,useState} from "react";
 import {createClient} from "@supabase/supabase-js";
 const health={HEALTHY:"건강",INJURED:"부상",RECOVERING:"회복 중"};
@@ -24,7 +25,7 @@ export default function Injuries(){
  {error&&<div className="notice" role="alert">{error}</div>}
  {!token&&<div className="notice"><a href="/world">월드 로그인</a> 후 확인하세요.</div>}
  {data&&(data.horses||[]).map(h=><div className="card" key={h.id}>
- <div className="row"><b className="gold">{h.name}</b><span className="tag">{health[h.health]||h.health}</span></div>
+ <div className="row"><b className="gold"><HorseLink horseId={h.id}>{h.name}</HorseLink></b><span className="tag">{health[h.health]||h.health}</span></div>
  {h.injuryPrognosis==="RACING_UNFIT"&&<div className="notice">경주 복귀 불가 판정 · 번식마 전환 가능 여부를 검토하세요.</div>}
  {h.injuryPrognosis==="RECOVERABLE"&&<div className="muted">게임 {h.recoveryGameDay}일 이후 자동 회복 예정</div>}
  {!h.recentInjuries?.length&&<div className="muted">이 경주마의 부상 이력이 없습니다.</div>}
