@@ -1,4 +1,5 @@
 "use client";
+import HorseLink from "../components/HorseLink";
 import {useEffect,useMemo,useState} from "react";
 import {createClient} from "@supabase/supabase-js";
 const c=()=>createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
@@ -75,7 +76,7 @@ export default function Ranch(){
    </select>
    <div className="muted">휴양: 피로·컨디션 회복 / 회복: 장기 피로 관리 / 재활: 부상마의 회복 상태 개선 /
    어린말 육성: 0~1세 기초 능력치 향상. 적용 효과는 실제 DB에 기록됩니다.</div>
-   {h&&<div className="muted" style={{marginTop:9}}>선택: {h.name} · 상태 {h.health} · {h.stage}</div>}
+   {h&&<div className="muted" style={{marginTop:9}}>선택: <HorseLink horseId={h.id}>{h.name}</HorseLink> · 상태 {h.health} · {h.stage}</div>}
    <button className="primary wide" style={{marginTop:14}} disabled={!h||busy} onClick={apply}>
     {busy?"신청 중…":"게임머니 결제 후 목장 입소"}</button>
   </div>
