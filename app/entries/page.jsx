@@ -10,7 +10,8 @@ const readable={
  HORSE_NOT_RACE_ELIGIBLE:"연령·건강·컨디션·피로도 또는 은퇴 상태상 출전이 불가능합니다.",
  REGION_OR_GRADE_MISMATCH:"출전마의 지역이나 등급이 경주 조건과 다릅니다.",
  REGION_MISMATCH:"출전마의 소속 지역과 경주 지역이 다릅니다.",
- GRADE_ENTRY_NOT_ALLOWED:"동일 등급 또는 상위 등급 경주에만 출전할 수 있습니다. 하위 등급 경주는 출전할 수 없습니다.",
+ GRADE_ENTRY_NOT_ALLOWED:"경주마와 동일한 등급의 경주에만 출전 신청할 수 있습니다. 상위·하위 등급 경주는 모두 제한됩니다.",
+ ENTRY_NOT_OPEN_YET:"아직 출전 신청 시작일이 아닙니다. OPEN 경주는 4일 전, 일반 경주는 2일 전부터 신청할 수 있습니다.",
  HORSE_ALREADY_ENTERED_THIS_DAY:"이 경주마는 같은 게임 날짜의 다른 경주에 이미 출전합니다.",
  RACE_FULL_NO_NPC_SLOT:"현재 경주에는 교체 가능한 NPC 출전 슬롯이 없습니다.",
  JOCKEY_ALREADY_BOOKED_FOR_RACE:"선택한 기수는 이 경주에 이미 출전합니다.",
@@ -31,18 +32,24 @@ const currentKst=()=>new Intl.DateTimeFormat("sv-SE",{timeZone:"Asia/Seoul",
 const gradeEligible=(horseGrade,raceGrade)=>{
  const horse=Number(horseGrade),race=Number(raceGrade);
  return Number.isInteger(horse)&&Number.isInteger(race)&&
-  horse>=1&&horse<=6&&race>=1&&race<=6&&race<=horse;
+  horse>=1&&horse<=6&&race>=1&&race<=6&&race===horse;
 };
-const higherGradeChallenge=(h,r)=>gradeEligible(h.gradeNo,r.gradeNo)&&Number(h.gradeNo)>Number(r.gradeNo);
 const eligible=(h,r)=>h.sourceMeet===r.sourceMeet&&gradeEligible(h.gradeNo,r.gradeNo)
  && h.lifeStage==="RACING"&&!h.retired&&!h.breedingRetired
  && h.health==="HEALTHY"&&h.age>=2&&h.age<=10
  && h.saleState==="NOT_LISTED"&&Number(h.condition)>=50&&Number(h.fatigue)<80;
-const beforeDeadline=r=>r.status==="OPEN"&&Boolean(r.kstDate)&&
- currentKst()<r.kstDate+" "+(r.entryDeadline||r.startTime);
+const entryWindowState=r=>{
+ if(r.status!=="OPEN"||!r.kstDate)return "CLOSED";
+ const now=currentKst();
+ if(r.entryOpenDate&&now<r.entryOpenDate+" 00:00")return "NOT_OPEN";
+ if(now>=r.kstDate+" "+(r.entryDeadline||r.startTime))return "CLOSED";
+ return "OPEN";
+};
+const beforeDeadline=r=>entryWindowState(r)==="OPEN";
 export default function EntriesPage(){
  const [token,SetToken]=useState("");
  const [checking,SetChecking]=useState(true);
+ const [,SetWindowClock]=useState(0);
  const [board,SetBoard]=useState(null);
  const [week,SetWeek]=useState(null);
  const [track,SetTrack]=useState("전체");
@@ -90,6 +97,10 @@ export default function EntriesPage(){
   });
   return()=>{live=false;subscription.unsubscribe()};
  },[]);
+ useEffect(()=>{
+  const timer=setInterval(()=>SetWindowClock(v=>v+1),30000);
+  return()=>clearInterval(timer);
+ },[]);
 
  const load=async(w,accessToken=token)=>{
   if(!accessToken)return;
@@ -107,13 +118,8 @@ export default function EntriesPage(){
 
  const submitEntry=async(race,horseId)=>{
   if(!horseId)return SetMessage("경주마를 선택해주세요.");
-  const horse=horses.find(h=>h.id===horseId);
-  const challenge=horse&&higherGradeChallenge(horse,race);
-  const confirmText=challenge?
-   horse.name+" · "+horse.gradeNo+"등급 → "+race.gradeNo+"등급 상위 도전 출전\n"+
-   "상위 등급 경주에는 더 강한 경주마가 참가하며 신청금도 해당 경주 등급 기준으로 부과됩니다.\n\n공식 출전을 신청하시겠습니까?":
-   "선택한 경주에 공식 출전 신청하시겠습니까? 만석인 경우 NPC 출전 슬롯이 교체됩니다.";
-  if(!window.confirm(confirmText))return;
+  if(!beforeDeadline(race))return SetMessage("출전 신청 기간이 아닙니다. OPEN 경주는 4일 전, 일반 경주는 2일 전부터 접수합니다.");
+  if(!window.confirm("선택한 경주에 공식 출전 신청하시겠습니까? 만석이면 NPC 출전 슬롯을 교체합니다."))return;
   SetBusy(true);SetMessage("");
   try{
    const r=await fetch("/api/player/entries",{method:"POST",cache:"no-store",
@@ -121,7 +127,7 @@ export default function EntriesPage(){
     body:JSON.stringify({raceId:race.id,horseId})});
    const data=await r.json();if(!r.ok)throw new Error(data.error||"신청 실패");
    SetMessage(data.status==="ALREADY_CONFIRMED"?"이미 출전 확정된 경주입니다.":
-     "출전 확정! "+(data.higherGradeChallenge?"[상위 등급 도전] ":"")+race.track+" "+race.raceNo+"경주 · "+data.gateNo+"번 게이트 · 기수는 기본 배정되었습니다.");
+     "출전 확정! "+race.track+" "+race.raceNo+"경주 · "+data.gateNo+"번 게이트 · 기수는 기본 배정되었습니다.");
    await load(week);
   }catch(e){SetMessage(explain(e.message))}finally{SetBusy(false)}
  };
@@ -175,6 +181,7 @@ export default function EntriesPage(){
   const can=beforeDeadline(r)&&(r.npcReplaceableCount>0||r.confirmedCount<r.capacity)
     &&horses.some(h=>eligible(h,r));
   if(view==="내 출전")return hasMine;
+  if(view==="신청 예정")return entryWindowState(r)==="NOT_OPEN"&&horses.some(h=>eligible(h,r));
   if(view==="신청 가능")return can||hasMine;
   return true;
  });
@@ -188,8 +195,9 @@ export default function EntriesPage(){
    <div className="section"><h2>출전 및 기수 신청</h2><button onClick={()=>load(week)} disabled={!token||loading}>새로고침 ↻</button></div>
    <div className="notice">실제 공식 경주 편성에 저장됩니다. 신청과 기수 선택은 조건 충족 시 즉시 승인되며,
    기존 NPC 출전으로 만석이면 NPC 슬롯을 1개 교체합니다.
-   소속 지역이 같으면 자기 등급 또는 상위 등급 경주에 도전할 수 있습니다(4등급마 → 4·3·2·1등급). 하위 등급 출전은 제한합니다.
-   건강 상태, 게임 날짜 중복 출전 및 마감 시각은 서버에서 검증합니다.
+   경주마는 소속 지역 및 출전 등급이 동일한 경주만 신청할 수 있습니다. 상위·하위 등급 모두 출전할 수 없습니다.
+   OPEN 등급 경주는 경주일 4일 전 00:00, 일반 경주는 2일 전 00:00(한국시간)부터 신청할 수 있습니다.
+   건강 상태, 게임 날짜 중복 출전 및 기존 마감 시각은 서버에서 검증합니다.
    기수는 경주당 한 마리, 게임 날짜당 최대 8회까지 기승할 수 있습니다.</div>
    {message&&<div className="notice" role="status">{message}</div>}
    {error&&<div className="notice" role="alert">{error}</div>}
@@ -210,23 +218,24 @@ export default function EntriesPage(){
     <div className="muted" style={{marginTop:10}}>신청 가능한 경주가 없다면 다음 주차를 확인하세요.</div>
    </div>
    <div className="tabs">{["전체","서울","부산","영천"].map(x=><button key={x} className={track===x?"active":""} onClick={()=>SetTrack(x)}>{x}</button>)}</div>
-   <div className="tabs">{["신청 가능","내 출전","전체 경주"].map(x=><button key={x} className={view===x?"active":""} onClick={()=>SetView(x)}>{x}</button>)}</div>
+   <div className="tabs">{["신청 가능","신청 예정","내 출전","전체 경주"].map(x=><button key={x} className={view===x?"active":""} onClick={()=>SetView(x)}>{x}</button>)}</div>
    {loading&&<div className="notice">공식 경주 정보를 확인하는 중…</div>}
    {!races.length&&!loading&&<div className="notice">이 조건에 해당하는 경주가 없습니다. 주차 또는 필터를 변경하세요.</div>}
    {races.map(r=>{
     const mine=r.myEntries||[];
     const candidate=horses.filter(h=>eligible(h,r)&&!board.races.some(other=>
      other.id!==r.id&&(other.myEntries||[]).some(e=>e.horseId===h.id)))
-     .sort((a,b)=>(Number(a.gradeNo)-Number(r.gradeNo))-
-       (Number(b.gradeNo)-Number(r.gradeNo))||a.name.localeCompare(b.name,"ko"));
-    const close=!beforeDeadline(r);
+     .sort((a,b)=>a.name.localeCompare(b.name,"ko"));
+    const windowState=entryWindowState(r);
+    const close=windowState!=="OPEN";
     const room=r.npcReplaceableCount>0||r.confirmedCount<r.capacity;
     const selected=candidate.some(h=>h.id===choice[r.id])?choice[r.id]:candidate[0]?.id||"";
     return <div className="card" key={r.id}>
      <div className="row"><div><b className="gold">{r.kstDate} {r.startTime} · {r.track} {r.raceNo}경주</b>
        <div className="muted">{r.grade} · {r.distance}m · {r.confirmedCount}/{r.capacity}두</div></div>
-       <span className="tag">{r.status==="FINISHED"?"종료":close?"신청 마감":"신청 가능"}</span></div>
-     <div className="muted" style={{marginTop:8}}>접수 마감 {r.entryDeadline} · 지역 {r.sourceMeet} · 등급 {r.gradeNo} · NPC 교체 가능 {r.npcReplaceableCount}두</div>
+       <span className="tag">{r.status==="FINISHED"?"종료":windowState==="NOT_OPEN"?"접수 예정":close?"신청 마감":"신청 가능"}</span></div>
+     <div className="muted" style={{marginTop:8}}>접수 시작 {r.entryOpenDate} 00:00 ({r.isOpenGrade?"OPEN 4일 전":"일반 2일 전"}) · 마감 {r.kstDate} {r.entryDeadline||r.startTime} (한국시간)</div>
+     <div className="muted" style={{marginTop:4}}>지역 {r.sourceMeet} · 등급 {r.gradeNo} · NPC 교체 가능 {r.npcReplaceableCount}두</div>
      {mine.map(e=><div key={e.horseId} className="card" style={{padding:12,marginTop:12}}>
       <div className="row"><div><b>✓ {horses.find(h=>h.id===e.horseId)?.name||"내 경주마"} 출전 확정</b>
         <div className="muted">{e.gateNo}번 게이트 · 현재 기수 {e.jockeyName||"미배정"}</div></div>
@@ -274,20 +283,14 @@ export default function EntriesPage(){
         value={selected} onChange={e=>SetChoice(prev=>({...prev,[r.id]:e.target.value}))}>
         {candidate.map(h=><option key={h.id} value={h.id}>
          {h.name} · {h.age}세 · {h.sourceMeet} {h.gradeNo}등급
-         {higherGradeChallenge(h,r)?" → "+r.gradeNo+"등급 상위 도전":""}
         </option>)}
        </select>
-       {candidate.some(h=>h.id===selected&&higherGradeChallenge(h,r))&&
-        <div className="notice" style={{marginTop:10,fontSize:12}}>
-         ⚑ 상위 등급 도전 출전: 더 높은 등급의 경주에 참가하며, 해당 등급의 경주 상금·신청금 규칙이 적용됩니다.
-         출전만으로 경주마 자체 등급이 자동 승급되지는 않습니다.
-        </div>}
        <button className="primary wide" disabled={busy||loading} onClick={()=>submitEntry(r,selected)}>
         {busy?"처리 중…":"공식 출전 신청"}
        </button>
       </div>}
      {!mine.length&&(!room||close||!candidate.length)&&<div className="muted" style={{marginTop:12}}>
-      {close?"마감되었거나 공식 경주가 종료되었습니다.":!room?"출전 정원이 가득 찼습니다.":"이 경주에 출전 가능한 내 경주마가 없습니다. 같은 지역이며 자기 등급 이상 경주만 신청할 수 있습니다."}</div>}
+      {windowState==="NOT_OPEN"?"접수 대기: "+r.entryOpenDate+" 00:00부터 출전 신청할 수 있습니다.":close?"신청이 마감되었거나 공식 경주가 종료되었습니다.":!room?"출전 정원이 가득 찼습니다.":"같은 지역·같은 등급이며 건강 조건을 충족하는 경주마만 신청 가능합니다."}</div>}
     </div>;
    })}
    </>}
