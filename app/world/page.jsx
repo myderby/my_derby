@@ -1,171 +1,236 @@
 "use client";
 import HorseLink from "../components/HorseLink";
-import {useCallback,useEffect,useState} from "react";
+import {useEffect,useState} from "react";
 import {createClient} from "@supabase/supabase-js";
 
-const labelStat={start:"스타트",speed:"스피드",acceleration:"가속력",stamina:"지구력",
+const sexName={MALE:"수말",FEMALE:"암말",GELDING:"거세마"};
+const stageName={FOAL:"망아지",YEARLING:"1세마",RACING:"현역",
+ RETIRED:"은퇴",STALLION:"씨수말",BROODMARE:"번식암말",DECEASED:"폐사"};
+const skillNames={start:"출발",speed:"속도",acceleration:"가속력",stamina:"지구력",
  finishing:"막판탄력",power:"파워",grit:"근성",stability:"안정성",recovery:"회복력"};
-const sexName={MALE:"수",FEMALE:"암",GELDING:"거"};
-const stageName={FOAL:"망아지",YEARLING:"1세마",RACING:"현역",RETIRED:"은퇴",
- STALLION:"씨수말",BROODMARE:"번식암말",DECEASED:"폐사"};
-const apiClient=()=>{const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
- if(!url||!key)throw new Error("Supabase 설정이 없습니다.");
- return createClient(url,key);};
-
+const trackName=s=>s==="부산경남"?"부산":s==="제주"?"영천":s||"소속 미정";
+const panels={
+ "훈련·건강":[
+  {href:"/training",icon:"🐎",title:"훈련계획·리포트",desc:"내 경주마 훈련과 성장"},
+  {href:"/stable",icon:"🏠",title:"조교사 위탁·계약",desc:"내 말의 담당 조교사 관리"},
+  {href:"/injuries",icon:"🩺",title:"부상·회복 관리",desc:"부상과 회복 상태 확인"},
+  {href:"/ranch",icon:"🌲",title:"개인목장",desc:"휴양·재활·어린말 관리"}
+ ],
+ "출전·기록":[
+  {href:"/entries",icon:"🏇",title:"출전·기수 신청",desc:"내 경주마 출전 신청"},
+  {href:"/ratings",icon:"📊",title:"레이팅·등급 내역",desc:"성적과 등급 변동"},
+  {href:"/schedule",icon:"📅",title:"경주 시간표",desc:"공식 경주 일정과 출전표"}
+ ],
+ "거래·번식":[
+  {href:"/breeding",icon:"✧",title:"교배·번식 관리",desc:"내 말의 번식 신청"},
+  {href:"/market",icon:"💰",title:"경주마 시장",desc:"내 말 구매·판매"},
+  {href:"/auction",icon:"🔨",title:"경주마 경매",desc:"경매 참여와 거래"}
+ ]
+};
+const makeClient=()=>createClient(
+ process.env.NEXT_PUBLIC_SUPABASE_URL,
+ process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+);
 export default function WorldPage(){
- const [overview,O]=useState(null),[mine,M]=useState(null),[authenticated,A]=useState(false);
- const [busy,B]=useState(false),[notice,N]=useState(""),[email,E]=useState(""),[pass,P]=useState(""),[nickname,Nick]=useState("");
- const [loaded,L]=useState(false),[expanded,Expand]=useState(null),[trainers,Trainers]=useState([]),[trainerTrack,TrainerTrack]=useState("전체"),[trainerError,TrainerError]=useState(""),[npcRetirements,NpcRetirements]=useState(null),[npcRetireError,NpcRetireError]=useState("");
- const flash=x=>{N(x);setTimeout(()=>N(""),7000)};
- const loadMine=useCallback(async()=>{
+ const [token,Token]=useState(null);
+ const [mine,Mine]=useState(null);
+ const [loading,Loading]=useState(true);
+ const [active,Active]=useState("내 말");
+ const [filter,Filter]=useState("전체");
+ const [expanded,Expand]=useState(null);
+ const [email,Email]=useState(""),[password,Password]=useState("");
+ const [nickname,Nickname]=useState("");
+ const [busy,Busy]=useState(false),[notice,Notice]=useState("");
+ const [refresh,Refresh]=useState(0);
+
+ useEffect(()=>{
+  let mounted=true;
+  let subscription;
   try{
-   const client=apiClient();
-   const {data,error}=await client.auth.getSession();
-   if(error)throw error;
-   const token=data.session?.access_token;
-   A(!!token);
-   if(!token){M(null);return;}
-   const r=await fetch("/api/world/mine",{cache:"no-store",headers:{Authorization:"Bearer "+token}});
-   const o=await r.json();if(!r.ok)throw new Error(o.error||"내 경주마 조회 실패");
-   M(o);
-  }catch(err){flash(err.message);M(null);}
+   const client=makeClient();
+   client.auth.getSession().then(({data,error})=>{
+    if(!mounted)return;
+    if(error)Notice(error.message);
+    Token(data?.session?.access_token||"");
+   }).catch(e=>{if(mounted){Notice(e.message);Token("")}});
+   const observer=client.auth.onAuthStateChange((_event,s)=>{
+    if(mounted)Token(s?.access_token||"");
+   });
+   subscription=observer.data.subscription;
+  }catch(e){Notice("로그인 설정을 확인해주세요.");Token("")}
+  return()=>{mounted=false;subscription?.unsubscribe()};
  },[]);
- const loadOverview=useCallback(async()=>{
-  try{const r=await fetch("/api/world/overview",{cache:"no-store"});const o=await r.json();
-   if(!r.ok)throw new Error(o.error||"월드 정보를 불러올 수 없습니다.");O(o);
-  }catch(e){flash(e.message)}
- },[]);
- useEffect(()=>{Promise.all([loadOverview(),loadMine()]).finally(()=>L(true))},[loadOverview,loadMine]);
- useEffect(()=>{fetch("/api/world/trainers",{cache:"no-store"}).then(async r=>{const data=await r.json();if(!r.ok)throw new Error(data.error||"조교사 목록 조회 실패");Trainers(data.trainers||[])}).catch(e=>TrainerError(e.message))},[]);
- useEffect(()=>{fetch("/api/world/npc-retirements",{cache:"no-store"}).then(async r=>{const data=await r.json();if(!r.ok)throw new Error(data.error||"NPC 은퇴 현황 조회 실패");NpcRetirements(data)}).catch(e=>NpcRetireError(e.message))},[]);
- const login=async signup=>{
-  B(true);
+
+ useEffect(()=>{
+  let mounted=true;
+  if(token===null)return;
+  if(!token){Mine(null);Loading(false);return;}
+  Loading(true);
+  fetch("/api/world/mine",{cache:"no-store",headers:{Authorization:"Bearer "+token}})
+   .then(async res=>{
+    const data=await res.json();
+    if(!res.ok)throw new Error(data.error||"내 보유마를 조회할 수 없습니다.");
+    return data;
+   }).then(data=>{if(mounted){Mine(data);Notice("")}})
+   .catch(e=>{if(mounted){Mine(null);Notice("내 말 조회 오류: "+e.message)}})
+   .finally(()=>{if(mounted)Loading(false)});
+  return()=>{mounted=false};
+ },[token,refresh]);
+
+ const authenticate=async signup=>{
+  if(!email.trim()||!password){Notice("이메일과 비밀번호를 입력해주세요.");return}
+  Busy(true);Notice("");
   try{
-   const client=apiClient();
-   const {data,error}=signup?await client.auth.signUp({email,password:pass}):
-    await client.auth.signInWithPassword({email,password:pass});
-   if(error)throw error;
-   if(signup&&!data.session){flash("가입 요청 완료. 인증 이메일을 확인한 뒤 로그인하세요.");}
-   else{flash("로그인 완료");await loadMine();}
-  }catch(e){flash(e.message)}finally{B(false)}
+   const c=makeClient();
+   const result=signup?
+    await c.auth.signUp({email:email.trim(),password}):
+    await c.auth.signInWithPassword({email:email.trim(),password});
+   if(result.error)throw result.error;
+   Notice(signup&&!result.data.session?"인증 이메일을 확인한 뒤 로그인해주세요.":"로그인했습니다.");
+   if(result.data.session)Token(result.data.session.access_token);
+  }catch(e){Notice(e.message||"로그인에 실패했습니다.")}
+  finally{Busy(false)}
  };
  const join=async()=>{
-  B(true);
+  if(nickname.trim().length<2||nickname.trim().length>32)return;
+  Busy(true);
   try{
-   const c=apiClient();const {data,error}=await c.auth.getSession();
-   if(error||!data.session)throw new Error("로그인부터 진행하세요.");
-   const r=await fetch("/api/world/join",{method:"POST",cache:"no-store",
-    headers:{"Content-Type":"application/json",Authorization:"Bearer "+data.session.access_token},
-    body:JSON.stringify({nickname:nickname.trim()})});
-   const o=await r.json();if(!r.ok)throw new Error(o.error||"마주 등록 실패");
-   flash(o.alreadyJoined?"이미 등록된 마주입니다.":"마주 등록 완료! 무작위 경주마 "+o.ownedHorses+"두를 배정했습니다.");
-   await Promise.all([loadOverview(),loadMine()]);
-  }catch(e){flash(e.message)}finally{B(false)}
+   const response=await fetch("/api/world/join",{
+    method:"POST",cache:"no-store",
+    headers:{"Content-Type":"application/json",Authorization:"Bearer "+token},
+    body:JSON.stringify({nickname:nickname.trim()})
+   });
+   const data=await response.json();
+   if(!response.ok)throw new Error(data.error||"마주 등록 실패");
+   Notice(data.alreadyJoined?"이미 등록된 마주입니다.":"마주 등록을 완료했습니다.");
+   Refresh(x=>x+1);
+  }catch(e){Notice("마주 등록 오류: "+e.message)}
+  finally{Busy(false)}
  };
  const logout=async()=>{
-  B(true);try{await apiClient().auth.signOut();A(false);M(null);flash("로그아웃했습니다.");}
-  catch(e){flash(e.message)}finally{B(false)}
+  Busy(true);
+  try{
+   const {error}=await makeClient().auth.signOut();
+   if(error)throw error;
+   Token("");Mine(null);Notice("로그아웃했습니다.");
+  }catch(e){Notice(e.message)}
+  finally{Busy(false)}
  };
- return <div className="shell">
-  <header className="header"><a className="brand" href="/" style={{textDecoration:"none"}}>MY DERBY</a><span className="coin">🌍 월드 운영</span></header>
-  <div className="disclaimer">경주기록 기반 월드 · 추가 편성마는 임시 능력치 · 운영 중</div>
+ const horses=mine?.horses||[];
+ const breeding=h=>["STALLION","BROODMARE","RETIRED","DECEASED"].includes(h.life_stage);
+ const injured=h=>h.health_state==="INJURED"||Number(h.condition_score)<50;
+ const visible=horses.filter(h=>filter==="전체"||
+   filter==="현역"&&h.life_stage==="RACING"||
+   filter==="어린말"&&["FOAL","YEARLING"].includes(h.life_stage)||
+   filter==="번식·은퇴"&&breeding(h)||
+   filter==="회복 필요"&&injured(h));
+ const activeCount=horses.filter(h=>h.life_stage==="RACING").length;
+ const fmt=n=>typeof n==="number"?Math.round(n):"-";
+ return <main className="shell">
+  <header className="header">
+   <a href="/" className="brand" style={{textDecoration:"none"}}>MY DERBY</a>
+   <span className="coin">🐎 내 말 관리</span>
+  </header>
   <div className="area">
-   <a href="/" className="outline" style={{display:"inline-block",textDecoration:"none",marginBottom:14}}>‹ 홈으로</a>
-   <a href="/schedule" className="outline" style={{display:"inline-block",textDecoration:"none",marginBottom:14,marginLeft:8}}>공식 경주시간표 ›</a>
-   <a href="/entries" className="primary" style={{display:"inline-block",textDecoration:"none",marginBottom:14,marginLeft:8}}>🏇 출전·기수 신청 ›</a><a href="/horses" className="outline" style={{display:"inline-block",textDecoration:"none",marginBottom:14,marginLeft:8}}>🐎 전체 경주마 목록 ›</a><a href="/jockeys" className="outline" style={{display:"inline-block",textDecoration:"none",marginBottom:14,marginLeft:8}}>🏇 전체 기수 목록 ›</a><a href="/stable" className="outline" style={{display:"inline-block",textDecoration:"none",marginBottom:14,marginLeft:8}}>🏠 조교사 위탁·계약 ›</a><a href="/training" className="outline" style={{display:"inline-block",textDecoration:"none",marginBottom:14,marginLeft:8}}>🐎 훈련계획·리포트 ›</a><a href="/breeding" className="outline" style={{display:"inline-block",textDecoration:"none",marginBottom:14,marginLeft:8}}>✧ 교배·임신 관리 ›</a><a href="/market" className="outline" style={{display:"inline-block",textDecoration:"none",marginBottom:14,marginLeft:8}}>💰 경주마 시장 ›</a><a href="/auction" className="outline" style={{display:"inline-block",textDecoration:"none",marginBottom:14,marginLeft:8}}>🔨 경주마 경매 ›</a><a href="/ratings" className="outline" style={{display:"inline-block",textDecoration:"none",marginBottom:14,marginLeft:8}}>📊 레이팅·등급 내역 ›</a><a href="/injuries" className="outline" style={{display:"inline-block",textDecoration:"none",marginBottom:14,marginLeft:8}}>🩺 부상·회복 관리 ›</a><a href="/finance" className="outline" style={{display:"inline-block",textDecoration:"none",marginBottom:14,marginLeft:8}}>💳 재무 현황 ›</a><a href="/notifications" className="outline" style={{display:"inline-block",textDecoration:"none",marginBottom:14,marginLeft:8}}>🔔 내 알림 ›</a><a href="/ranch" className="outline" style={{display:"inline-block",textDecoration:"none",marginBottom:14,marginLeft:8}}>🌲 개인목장 ›</a>
-   <div className="section"><h2>월드 현황</h2><button onClick={loadOverview}>새로고침 ↻</button></div>
-   {!overview&&<div className="notice">{loaded?"월드 데이터를 읽지 못했습니다.":"데이터를 불러오는 중…"}</div>}
-   {overview&&<><div className="card">
-     <div className="row"><div><b className="gold">실경주 경주마 월드</b><div className="muted">기록 기반 능력치 모델 kra_v1</div></div>
-     <span className="tag">{overview.world.status==="PAUSED"?"운영 대기":"운영 중"}</span></div>
-     <div className="row" style={{marginTop:15}}><div><b className="large">{overview.world.season}시즌 · {overview.world.week}주차</b><div className="muted">현실 1일 = 게임 1주 · 52주=1시즌</div></div><span className="pill">KST</span></div>
-     <div className="raceTrack">{overview.world.raceSlots?.map(t=><span key={t} style={{fontSize:14,padding:11}}>{t}</span>)}</div>
-     <div className="muted">세계 시간 기준: {overview.world.kstDate} · 자동 경주 {overview.world.schedulerConfigured?"설정됨":"아직 미설정"}</div>
-    </div>
-    <div className="grid">
-     <div className="card"><div className="muted">전체 경주마</div><div className="large gold">{overview.horseCount?.toLocaleString("ko-KR")}두</div></div>
-     <div className="card"><div className="muted">NPC 마주</div><div className="large">{overview.npcOwnerCount}명</div></div>
-     <div className="card"><div className="muted">NPC 보유마</div><div className="large">{overview.npcOwnedHorses?.toLocaleString("ko-KR")}두</div></div>
-     <div className="card"><div className="muted">사용자 배정 대기</div><div className="large green">{overview.reservedHorses}두</div></div>
-    </div>
-    <div className="notice">월드 시간표는 <b>{overview.world.status==="ACTIVE"?"ACTIVE":"PAUSED"}</b> 상태이며 현실 1일=게임 1주, 52일=1시즌으로 계산됩니다. <b>공식 경주 자동 실행은 {overview.world.schedulerConfigured&&overview.world.automaticProcessingEnabled?"스케줄러가 활성화됨":"아직 비활성화"}</b> 상태입니다. 경주 결과와 구간 로그는 정시 실행 후 저장되지만 <b>상금·훈련·성장·말 나이의 자동 정산은 별도 개발이 필요</b>합니다. 2025년 경주 편성표를 게임용으로 재구성했으며 지역별 일부 말·기수 능력치는 임시 추정치입니다.</div>
-   </>}
-   <div className="section" style={{marginTop:18}}><h2>내 마주 등록 · 보유마</h2>{authenticated&&<button onClick={logout}>로그아웃</button>}</div>
-   {!authenticated&&<div className="card">
-     <b>이메일로 로그인</b><div className="muted">마이더비 월드에 직접 참가한 계정에만 말을 지급합니다.</div>
-     <input className="field" type="email" placeholder="이메일" value={email} onChange={e=>E(e.target.value)}/>
-     <input className="field" type="password" placeholder="비밀번호" value={pass} onChange={e=>P(e.target.value)}/>
-     <div className="controls"><button className="primary" disabled={busy} onClick={()=>login(false)}>로그인</button>
-     <button className="outline" disabled={busy} onClick={()=>login(true)}>회원가입</button></div>
-    </div>}
-   {authenticated&&!mine?.joined&&<div className="card">
-     <b className="gold">마주 등록 후 무작위 경주마 3두 지급</b>
-     <div className="muted">마이더비에 참가하지 않은 사용자는 말을 소유하지 않습니다. 한 계정당 최초 1회만 배정됩니다.</div>
-     <input className="field" placeholder="마주 닉네임 (2~32자)" maxLength={32} value={nickname} onChange={e=>Nick(e.target.value)}/>
-     <button className="primary wide" disabled={busy||nickname.trim().length<2} onClick={join}>{busy?"등록 처리 중…":"월드 참가 · 3두 무작위 배정"}</button>
-    </div>}
-   {mine?.joined&&<><div className="card">
-     <b className="gold">{mine.profile?.nickname} 마주</b>
-     <div className="muted">내 보유 경주마: {mine.horses?.length??0}두 · 개인목장 생성됨</div></div>
-    {(mine.horses??[]).map(h=><div key={h.id} className="card">
-     <div className="row" onClick={()=>Expand(expanded===h.id?null:h.id)} style={{cursor:"pointer"}}>
-      <div><b className="gold">♞ <HorseLink horseId={h.id}>{h.name}</HorseLink></b><div className="muted">hrNo {h.source_hr_no} · {h.age_years}세 · {sexName[h.sex]||h.sex} · {stageName[h.life_stage]||h.life_stage}</div></div>
-      <span className="tag">{expanded===h.id?"접기":"능력치 보기 ›"}</span></div>
-      {expanded===h.id&&<><div className="grid" style={{marginTop:12}}>
-       {Object.entries(h.currentStats??{}).map(([k,v])=><div className="card" key={k} style={{margin:0,padding:10}}>
-        <div className="row small"><span>{labelStat[k]||k}</span><b>{v}</b></div>
-        <div className="bar"><div className="fill" style={{width:Math.min(100,Number(v))+"%"}}/></div>
-       </div>)}
-      </div><div className="muted" style={{marginTop:12}}>히든 특성과 최대 잠재력은 서버에 보관하며 일반 사용자에게 직접 공개하지 않습니다.</div></>}
-    </div>)}
-   </>}
-   <div className="section" style={{marginTop:22}}><h2>NPC 조교사 · 마방</h2></div>
-   <div className="card"><div className="row"><b className="gold">NPC 조교사 {trainers.length}명</b><span className="tag">1명당 최대 40두</span></div>
-   <div className="controls" style={{marginTop:12,flexWrap:"wrap"}}>{["전체","서울","부산","영천"].map(track=><button key={track} className={trainerTrack===track?"primary":"outline"} onClick={()=>TrainerTrack(track)}>{track}</button>)}</div>
-   {trainerError&&<div className="notice">{trainerError}</div>}
-   {trainers.filter(t=>trainerTrack==="전체"||t.track===trainerTrack).map(t=><div className="line row small" key={t.id} style={{alignItems:"center"}}>
-     <div><b>{t.name}</b><div className="muted">{t.track} · {t.stableName} · {t.specialties.join(" / ")}</div></div><span className="tag">{t.horseCount}/{t.capacity}두</span>
-   </div>)}
-   {!trainers.length&&!trainerError&&<div className="muted">조교사 명단 불러오는 중…</div>}
-   <div className="muted" style={{marginTop:10}}>실제 NPC 계약 현황입니다. 내 경주마의 조교사 신청·계약 기능은 별도 개발 항목입니다.</div></div>
-   <div className="section" style={{marginTop:22}}><h2>NPC 마주 성향별 번식 전환</h2></div>
-   <div className="card">
-    <div className="row"><b className="gold">번식마 전환 판단</b><span className="tag">매일 23:05 심사</span></div>
-    <div className="muted" style={{marginTop:10}}>NPC 마주 자체에는 은퇴 기준이 없습니다. 각 NPC 마주의 성향에 따라 성적이 계속 부진한 경주마를 씨수말·번식암말로 전환합니다.
-     영구적으로 경주 복귀가 불가능한 부상도 번식 전환 사유입니다. 번식 불가능한 말은 부진만으로 일반 은퇴시키지 않습니다.</div>
-    <div className="card" style={{marginTop:12}}>
-     <div className="row small"><span>안정형</span><b>최근 4경주 부진 평가</b></div>
-     <div className="line row small"><span>균형형</span><b>최근 6경주 부진 평가</b></div>
-     <div className="line row small"><span>공격형</span><b>최근 8경주 부진 평가</b></div>
-     <div className="muted" style={{marginTop:9}}>각 성향별 기준은 해당 기간 전부 3위 이내 입상 실패,
-      하위 40% 기록 3회/5회/7회 이상, 평균 상대 순위 하위권입니다. 임시 부상·거세마는 번식 전환에서 제외합니다.</div>
-    </div>
-    {npcRetireError&&<div className="notice">{npcRetireError}</div>}
-    {npcRetirements&&<>
-     <div className="grid" style={{marginTop:12}}>
-      <div className="card"><div className="muted">누적 번식 전환</div><b className="gold">{npcRetirements.total??0}두</b></div>
-      <div className="card"><div className="muted">성적 부진 원인</div><b>{npcRetirements.poorForm??0}두</b></div>
-      <div className="card"><div className="muted">영구 부상 원인</div><b>{npcRetirements.injury??0}두</b></div>
-      <div className="card"><div className="muted">씨수말 / 번식암말</div><b>{npcRetirements.stallions??0} / {npcRetirements.broodmares??0}두</b></div>
+   <div className="controls" style={{marginBottom:14}}>
+    <a href="/" className="outline" style={{textDecoration:"none"}}>‹ 홈</a>
+    {token&&<button className="outline" disabled={loading} onClick={()=>Refresh(x=>x+1)}>보유마 새로고침 ↻</button>}
+    {token&&<button className="outline" disabled={busy} onClick={logout}>로그아웃</button>}
+   </div>
+   <div className="section"><h2>내 말 관리</h2></div>
+   {notice&&<div className="notice" role="status">{notice}</div>}
+   {token===null||loading?<div className="notice">내 보유 경주마를 불러오는 중입니다…</div>:!token?
+    <div className="card">
+     <h2 style={{fontSize:19}}>내 말 관리에 로그인하기</h2>
+     <div className="muted">로그인한 마주가 소유한 경주마만 표시합니다.</div>
+     <input className="field" type="email" autoComplete="email" placeholder="이메일"
+      value={email} onChange={e=>Email(e.target.value)}/>
+     <input className="field" type="password" autoComplete="current-password" placeholder="비밀번호"
+      value={password} onChange={e=>Password(e.target.value)}/>
+     <div className="controls">
+      <button className="primary" disabled={busy} onClick={()=>authenticate(false)}>로그인</button>
+      <button className="outline" disabled={busy} onClick={()=>authenticate(true)}>회원가입</button>
      </div>
-     {(npcRetirements.recent||[]).length>0&&
-      <div style={{marginTop:14}}>{npcRetirements.recent.map((entry,i)=><div className="line row small" key={i}>
-       <div><b><HorseLink horseId={entry.horseId}>{entry.horseName}</HorseLink></b>
-        <div className="muted">마주 {entry.ownerName||"NPC"} · {entry.ownerRisk==="CONSERVATIVE"?"안정형":entry.ownerRisk==="AGGRESSIVE"?"공격형":"균형형"}</div>
-        <div className="muted">{entry.reason==="POOR_FORM"?"지속적인 경주 성적 부진":"경주 복귀 불가 부상"} · 게임 {entry.gameDay}일</div></div>
-       <span className="tag">{entry.newStage==="STALLION"?"씨수말":entry.newStage==="BROODMARE"?"번식암말":"기존 기록"}</span>
-      </div>)}</div>}
-     {(npcRetirements.recent||[]).length===0&&<div className="muted" style={{marginTop:10}}>아직 번식 전환 기록이 없습니다. 부진 누적이나 영구 부상 판정에 따라 자동으로 전환됩니다.</div>}
-    </>}
-   </div>
-   <div className="section" style={{marginTop:22}}><h2>NPC 마주 현황</h2></div>
-   <div className="card">
-    {(overview?.topNpcOwners??[]).map((owner,i)=><div className="line row small" key={owner.ownerName}>
-     <span>{i+1}. {owner.ownerName}</span><div><b>{owner.horseCount}두</b><div className="muted">{owner.risk==="CONSERVATIVE"?"안정형":owner.risk==="AGGRESSIVE"?"공격형":"균형형"}</div></div></div>)}
-    <div className="muted" style={{marginTop:9}}>상위 15명 표시 · NPC 마주는 성향에 따라 공식 출전과 경주마 매매를 진행하며, 실제 거래·경주 결과는 DB에 기록됩니다.</div>
-   </div>
-   <div className="footer">MY DERBY · WORLD CONFIG v4_world_v1 · 경제_v2 유지</div>
+    </div>:
+    mine&&!mine.joined?
+    <div className="card">
+     <h2 style={{fontSize:18}}>마주 등록</h2>
+     <p className="muted">처음 가입하는 마주에게 경주마 3두를 배정합니다.</p>
+     <input className="field" value={nickname} maxLength={32}
+      placeholder="마주 닉네임 (2~32자)" onChange={e=>Nickname(e.target.value)}/>
+     <button className="primary wide" disabled={busy||nickname.trim().length<2}
+      onClick={join}>마주 등록 · 경주마 3두 배정</button>
+    </div>:
+    mine&&mine.joined?<section>
+     <div className="card">
+      <div className="row">
+       <div><b className="gold">{mine.profile?.nickname||"내 마방"}</b>
+        <div className="muted">내가 소유한 경주마의 상태와 능력치를 관리합니다.</div></div>
+       <span className="tag">마주</span>
+      </div>
+      <div className="my-horse-summary">
+       <div><b>{horses.length}</b><span>보유마</span></div>
+       <div><b>{activeCount}</b><span>현역</span></div>
+       <div><b>{horses.filter(breeding).length}</b><span>번식·은퇴</span></div>
+      </div>
+     </div>
+     <div className="tabs my-horse-nav" aria-label="내 말 관리 메뉴">
+      {["내 말","훈련·건강","출전·기록","거래·번식"].map(x=>
+       <button key={x} className={active===x?"active":""} onClick={()=>Active(x)}>{x}</button>)}
+     </div>
+     {active==="내 말"?<>
+      <div className="section"><h2>내 보유마 · {visible.length}두</h2></div>
+      <div className="tabs" aria-label="내 말 분류">
+       {["전체","현역","어린말","번식·은퇴","회복 필요"].map(x=>
+        <button key={x} className={filter===x?"active":""} onClick={()=>Filter(x)}>{x}</button>)}
+      </div>
+      {visible.length===0&&<div className="notice">
+       {horses.length===0?"아직 보유한 경주마가 없습니다.":"해당 분류에 속한 내 경주마가 없습니다."}
+      </div>}
+      {visible.map(h=><div className="card my-horse-card" key={h.id}>
+       <div className="row">
+        <div>
+         <b className="gold">🐎 <HorseLink horseId={h.id}>{h.name}</HorseLink></b>
+         <div className="muted">
+          {trackName(h.source_meet)} · {h.source_grade_no?h.source_grade_no+"등급 · ":""}
+          {h.age_years}세 · {sexName[h.sex]||h.sex}
+         </div>
+        </div>
+        <span className="tag">{stageName[h.life_stage]||h.life_stage}</span>
+       </div>
+       <div className="my-horse-vitals">
+        <span>컨디션 <strong>{fmt(h.condition_score)}</strong></span>
+        <span>피로도 <strong>{fmt(h.fatigue)}</strong></span>
+        <span>건강 <strong>{h.health_state==="HEALTHY"?"정상":h.health_state==="INJURED"?"부상":"상태 확인"}</strong></span>
+       </div>
+       <div className="controls" style={{marginTop:11}}>
+        <HorseLink horseId={h.id} className="outline" style={{textDecoration:"none",fontSize:12}}>
+         기본정보·전적 보기 ›
+        </HorseLink>
+        <button className="outline" onClick={()=>Expand(expanded===h.id?null:h.id)}>
+         {expanded===h.id?"능력치 접기":"현재 능력치"}
+        </button>
+       </div>
+       {expanded===h.id&&<div className="my-horse-skills">
+        {Object.entries(h.currentStats||{}).map(([k,value])=><div key={k}>
+         <span>{skillNames[k]||k}</span><strong>{value}</strong>
+        </div>)}
+        {!h.currentStats&&<div className="muted">현재 능력치가 등록되지 않았습니다.</div>}
+       </div>}
+      </div>)}
+     </>:<>
+      <div className="section"><h2>{active}</h2></div>
+      <div className="my-horse-action-grid">
+       {(panels[active]||[]).map(item=><a key={item.href}
+        className="card my-horse-action" href={item.href}>
+        <span className="my-horse-action-icon">{item.icon}</span>
+        <b>{item.title}</b><span className="muted">{item.desc}</span>
+       </a>)}
+      </div>
+      <div className="muted" style={{marginTop:14}}>위 메뉴는 보유마 관리 기능으로 이동합니다. 실제 수정 권한은 로그인한 마주에게만 있습니다.</div>
+     </>}
+    </section>:null}
+   <div className="footer">MY DERBY · 내 소유 경주마 관리</div>
   </div>
-  {notice&&<div className="toast">{notice}</div>}
- </div>;
+ </main>;
 }
