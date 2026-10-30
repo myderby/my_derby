@@ -298,7 +298,6 @@ export default function EntriesPage(){
          {r.ageCondRequiresBirthHemisphere&&(" · "+(h.birthHemisphere==="NORTH"?"북반구 출생":h.birthHemisphere==="SOUTH"?"남반구 출생":"출생 반구 미확인"))}
         </option>)}
        </select>
-       {selected&&<div className="muted"><HorseLink horseId={selected}>선택한 출전마 기본정보 ›</HorseLink></div>}
        <button className="primary wide" disabled={busy||loading} onClick={()=>submitEntry(r,selected)}>
         {busy?"처리 중…":"공식 출전 신청"}
        </button>
