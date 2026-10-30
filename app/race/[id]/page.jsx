@@ -22,6 +22,31 @@ export default function RaceDetailPage(){
  const [playing,SetPlaying]=useState(false);
  const [replayTime,SetReplayTime]=useState(0);
  const [speed,SetSpeed]=useState(1);
+ const [logFilter,SetLogFilter]=useState("all");
+ const [selectedHorse,SetSelectedHorse]=useState("");
+ const [myHorseIds,SetMyHorseIds]=useState([]);
+ const [myHorseStatus,SetMyHorseStatus]=useState("loading");
+
+ useEffect(()=>{
+  if(!id)return;
+  let active=true;
+  const loadMine=async()=>{
+   try{
+    const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+    if(!url||!key)throw Error("인증 설정이 없습니다.");
+    const {createClient}=await import("@supabase/supabase-js");
+    const client=createClient(url,key);
+    const {data:{session}}=await client.auth.getSession();
+    if(!session){if(active)SetMyHorseStatus("signed-out");return;}
+    const response=await fetch("/api/race/owned/"+encodeURIComponent(id),{headers:{Authorization:"Bearer "+session.access_token},cache:"no-store"});
+    if(!response.ok)throw Error("내 출전마를 조회할 수 없습니다.");
+    const data=await response.json();
+    if(active){SetMyHorseIds(data.horseIds||[]);SetMyHorseStatus("ready");}
+   }catch(_error){if(active)SetMyHorseStatus("error");}
+  };
+  void loadMine();
+  return()=>{active=false};
+ },[id]);
 
  useEffect(()=>{
   if(!id)return;
@@ -44,10 +69,22 @@ export default function RaceDetailPage(){
 
  const events=useMemo(()=>selectRaceCommentary(race?.events||[]),[race]);
  const finish=events.length?Math.max(...events.map(e=>Number(e.timeSec)||0)):0;
- const visibleEvents=useMemo(
+ const timeEvents=useMemo(
   ()=>replay?events.filter(e=>Number(e.timeSec)<=replayTime+0.001):events,
   [events,replay,replayTime]
  );
+ const relevantNames=useMemo(()=>{
+  const horses=race?.entries||[];
+  return horses.filter(h=>logFilter==="mine"?myHorseIds.includes(h.horseId):logFilter==="horse"&&h.horseId===selectedHorse).map(h=>h.name).filter(Boolean);
+ },[race,logFilter,myHorseIds,selectedHorse]);
+ const visibleEvents=useMemo(()=>{
+  if(logFilter==="all")return timeEvents;
+  if(!relevantNames.length)return [];
+  return timeEvents.filter(e=>{
+   const text=String(e.text||"");
+   return relevantNames.some(name=>text.includes(name));
+  });
+ },[timeEvents,logFilter,relevantNames]);
  const entrants=useMemo(()=>new Map((race?.entries||[]).map(e=>[e.horseId,e])),[race]);
  useEffect(()=>{
   if(!playing||!replay||!finish)return;
@@ -156,10 +193,22 @@ export default function RaceDetailPage(){
        <div className="controls">{[1,2,4].map(n=><button className={speed===n?"primary":"outline"} key={n} onClick={()=>SetSpeed(n)}>{n}×</button>)}</div>
       </>}
      </div>
+     <div className="card">
+      <div className="section"><h2>중계 로그 필터</h2><span className="tag">{visibleEvents.length} / {timeEvents.length}개</span></div>
+      <div className="tabs" aria-label="중계 로그 보기 방식">
+       {[["all","전체 보기"],["mine","내 말만"],["horse","특정 말"]].map(([key,label])=><button key={key} className={logFilter===key?"active":""} onClick={()=>SetLogFilter(key)}>{label}</button>)}
+      </div>
+      {logFilter==="horse"&&<select className="field" aria-label="중계 로그 대상 경주마" value={selectedHorse} onChange={e=>SetSelectedHorse(e.target.value)}>
+       <option value="">경주마 선택</option>
+       {(race.entries||[]).map(h=><option value={h.horseId} key={h.horseId}>{h.number}번 {h.name}</option>)}
+      </select>}
+      {logFilter==="mine"&&<div className="muted">{myHorseStatus==="loading"?"내 출전마 확인 중…":myHorseStatus==="signed-out"?"로그인 후 내 말만 보기를 사용할 수 있습니다.":myHorseStatus==="error"?"내 출전마 정보를 불러오지 못했습니다.":myHorseIds.length?"내 출전마의 이름이 언급된 중계만 보여줍니다.":"이 경주에 출전한 내 말이 없습니다."}</div>}
+      {logFilter==="horse"&&selectedHorse&&<div className="muted">선택한 말이 언급된 이벤트만 표시합니다. 다른 말과의 추월·경합 로그도 포함합니다.</div>}
+     </div>
      {visibleEvents.length?visibleEvents.map((e,i)=><div className="card" key={e.seq+"-"+i} style={{marginBottom:8}}>
       <div className="muted">{stamp(e.timeSec)}초 · {Math.min(Number(e.distanceM)||0,race.distanceM).toFixed(0)}m · {e.eventType==="FINISH"?"🏁 결승":e.eventType==="START"?"출발":"경주 진행"}</div>
       <div className="small" style={{marginTop:4,lineHeight:1.65}}><HorseMentions text={e.text} horseList={(race.entries||[]).map(h=>({id:h.horseId,name:h.name}))}/></div>
-     </div>):<div className="notice">중계 이벤트가 아직 표시되지 않았습니다.</div>}
+     </div>):<div className="notice">선택한 조건에 해당하는 중계 이벤트가 없습니다.</div>}
     </>}
    </>}
    <div className="footer">MY DERBY · 공식 경주 DB 기록 · 테스트 경주와 구분</div>
