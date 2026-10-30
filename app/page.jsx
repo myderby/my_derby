@@ -171,6 +171,11 @@ return <main className="shell"><header className="header"><div onClick={()=>go("
 {<a href="/breeding" className="card action row" style={{textDecoration:"none",color:"inherit",display:"flex",marginTop:14}}><div><b className="gold">✧ 교배 신청 · 임신 관리</b><div className="muted">시스템 씨수말 · 궁합 검사 · 임신 · 출산</div></div><span className="tag">교배 ›</span></a>}{<a href="/training" className="card action row" style={{textDecoration:"none",color:"inherit",display:"flex",marginTop:14}}><div><b className="gold">🐎 실제 훈련계획 · 리포트</b><div className="muted">거리·전개 스타일 선택 · 능력 성장 · 피로/컨디션 관리</div></div><span className="tag">훈련 ›</span></a>}{<a href="/entries" className="card action row" style={{textDecoration:"none",color:"inherit",display:"flex",marginTop:14}}><div><b className="gold">🏇 공식 출전 · 기수 신청</b><div className="muted">내 경주마 신청 및 NPC 기수 계약 · 실제 DB 저장</div></div><span className="tag">신청 ›</span></a>}{box("⚡ 경주시간표 강제 테스트","19시 부산·영천 / 20시 서울·영천 / 21시 서울·부산",()=>go("testRaces"),testRuns.length+"/"+liveSlots.length)}<a href="/schedule" className="card action row" style={{textDecoration:"none",color:"inherit",display:"flex",marginTop:14}}><div><b className="gold">📅 52주 공식 경주시간표</b><div className="muted">rank·stTime에 따른 매일 다경주 편성 · 결과 3분 후</div></div><span className="tag">시간표 ›</span></a><a href="/world" className="card action row" style={{textDecoration:"none",color:"inherit",display:"flex",marginTop:14}}><div><b className="gold">🌍 월드 운영 · 실제 보유마</b><div className="muted">NPC 마주 현황 · 시즌 일정 · 사용자 마주 등록</div></div><span className="tag">열기 ›</span></a>{section("게임 메뉴")}<div className="grid">{[["⌂","목장","휴양 · 재활 · 어린말 육성","ranch"],["♞","마방","조교사 · 훈련 리포트","horses"],["♜","경주","출전 · 전략 · 로그 결과","races"],["✧","교배","씨수말 · 교배 · 자마","breeding"]].map(([i,n,d,p])=><button className="card action" onClick={()=>go(p)} key={n}><div className="icon">{i}</div><b>{n}</b><div className="muted">{d}</div></button>)}</div></div></>}
 {screen==="testRaces"&&<>{title("공식 시간표 경주 강제 테스트","19시 부산·영천 / 20시 서울·영천 / 21시 서울·부산")}
 <div className="area">
+<div className="card row" style={{borderColor:"#b8924e",marginBottom:12}}>
+ <div><b className="gold">🧪 19시 서울 1경주 · 등급 비교 테스트</b>
+ <div className="muted">1등급 5두 vs 5등급 5두 · 10두 비공식 시연</div></div>
+ <a className="outline" href="/test-race" style={{textDecoration:"none"}}>테스트 출전표 ›</a>
+</div>
 <div className="notice"><b>실제 공식 출전 편성 사용 · 결과는 비공식</b><br/>
 CSV의 rank, rcNo, stTime 순서를 반영한 오늘의 경주를 시간표 순서로 하나씩 계산합니다.
 각 경주는 3분 간격으로 시작하며 공식 결과는 시작 3분 후 공개됩니다.
@@ -212,7 +217,8 @@ CSV의 rank, rcNo, stTime 순서를 반영한 오늘의 경주를 시간표 순�
 })()}
 </div></>}
 {screen==="database"&&<>{title("Supabase 경주 DB 연동","my_derby · 비공식 시뮬레이션")}<div className="area">
-<div className="notice">19·20·21시 테스트 경주는 DB에 저장한 시연용 12두를 사용합니다. 정규 경주 데이터가 등록되면 본인 소유 출전마에 한해 미리보기를 실행할 수 있습니다. 공식 순위·상금·시즌 데이터는 변경하지 않습니다.</div>
+<div className="notice">DB의 19시 서울 1경주 테스트는 1등급 5두·5등급 5두 10두로 구성되며,
+20시·21시 시연 데이터는 각 12두입니다. 별도 공식 시간표 강제 테스트는 실제 공식 출전마의 복사본을 사용합니다. 정규 경주 데이터가 등록되면 본인 소유 출전마에 한해 미리보기를 실행할 수 있습니다. 공식 순위·상금·시즌 데이터는 변경하지 않습니다.</div>
 <button className="outline wide" disabled={dbBusy} onClick={fetchDbStatus}>DB 연결 상태 확인</button>
 {dbStatus&&<div className="card"><b className="green">● {dbStatus.schema} 연결 성공</b><div className="line row"><span>정규 등록 경주</span><b>{dbStatus.registeredRaces}건</b></div>
 <div className="line row"><span>DB 테스트 경주</span><b>{dbStatus.storedTestFixtures}건</b></div><div className="muted">공식 결과 저장·상금 정산: 미연결</div></div>}
