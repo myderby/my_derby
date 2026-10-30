@@ -89,7 +89,7 @@ function Detail(){
       <Record title="게임 통산" stats={data.game?.career}/>
       <Record title="게임 최근 364일" stats={data.game?.recentYear}/></div>
      <div className="section"><h2>🔍 능력·잠재력 발견 보고서</h2></div>
-     <HorseDiscovery discovery={discovery}/> 
+     <HorseDiscovery discovery={discovery} horseId={horseId||data?.id}/> 
     </>}
     {data.gameTrainer&&<div className="card"><div className="muted">현재 게임 담당 조교사</div><strong><StaffLink kind="trainer" staffId={data.gameTrainer.id}>{data.gameTrainer.name}</StaffLink></strong></div>}
     {source&&<><div className="section"><h2>혈통 · 관계자</h2></div>
