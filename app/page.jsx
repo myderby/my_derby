@@ -9,7 +9,7 @@ const jockeys=[["박준호","마일·선입",3],["김하늘","중거리·페이�
 const raceData=[["서울",1200,"6등급"],["서울",1400,"5등급"],["서울",1400,"4등급"],["서울",1800,"3등급"],["서울",1600,"OPEN"]];
 const events=[["START",200,"출발과 함께 3번 실버윈드가 빠르게 선두로 나섭니다!"],["PACE",400,"400m 지점, 3번 실버윈드가 앞서고 7번 블루라이트가 따라붙습니다."],["LANE_CHANGE",600,"7번 블루라이트, 외곽으로 진로를 빼며 앞말을 추격합니다."],["OVERTAKE",800,"7번 블루라이트, 5번 레드스타를 제치고 선두권으로 올라섭니다!"],["PACE",1000,"3번 실버윈드와 7번 블루라이트, 나란히 결승선으로 향합니다!"],["FINISH",1200,"7번 블루라이트, 가장 먼저 결승선을 통과합니다!"]];
 
-export default function Home(){const [screen,S]=useState("home"),[selected,H]=useState(horses[0]),[filter,F]=useState("전체"),[race,R]=useState(2),[trainer,T]=useState(0),[jockey,J]=useState(0),[plans,P]=useState(["선입 대기","외곽 선입","후방 추입"]),[pos,E]=useState(0),[playing,Play]=useState(false),[testRuns,SetTestRuns]=useState([]),[testResults,SetTestResults]=useState({}),[activeTestIndex,SetActiveTestIndex]=useState(-1),[testBusy,SetTestBusy]=useState(false),[raceSchedule,SetRaceSchedule]=useState(null),[scheduleError,SetScheduleError]=useState(""),[dbStatus,SetDbStatus]=useState(null),[dbBusy,SetDbBusy]=useState(false),[dbRaceId,SetDbRaceId]=useState(""),[dbHistory,SetDbHistory]=useState([]),[dbPreview,SetDbPreview]=useState(null),[breedingHorses,SetBreedingHorses]=useState([]),[breedingLoading,SetBreedingLoading]=useState(false),[breedingMessage,SetBreedingMessage]=useState(""),[toast,Q]=useState(""),[email,Mail]=useState(""),[password,Pass]=useState("");
+export default function Home(){const [screen,S]=useState("home"),[selected,H]=useState(horses[0]),[filter,F]=useState("전체"),[race,R]=useState(2),[trainer,T]=useState(0),[jockey,J]=useState(0),[plans,P]=useState(["선입 대기","외곽 선입","후방 추입"]),[pos,E]=useState(0),[playing,Play]=useState(false),[testRuns,SetTestRuns]=useState([]),[testResults,SetTestResults]=useState({}),[activeTestIndex,SetActiveTestIndex]=useState(-1),[gradeFixtureResult,SetGradeFixtureResult]=useState(null),[testBusy,SetTestBusy]=useState(false),[raceSchedule,SetRaceSchedule]=useState(null),[scheduleError,SetScheduleError]=useState(""),[dbStatus,SetDbStatus]=useState(null),[dbBusy,SetDbBusy]=useState(false),[dbRaceId,SetDbRaceId]=useState(""),[dbHistory,SetDbHistory]=useState([]),[dbPreview,SetDbPreview]=useState(null),[breedingHorses,SetBreedingHorses]=useState([]),[breedingLoading,SetBreedingLoading]=useState(false),[breedingMessage,SetBreedingMessage]=useState(""),[toast,Q]=useState(""),[email,Mail]=useState(""),[password,Pass]=useState("");
 useEffect(()=>{if(!playing||pos>=events.length)return;const id=setTimeout(()=>E(x=>x+1),1200);return()=>clearTimeout(id)},[playing,pos]);
 const liveSlots=(raceSchedule?.races||[]).map(r=>({
  id:r.id,time:r.start_time?.slice(0,5)||"--:--",resultTime:r.result_time,
@@ -37,6 +37,20 @@ const runTestAt=async index=>{
  SetTestRuns(previous=>previous.includes(index)?previous:[...previous,index]);
  SetActiveTestIndex(index);
  return payload.result;
+};
+const runGradeFixture=async()=>{
+ if(testBusy)return;
+ SetTestBusy(true);SetGradeFixtureResult(null);
+ try{
+  const response=await fetch("/api/race/test-19",{method:"POST",
+   headers:{"Content-Type":"application/json"},body:"{}",cache:"no-store"});
+  const data=await response.json();
+  if(!response.ok||data.mode!=="FIXTURE_TEST_ONLY"||!data.result)
+   throw new Error(data.error||"19시 등급 비교 경주 계산 실패");
+  SetGradeFixtureResult(data.result);
+  msg("19시 서울 1경주 테스트 완료 · 1등급 5두 / 5등급 5두 · 우승 "+data.result.results[0].name);
+ }catch(e){msg("19시 테스트 실패: "+e.message)}
+ finally{SetTestBusy(false)}
 };
 const runNextTestRace=async()=>{
  if(testBusy||!liveSlots.length||testRuns.length>=liveSlots.length)return;
@@ -176,7 +190,18 @@ return <main className="shell"><header className="header"><div onClick={()=>go("
  <div className="muted">1등급 5두 vs 5등급 5두 · 10두 비공식 시연</div></div>
  <a className="outline" href="/test-race" style={{textDecoration:"none"}}>테스트 출전표 ›</a>
 </div>
-<div className="notice"><b>실제 공식 출전 편성 사용 · 결과는 비공식</b><br/>
+<button className="primary wide" disabled={testBusy} onClick={runGradeFixture}>
+ {testBusy?"경주 계산 중…":"▶ 19시 서울 1경주 · 1등급 5두 / 5등급 5두 테스트 실행"}
+</button>
+{gradeFixtureResult&&<div className="card" style={{marginTop:12}}>
+ <b className="gold">19시 1경주 비공식 결과 · 10두</b>
+ {gradeFixtureResult.results.map(x=><div className="line row small" key={x.horseId}>
+ <b>{x.rank}위</b><span>{x.number}번 {x.name}</span>
+ <span>{x.timeSec.toFixed(2)}초</span></div>)}
+ <a className="outline wide" href="/test-race" style={{display:"block",textAlign:"center",textDecoration:"none",marginTop:12}}>
+ 전체 출전표 및 구간 중계 보기 ›</a>
+</div>}
+<div className="notice"><b>아래 버튼은 공식 시간표의 비공식 미리보기이며, 위 19시 1경주 등급 비교 테스트와 별개입니다.</b><br/>
 CSV의 rank, rcNo, stTime 순서를 반영한 오늘의 경주를 시간표 순서로 하나씩 계산합니다.
 각 경주는 3분 간격으로 시작하며 공식 결과는 시작 3분 후 공개됩니다.
 테스트에서는 시계를 기다리지 않고 같은 엔진을 강제로 계산하지만
@@ -187,7 +212,7 @@ CSV의 rank, rcNo, stTime 순서를 반영한 오늘의 경주를 시간표 순�
 <div className="controls">
 <button className="primary" disabled={testBusy||!liveSlots.length||testRuns.length>=liveSlots.length} onClick={runNextTestRace}>
 {testBusy?"경주 계산 중…":testRuns.length<liveSlots.length?
-  liveSlots[testRuns.length].time+" 다음 경주 실행":"전체 테스트 완료"}</button>
+  liveSlots[testRuns.length].time+" 공식 편성 테스트":"전체 테스트 완료"}</button>
 <button className="outline" disabled={testBusy||!liveSlots.length||testRuns.length>=liveSlots.length} onClick={runAllTestRaces}>전체 일정 연속 테스트</button>
 </div>
 <div style={{height:10}}/><button className="outline wide" disabled={testBusy} onClick={resetTestRaces}>비공식 테스트 초기화</button>
