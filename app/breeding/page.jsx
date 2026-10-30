@@ -1,4 +1,5 @@
 "use client";
+import HorseLink from "../components/HorseLink";
 import {useCallback,useEffect,useMemo,useState} from "react";
 import {createClient} from "@supabase/supabase-js";
 
@@ -216,7 +217,7 @@ export default function BreedingPage(){
     은퇴한 말은 경주에 다시 출전할 수 없습니다. 수말 2~3세도 은퇴 자체는 가능하지만
     씨수말 교배 이용은 4세부터이므로 이 화면에서는 4세 이상만 은퇴 신청을 제공합니다.</div>
     {(board.mares||[]).map(h=><div className="card row" key={h.id}>
-     <div><b>{h.name}</b><div className="muted">{h.age}세 · {gender(h.sex)} ·
+     <div><b><HorseLink horseId={h.id}>{h.name}</HorseLink></b><div className="muted">{h.age}세 · {gender(h.sex)} ·
       {h.stage==="RACING"?"현역":h.stage==="BROODMARE"?"번식암말":h.stage==="STALLION"?"씨수말":h.stage}
       {h.retired?" · 경주 영구 은퇴":""}</div></div>
      {canRetire(h)?<button className="outline" disabled={!!busy} onClick={()=>retire(h)}>
