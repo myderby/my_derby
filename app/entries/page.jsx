@@ -1,4 +1,5 @@
 "use client";
+import HorseLink from "../components/HorseLink";
 import {useEffect,useState} from "react";
 import {createClient} from "@supabase/supabase-js";
 
@@ -248,7 +249,7 @@ export default function EntriesPage(){
      </div>}
      <div className="muted" style={{marginTop:4}}>지역 {r.track} · 등급 {r.gradeNo} · NPC 교체 가능 {r.npcReplaceableCount}두</div>
      {mine.map(e=><div key={e.horseId} className="card" style={{padding:12,marginTop:12}}>
-      <div className="row"><div><b>✓ {horses.find(h=>h.id===e.horseId)?.name||"내 경주마"} 출전 확정</b>
+      <div className="row"><div><b>✓ <HorseLink horseId={e.horseId}>{horses.find(h=>h.id===e.horseId)?.name||"내 경주마"}</HorseLink> 출전 확정</b>
         <div className="muted">{e.gateNo}번 게이트 · 현재 기수 {e.jockeyName||"미배정"}</div></div>
        <div className="controls">
         <button className="outline" disabled={close||busy||jockeyBusy}
@@ -297,6 +298,7 @@ export default function EntriesPage(){
          {r.ageCondRequiresBirthHemisphere&&(" · "+(h.birthHemisphere==="NORTH"?"북반구 출생":h.birthHemisphere==="SOUTH"?"남반구 출생":"출생 반구 미확인"))}
         </option>)}
        </select>
+       {selected&&<div className="muted"><HorseLink horseId={selected}>선택한 출전마 기본정보 ›</HorseLink></div>}
        <button className="primary wide" disabled={busy||loading} onClick={()=>submitEntry(r,selected)}>
         {busy?"처리 중…":"공식 출전 신청"}
        </button>
