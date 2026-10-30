@@ -55,7 +55,7 @@ JOIN stats ON stats.home_track=src.game_track
 WHERE NOT EXISTS(
   SELECT 1 FROM my_derby.npc_jockeys j WHERE j.source_jk_no=src.jk_no
 )
-ON CONFLICT(name) DO NOTHING;
+;
 
 DO $validate$
 DECLARE n integer;matching integer;
