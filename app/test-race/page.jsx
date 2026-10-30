@@ -1,4 +1,5 @@
 "use client";
+import HorseLink from "../components/HorseLink";
 import {useEffect,useState} from "react";
 import {selectRaceCommentary} from "../../lib/racing/commentary";
 
@@ -44,7 +45,7 @@ export default function FixtureRace(){
     {[1,5].map(grade=><div key={grade}>
      <div className="section"><h2>{grade}등급 경주마 · 5두</h2></div>
      {sorted.filter(x=>x.gradeNo===grade).map(x=><div className="card row" key={x.id}>
-      <div><b className="gold">{x.number}번 {x.name}</b>
+      <div><b className="gold">{x.number}번 <HorseLink horseId={x.sourceHorseId||x.id}>{x.name}</HorseLink></b>
        <div className="muted">마번 {x.horseNo} · 현재 능력치 속도 {x.horse.speed} /
         지구력 {x.horse.stamina} / 가속 {x.horse.acceleration}</div></div>
       <span className="tag">{grade}등급</span></div>)}
@@ -56,7 +57,7 @@ export default function FixtureRace(){
     <div className="section"><h2>테스트 경주 결과</h2></div>
     <div className="notice">비공식 결과 · 시드 {result.seed} · 정식 기록 미반영</div>
     <div className="card">{result.results.map(x=><div className="line row small" key={x.horseId}>
-      <b className="gold">{x.rank}위</b><span>{x.number}번 {x.name} · {sorted.find(h=>h.id===x.horseId)?.gradeNo}등급</span>
+      <b className="gold">{x.rank}위</b><span>{x.number}번 <HorseLink horseId={x.horseId}>{x.name}</HorseLink> · {sorted.find(h=>h.id===x.horseId)?.gradeNo}등급</span>
       <span>{x.timeSec.toFixed(2)}초</span></div>)}</div>
     <div className="section"><h2>구간 순위</h2></div>
     <div className="card">{result.sections.map(x=><div className="line" key={x.distanceM}>
