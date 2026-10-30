@@ -21,28 +21,28 @@ function RecordCard({title,record}){
 
 function HorseCard({horse,recordMode}){
  const [expanded,show]=useState(false);
- const grade=horse.grade==null?"등급 미정":horse.grade+"등급";
+ const grade=horse.grade==null?(horse.sourceRank||"등급 미정"):horse.grade+"등급";
  return <article className="card dir-entry">
   <div className="dir-entry-head">
    <div><div className="dir-horse-name"><HorseLink
      horseId={horse.gameHorseId||(/^[0-9a-f]{8}-/i.test(horse.id)?horse.id:null)}
      sourceMeet={horse.sourceMeet} hrNo={horse.horseNo}>{horse.name}</HorseLink>
      <span className="dir-region">{horse.track||"소속 미정"}</span></div>
-    <div className="muted">#{horse.horseNo||horse.id.slice(0,8)} · {grade} · {horse.age}세 · {sexText[horse.sex]||horse.sex||"-"} · {stageText[horse.stage]||horse.stage}</div></div>
+    <div className="muted">#{horse.horseNo||horse.id.slice(0,8)} · {grade} · {horse.age==null?"나이 미등록":horse.age+"세"} · {sexText[horse.sex]||horse.sex||"-"} · {stageText[horse.stage]||horse.stage}</div></div>
    <div className="dir-rating">{horse.rating==null?"미부여":horse.rating+"점"}<small>레이팅</small></div>
   </div>
   <div className="dir-records"><RecordCard title={recordMode==="world"?"게임 통산 전적":"원본 통산 전적"} record={horse.career}/>
-    <RecordCard title={horse.recordMode==="WORLD"?"게임 최근 364일":"원본 최근 1년"} record={horse.recentYear}/></div>
+    <RecordCard title={recordMode==="world"?"게임 최근 364일":"원본 최근 1년"} record={horse.recentYear}/></div>
   {horse.ratingPending&&<div className="dir-alert">레이팅 기준 {horse.ratingProposedGrade}등급 전환 대기 · 기존 확정 출전표 유지</div>}
   <div className="dir-footer">
-   <span className="muted">{horse.recordMode==="WORLD"?"게임 경주 기준":horse.gameLinked?"게임 경주마 연결 완료":"CSV 원본 등록 · 게임 미연결"}</span>
+   <span className="muted">{recordMode==="world"?"게임 경주 기준":horse.gameLinked?"게임 경주마 연결 완료":"CSV 원본 등록 · 게임 미연결"}</span>
    <HorseLink horseId={horse.gameHorseId||(/^[0-9a-f]{8}-/i.test(horse.id)?horse.id:null)} sourceMeet={horse.sourceMeet} hrNo={horse.horseNo}>상세정보 ›</HorseLink>
    <button className="dir-expand" type="button" onClick={()=>show(v=>!v)}>
     {expanded?"간략히":"기록 기준 보기"} {expanded?"⌃":"⌄"}</button>
   </div>
-  {expanded&&<div className="dir-explain">통산·최근 1년은 My Derby에서 종료된 공식 경주만 집계합니다.
-    CSV 등록모드에서 표시되는 통산·최근 1년 전적은 제공받은 원본 파일의 승·2착·3착 집계입니다.
-    게임 전체모드에서는 게임 경주 결과를 사용합니다.
+  {expanded&&<div className="dir-explain">CSV 등록모드는 업로드된 원본의 통산·최근 1년 입상 집계를 표시합니다.
+    게임 전체모드는 My Derby에서 실제 종료된 공식 경주만 집계하며 최근 1년은 게임 내 364일입니다.
+    두 전적은 합산하지 않습니다.
     6등급은 레이팅이 부여되지 않을 수 있습니다.</div>}
  </article>;
 }
