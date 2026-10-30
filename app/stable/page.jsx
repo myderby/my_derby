@@ -6,7 +6,9 @@ const origin=()=>createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.N
 const showError=e=>String(e||"신청 오류").replace("NOT_YOUR_HORSE","내 경주마만 신청할 수 있습니다.")
 .replace("TRAINER_AT_CAPACITY","조교사의 담당 정원이 가득 찼습니다.")
 .replace("TRAINER_TRACK_MISMATCH","경주마의 소속 지역과 조교사 마방 지역이 다릅니다.")
-.replace("HORSE_NOT_TRAINABLE","현재 경주마는 위탁할 수 없습니다.");
+.replace("HORSE_NOT_TRAINABLE","현재 경주마는 위탁할 수 없습니다.")
+.replace("TRAINER_UNAVAILABLE","활동 중인 조교사가 아닙니다.")
+.replace("TRAINER_OFFER_SCORE_UNAVAILABLE","조교사 선호도 점수를 계산할 수 없습니다.");
 const track=meet=>meet==="부산경남"?"부산":meet==="제주"?"영천":meet;
 export default function StablePage(){
  const [token,T]=useState(""),[loaded,Loaded]=useState(false),[data,D]=useState(null),
@@ -36,9 +38,11 @@ export default function StablePage(){
    headers:{"Authorization":"Bearer "+token,"Content-Type":"application/json"},
    body:JSON.stringify({horseId:horse,trainerId:selected.id})});
    const v=await r.json();if(!r.ok)throw new Error(v.error);
-   M(v.status==="ACCEPTED"?"조교사 "+v.trainerName+" 위탁 계약이 승인됐습니다.":
-     v.status==="ALREADY_CONTRACTED"?"이미 계약된 조교사입니다.":
-     "조교사가 이번 신청을 거절했습니다. 다른 조교사를 신청할 수 있습니다.");
+   M(v.status==="PENDING"?(v.reason==="ALREADY_PENDING"?"이미 조교사 "+v.trainerName+"에게 위탁 신청 중입니다.":"조교사 "+v.trainerName+"에게 위탁 신청을 접수했습니다. 현재 경쟁 신청 "+(v.competingOffers||1)+"건 · 정기 심사에서 선호도에 따라 선정됩니다."):
+     v.status==="ALREADY_CONTRACTED"?"이미 해당 조교사와 위탁 계약 중입니다.":
+     v.reason==="TRAINER_AT_CAPACITY"?"조교사 "+v.trainerName+"의 위탁 정원이 가득 찼습니다. 다른 조교사를 신청하세요.":
+     v.reason==="ALREADY_REJECTED_TODAY"?"오늘 이미 심사에서 거절된 조교사입니다. 다른 조교사를 신청하세요.":
+     "신청이 수락되지 않았습니다. 다른 조교사에게 재신청할 수 있습니다.");
    await reload();
   }catch(e){E(showError(e.message))}
   finally{B(false)}
@@ -47,9 +51,12 @@ export default function StablePage(){
   <div className="area">
    <div className="controls" style={{marginBottom:12}}><a className="outline" href="/world" style={{textDecoration:"none"}}>‹ 마방</a>
     <a className="outline" href="/training" style={{textDecoration:"none"}}>훈련 관리 ›</a></div>
-   <div className="section"><h2>실제 조교사 계약</h2><button onClick={()=>reload()} disabled={!token||busy}>새로고침 ↻</button></div>
-   <div className="notice">NPC 조교사 1명당 최대 40두를 담당합니다. 경주마 소속 지역과 마방 지역이 같아야 하며,
-    정원 및 조교사 판단에 따라 수락·거절됩니다. 승인 시 이전 계약은 종료되고 새 계약이 시작됩니다.</div>
+   <div className="section"><h2>조교사 위탁 제안 · 심사</h2><button onClick={()=>reload()} disabled={!token||busy}>새로고침 ↻</button></div>
+   <div className="notice">마주가 조교사에게 위탁을 제안하면 즉시 확정되지 않고 신청 목록에 접수됩니다.
+    조교사는 경주마 능력(40점) · 전문 분야 궁합(25점) · 과거 협업(15점) · 등급(10점) · 조교사 역량(10점)을 비교하여
+    남은 정원 안에서 선호하는 경주마를 선택합니다. 매일 09:00~23:50(한국시간) 10분 간격으로 심사합니다.
+    신청이 거절되면 다른 조교사를 선택할 수 있습니다. 기존 계약은 새 신청이 승인될 때까지 유지됩니다.
+    조교사는 같은 경마장 소속 말만 맡으며, 1인 최대 40두까지 담당합니다.</div>
    {error&&<div className="notice" role="alert">{error}</div>}
    {msg&&<div className="notice" role="status">{msg}</div>}
    {!loaded&&<div className="notice">로그인 확인 중…</div>}
@@ -63,17 +70,21 @@ export default function StablePage(){
     {horseData&&<div className="muted">현재 담당 조교사: {horseData.trainerName||"미계약"}
      {horseData.trainerId?" · 이해도 "+horseData.familiarity+"/100":""}
     </div>}
+    {horseData?.trainerOfferStatus==="PENDING"&&<div className="notice" role="status" style={{marginTop:9}}>⌛ {horseData.trainerOfferName} 조교사에게 신청 접수 · 선호도 심사 대기 중</div>}
+    {horseData?.trainerOfferStatus==="ACCEPTED"&&<div className="muted" style={{color:"#91d8ad",marginTop:9}}>✓ {horseData.trainerOfferName} 조교사 위탁 신청 승인</div>}
+    {horseData?.trainerOfferStatus==="REJECTED"&&<div className="muted" style={{color:"#f0c572",marginTop:9}}>위탁 신청 거절 · 다른 조교사에게 신청할 수 있습니다.</div>}
     <div className="section"><h2>조교사 선택</h2></div>
     <select className="field" value={selected?.id||""} onChange={e=>N(e.target.value)}>
      {trainers.map(t=><option key={t.id} value={t.id} disabled={t.occupied>=t.capacity}>
-      {t.name} · 담당 {t.occupied}/{t.capacity}두</option>)}
+      {t.name} · 담당 {t.occupied}/{t.capacity}두 · 심사대기 {t.pendingOffers||0}건</option>)}
     </select>
     {selected&&<div className="muted" style={{marginTop:12}}>
+      신청 심사 대기: {selected.pendingOffers||0}건 · 잔여 정원: {Math.max(0,selected.capacity-selected.occupied)}두<br/>
       전문 분야: {(selected.specialties||[]).join(" · ")||"종합"}<br/>
       조교사 능력치: {Object.entries(selected.skills||{}).slice(0,8).map(([k,v])=>k+" "+v).join(" · ")}
     </div>}
     <button className="primary wide" style={{marginTop:16}} disabled={!selected||busy||!horseData||horseData.trainerId===selected.id}
-      onClick={apply}>{busy?"신청 처리 중…":"NPC 조교사 위탁 신청"}</button>
+      onClick={apply}>{busy?"신청 접수 중…":"조교사에게 위탁 제안 보내기"}</button>
     </div>
     <div className="section"><h2>현재 내 마방</h2></div>
     {data.horses.map(h=><div className="card row" key={h.id}><b><HorseLink horseId={h.id}>{h.name}</HorseLink></b>
