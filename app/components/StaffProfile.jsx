@@ -2,6 +2,14 @@
 import {useEffect,useState} from "react";
 import HorseLink from "./HorseLink";
 
+const changeReasons={
+ EXPERIENCE_GROWTH:"경주·훈련 경험에 따른 점진 성장",
+ GRADUAL_AGE_DECLINE:"전성기 이후 자연스러운 기량 하락",
+ EXTENDED_INACTIVITY:"장기간 활동 공백",
+ NO_ACTIVITY:"이번 주 활동 없음",
+ GROWTH_POTENTIAL_REACHED:"해당 분야 성장 한계 도달",
+ DECLINE_FLOOR_REACHED:"해당 분야 하락 하한 도달"
+};
 const skillNames={start:"출발",pace:"페이스",urging:"추진",control:"제어",judgment:"판단",
  stability:"안정성",aggression:"적극성",positioning:"위치 선정",speed:"속도",
  finishing:"막판 탄력",stamina:"지구력",acceleration:"가속력",
@@ -61,6 +69,38 @@ export default function StaffProfile({kind,id}){
        <b>{isJockey?fmt(v.career?.wins)+"승":fmt(v.occupied)+"/"+fmt(v.capacity)+"두"}</b></div>
      </div>
      <div className="muted" style={{marginTop:10}}>게임 공식 경주 기록 기준 · 원본 마사회 전적과 합산하지 않습니다.</div>
+    </section>
+    <div className="section"><h2>📈 개인별 능력 성장·변화</h2></div>
+    <section className="card staff-development">
+     {v.development?<><div className="staff-growth-facts">
+       <div><small>나이</small><strong>{v.development.age}세</strong></div>
+       <div><small>전성기 기준</small><strong>{v.development.peakAge}세</strong></div>
+       <div><small>현재 단계</small><strong>{v.development.careerStage}</strong></div>
+       <div><small>성장 성향</small><strong>{v.development.developmentStyle}</strong></div>
+       <div><small>남은 성장 여력</small><strong>{v.development.growthPotential}</strong></div>
+       <div><small>누적 경험치</small><strong>{fmt(v.development.experience)}</strong></div>
+      </div>
+      <div className="muted" style={{marginTop:12,lineHeight:1.8}}>
+       현실 하루(게임 7일) 단위로 실제 {isJockey?"기승":"훈련·담당마 경주"} 경험을 정산합니다.
+       한 번에 하나의 능력만 성장·하락하며, 최대 상승 +0.035점 / 최대 하락 -0.020점입니다.
+       실제 성장 한계는 개인마다 다르며 급격한 능력 변화를 방지합니다.
+      </div>
+      <div className="section"><h3>최근 능력 변동 내역</h3></div>
+      {!v.development.recentChanges?.length?<div className="muted">
+       아직 정산된 성장 기록이 없습니다. 첫 정산 후 경험과 능력 변화가 표시됩니다.</div>:
+       <div className="staff-growth-history">
+        {v.development.recentChanges.map(row=><div key={row.week_end_game_day} className="staff-growth-line">
+         <div><b>게임 {row.week_start_game_day}~{row.week_end_game_day}일</b>
+           <small>{changeReasons[row.reason]||row.reason} · {isJockey?row.rides+"회 기승":row.trainings+"회 훈련"} · {row.wins}승</small></div>
+         <div className="staff-growth-change">
+          <strong style={{color:Number(row.skill_delta)>0?"#a9e2b0":Number(row.skill_delta)<0?"#f0aa93":"#c6b29c"}}>
+           {Number(row.skill_delta)>0?"+":""}{Number(row.skill_delta).toFixed(3)}
+          </strong>
+          <small>{skillNames[row.trained_skill]||row.trained_skill||"능력 유지"}</small>
+         </div>
+        </div>)}
+       </div>}
+     </>:<div className="muted">개인별 성장 프로필이 아직 준비되지 않았습니다.</div>}
     </section>
     <div className="section"><h2>🏆 통산·최근 1년 경주 성적</h2></div>
     <div className="staff-record-grid"><RecordCard title="게임 통산 공식 전적" record={v.career}/>
