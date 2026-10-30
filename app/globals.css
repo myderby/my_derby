@@ -313,3 +313,18 @@
   .horse-report-overview div,.horse-discovery-section,.horse-discovery-advice,.horse-discovery-stats>div{break-inside:avoid}
   a{color:#151515!important;text-decoration:none!important}
 }
+
+/* Jockey/trainer career-long progression, intentionally gradual */
+.staff-development{border:1px solid #725535}
+.staff-growth-facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.staff-growth-facts>div{background:#2e2319;border:1px solid #614931;padding:11px 7px;border-radius:9px;text-align:center}
+.staff-growth-facts small{display:block;color:#b9a789;font-size:10px}
+.staff-growth-facts strong{display:block;color:#efcd93;margin-top:8px;font-size:14px}
+.staff-growth-history{display:grid;gap:7px;margin-top:10px}
+.staff-growth-line{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px;border:1px solid #5a4330;border-radius:8px;background:#302319}
+.staff-growth-line>div:first-child{min-width:0}
+.staff-growth-line b{font-size:12px;color:#ecd5b1}
+.staff-growth-line small{display:block;font-size:10px;line-height:1.7;color:#bdaa8e;margin-top:4px}
+.staff-growth-change{text-align:right;flex-shrink:0}
+.staff-growth-change strong{font-size:14px}
+@media(max-width:430px){.staff-growth-facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
