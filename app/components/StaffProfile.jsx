@@ -1,6 +1,7 @@
 "use client";
 import {useEffect,useState} from "react";
 import HorseLink from "./HorseLink";
+import {createClient} from "@supabase/supabase-js";
 
 const changeReasons={
  EXPERIENCE_GROWTH:"경주·훈련 경험에 따른 점진 성장",
@@ -30,6 +31,20 @@ function RecordCard({title,record}){
 export default function StaffProfile({kind,id}){
  const isJockey=kind==="jockey";
  const [state,setState]=useState({loading:true,data:null,error:""});
+ const [ownerBond,setOwnerBond]=useState(null);
+ useEffect(()=>{
+  let alive=true,client;
+  try{client=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)}
+  catch{return;}
+  const update=async(session)=>{
+   if(!session){if(alive)setOwnerBond(null);return;}
+   const {data,error}=await client.schema("my_derby").rpc("player_staff_relationship",{p_kind:kind,p_staff_id:id});
+   if(alive)setOwnerBond(error?null:data);
+  };
+  client.auth.getSession().then(({data})=>update(data?.session)).catch(()=>{});
+  const {data:{subscription}}=client.auth.onAuthStateChange((_event,session)=>{void update(session);});
+  return()=>{alive=false;subscription.unsubscribe()};
+ },[kind,id]);
  useEffect(()=>{
   const ctrl=new AbortController();
   setState({loading:true,data:null,error:""});
@@ -70,6 +85,19 @@ export default function StaffProfile({kind,id}){
      </div>
      <div className="muted" style={{marginTop:10}}>게임 공식 경주 기록 기준 · 원본 마사회 전적과 합산하지 않습니다.</div>
     </section>
+    {ownerBond&&<><div className="section"><h2>🤝 나와의 친밀도·신뢰도</h2></div>
+     <section className="card staff-bond">
+      <div className="staff-bond-metrics">
+       <div><small>친밀도</small><strong>{ownerBond.familiarity}/100</strong></div>
+       <div><small>신뢰도</small><strong>{ownerBond.trust}/100</strong></div>
+       <div><small>관계 단계</small><strong>{ownerBond.relationshipLevel}</strong></div>
+      </div>
+      <div className="muted" style={{marginTop:12,lineHeight:1.7}}>
+       함께한 경주와 훈련으로 관계가 깊어집니다. 협업 기록 {ownerBond.interactions||0}건.
+       친밀도·신뢰도는 계약 평가에서 최대 10점만 반영되며,
+       더 뛰어난 경주마가 경쟁하면 관계 점수가 높아도 선택되지 않을 수 있습니다.
+      </div>
+     </section></>}
     <div className="section"><h2>📈 개인별 능력 성장·변화</h2></div>
     <section className="card staff-development">
      {v.development?<><div className="staff-growth-facts">
