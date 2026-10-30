@@ -1,4 +1,5 @@
 "use client";
+import HorseLink from "../components/HorseLink";
 import {useEffect,useState} from "react";
 import {createClient} from "@supabase/supabase-js";
 const origin=()=>createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
@@ -58,6 +59,7 @@ export default function StablePage(){
     <select className="field" value={horse} onChange={e=>{H(e.target.value);N("");M("")}}>
      {data.horses.map(h=><option key={h.id} value={h.id}>{h.name} · {track(h.sourceMeet)} · {h.age}세</option>)}
     </select>
+    {horse&&<div className="muted" style={{marginBottom:9}}><HorseLink horseId={horse}>선택한 경주마 기본정보 ›</HorseLink></div>}
     {horseData&&<div className="muted">현재 담당 조교사: {horseData.trainerName||"미계약"}
      {horseData.trainerId?" · 이해도 "+horseData.familiarity+"/100":""}
     </div>}
@@ -74,7 +76,7 @@ export default function StablePage(){
       onClick={apply}>{busy?"신청 처리 중…":"NPC 조교사 위탁 신청"}</button>
     </div>
     <div className="section"><h2>현재 내 마방</h2></div>
-    {data.horses.map(h=><div className="card row" key={h.id}><b>{h.name}</b>
+    {data.horses.map(h=><div className="card row" key={h.id}><b><HorseLink horseId={h.id}>{h.name}</HorseLink></b>
       <span className="tag">{h.trainerName||"조교사 미계약"}</span></div>)}
     </>}
    <div className="footer">MY DERBY · 실제 조교사 정원 및 계약 DB 연동</div>
