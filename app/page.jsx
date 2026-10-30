@@ -1,4 +1,5 @@
 "use client";
+import HorseLink from "../components/HorseLink";
 import {useEffect,useState} from "react";
 import {createClient} from "@supabase/supabase-js";
 import {selectRaceCommentary} from "../lib/racing/commentary";
@@ -196,7 +197,7 @@ return <main className="shell"><header className="header"><div onClick={()=>go("
 {gradeFixtureResult&&<div className="card" style={{marginTop:12}}>
  <b className="gold">19시 1경주 비공식 결과 · 10두</b>
  {gradeFixtureResult.results.map(x=><div className="line row small" key={x.horseId}>
- <b>{x.rank}위</b><span>{x.number}번 {x.name}</span>
+ <b>{x.rank}위</b><span>{x.number}번 <HorseLink horseId={x.horseId}>{x.name}</HorseLink></span>
  <span>{x.timeSec.toFixed(2)}초</span></div>)}
  <a className="outline wide" href="/test-race" style={{display:"block",textAlign:"center",textDecoration:"none",marginTop:12}}>
  전체 출전표 및 구간 중계 보기 ›</a>
@@ -229,7 +230,7 @@ CSV의 rank, rcNo, stTime 순서를 반영한 오늘의 경주를 시간표 순�
  <div className="large gold">{winner.number}번 {winner.name} 우승</div>
  <div className="muted">경주기록 {winner.timeSec.toFixed(2)}초 · 결과 발표 예정 {r.resultTime} · 시드 {result.seed}</div></div>
  <div className="card">{result.results.map(x=><div className="row line small" key={x.horseId}>
- <b className="gold">{x.rank}위</b><span>{x.number}번 {x.name}</span><span>{x.timeSec.toFixed(2)}초</span></div>)}</div>
+ <b className="gold">{x.rank}위</b><span>{x.number}번 <HorseLink horseId={x.horseId}>{x.name}</HorseLink></span><span>{x.timeSec.toFixed(2)}초</span></div>)}</div>
  {section("200m 구간 순위")}
  <div className="card">{result.sections.map(x=><div className="line" key={x.distanceM}>
  <b className="gold">{x.distanceM}m</b>
@@ -253,7 +254,7 @@ CSV의 rank, rcNo, stTime 순서를 반영한 오늘의 경주를 시간표 순�
 <button className="primary wide" disabled={dbBusy||dbRaceId.trim().length<30} onClick={runDbPreview}>DB 출전마로 계산 · 비공식 기록 저장</button>
 <div style={{height:10}}/><button className="outline wide" disabled={dbBusy} onClick={loadDbHistory}>내 미리보기 기록 조회</button>
 {dbHistory.length>0&&<div className="card">{dbHistory.map(x=><div className="line" key={x.id}><b>{x.result_snapshot?.results?.[0]?.name||"출전 경주"}</b><div className="muted">{x.created_at} · {x.race_id}</div></div>)}</div>}
-{dbPreview&&<div className="card"><b>최근 비공식 경주 순위</b>{dbPreview.results.map(x=><div className="line row small" key={x.horseId}><b>{x.rank}위</b><span>{x.number}번 {x.name}</span><span>{x.timeSec}초</span></div>)}</div>}
+{dbPreview&&<div className="card"><b>최근 비공식 경주 순위</b>{dbPreview.results.map(x=><div className="line row small" key={x.horseId}><b>{x.rank}위</b><span>{x.number}번 <HorseLink horseId={x.horseId}>{x.name}</HorseLink></span><span>{x.timeSec}초</span></div>)}</div>}
 </div></>}
 {screen==="horses"&&<>{title("보유마","생애 단계와 상태를 한눈에")}<div className="area"><div className="card"><b>전체 5두</b><div className="muted">현역 2 · 목장 1 · 교배 1 · 재활 1</div></div><div className="tabs">{["전체","현역","목장","교배","재활"].map(x=><button className={filter===x?"active":""} onClick={()=>F(x)} key={x}>{x}</button>)}</div>{horses.filter(x=>filter==="전체"||x.stage===filter).map(x=><div key={x.id}>{box("♞ "+x.name,x.age+"세 · "+x.sex+"말 · 컨디션 "+x.condition,()=>{H(x);go("horse")},x.stage)}</div>)}</div></>}
 {screen==="horse"&&<>{title(selected.name,selected.age+"세 · "+selected.sex+"말 · "+selected.stage)}<div className="area"><div className="card"><div className="large gold">♞ {selected.name}</div><div className="muted">컨디션 {selected.condition} · 피로 {selected.fatigue}</div><div className="bar"><div className="fill" style={{width:selected.condition+"%"}}/></div></div>{section("능력치 · 추정")}<div className="grid">{["스피드","가속력","지구력","막판탄력","파워","근성"].map((x,i)=><div className="card" key={x}><div className="row small"><span>{x}</span><b>{selected.stats[i]}</b></div><div className="bar"><div className="fill" style={{width:selected.stats[i]+"%"}}/></div></div>)}</div><div className="notice">현재 능력치 수치는 샘플입니다. 잠재력·유전값·훈련의 실제 결과는 서버 엔진 미연결 상태입니다.</div><div className="twoCol">{[["조교사 찾기","trainers"],["훈련 리포트","training"],["경주 일정","races"],["개인목장","ranch"]].map(([t,p])=><button key={p} className="outline" onClick={()=>go(p)}>{t}</button>)}</div></div></>}
@@ -274,7 +275,7 @@ CSV의 rank, rcNo, stTime 순서를 반영한 오늘의 경주를 시간표 순�
 <button className="outline wide" onClick={loadBreedingHorses} disabled={breedingLoading}>{breedingLoading?"조회 중":"보유마 새로고침"}</button>
 {breedingMessage&&<div className="notice">{breedingMessage}</div>}
 {breedingHorses.map(h=><div className="card" key={h.id}>
-<div className="row"><b className="gold">♞ {h.name}</b><span className="tag">{h.breeding_retired_at||h.racing_retired_permanently?"은퇴 · 복귀 불가":h.life_stage==="RACING"?"현역":h.life_stage}</span></div>
+<div className="row"><b className="gold">♞ <HorseLink horseId={h.id}>{h.name}</HorseLink></b><span className="tag">{h.breeding_retired_at||h.racing_retired_permanently?"은퇴 · 복귀 불가":h.life_stage==="RACING"?"현역":h.life_stage}</span></div>
 <div className="muted">{h.age_years}세 · {h.sex==="FEMALE"?"암말":h.sex==="MALE"?"수말":"거세마"} · {h.life_stage==="BROODMARE"?"번식암말":h.life_stage==="STALLION"?"씨수말":"상태: "+h.life_stage}</div>
 {canBreedRetire(h)?<button style={{marginTop:10}} className="outline wide" disabled={breedingLoading} onClick={()=>retireBreeder(h)}>교배용 영구 은퇴</button>:
 <div className="muted">{h.breeding_retired_at||h.racing_retired_permanently?"영구 은퇴 상태: 경주 출전 불가":"현재 교배용 은퇴 조건 미충족"}</div>}
