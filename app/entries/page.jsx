@@ -246,7 +246,7 @@ export default function EntriesPage(){
        ※ 남·북반구 출생마에 따라 나이 자격이 달라집니다. 출생 반구가 확인되지 않은 말은 출전할 수 없습니다.
        </span>}
      </div>}
-     <div className="muted" style={{marginTop:4}}>지역 {r.sourceMeet} · 등급 {r.gradeNo} · NPC 교체 가능 {r.npcReplaceableCount}두</div>
+     <div className="muted" style={{marginTop:4}}>지역 {r.track} · 등급 {r.gradeNo} · NPC 교체 가능 {r.npcReplaceableCount}두</div>
      {mine.map(e=><div key={e.horseId} className="card" style={{padding:12,marginTop:12}}>
       <div className="row"><div><b>✓ {horses.find(h=>h.id===e.horseId)?.name||"내 경주마"} 출전 확정</b>
         <div className="muted">{e.gateNo}번 게이트 · 현재 기수 {e.jockeyName||"미배정"}</div></div>
@@ -293,7 +293,7 @@ export default function EntriesPage(){
        <select className="field" aria-label="출전마 선택"
         value={selected} onChange={e=>SetChoice(prev=>({...prev,[r.id]:e.target.value}))}>
         {candidate.map(h=><option key={h.id} value={h.id}>
-         {h.name} · {h.age}세 · {h.sourceMeet} {h.gradeNo}등급
+         {h.name} · {h.age}세 · {h.sourceMeet==="제주"?"영천":h.sourceMeet} {h.gradeNo}등급
          {r.ageCondRequiresBirthHemisphere&&(" · "+(h.birthHemisphere==="NORTH"?"북반구 출생":h.birthHemisphere==="SOUTH"?"남반구 출생":"출생 반구 미확인"))}
         </option>)}
        </select>
