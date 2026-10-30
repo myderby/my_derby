@@ -156,8 +156,10 @@ export default function EntriesPage(){
    const r=await fetch(url,{headers:{Authorization:"Bearer "+token},cache:"no-store"});
    const data=await r.json();if(!r.ok)throw new Error(data.error||"기수 조회 실패");
    SetJockeys(data.jockeys||[]);
-   const first=(data.jockeys||[]).find(j=>j.selected)||
-      (data.jockeys||[]).find(j=>!j.busyInRace&&j.dailyRides<j.maxDailyRides);
+   const first=(data.jockeys||[]).find(j=>j.myApplicationStatus==="PENDING")||
+      (data.jockeys||[]).find(j=>j.myApplicationStatus==="ACCEPTED")||
+      (data.jockeys||[]).find(j=>!j.committedInRace&&j.dailyRides<j.maxDailyRides)||
+      (data.jockeys||[]).find(j=>j.selected);
    SetJockeyChoice(first?.id||"");
   }catch(e){SetJockeys([]);SetMessage(explain(e.message))}
   finally{SetJockeyBusy(false)}
@@ -171,11 +173,18 @@ export default function EntriesPage(){
     body:JSON.stringify({raceId:active.raceId,horseId:active.horseId,jockeyId:jockeyChoice})});
    const data=await r.json();if(!r.ok)throw new Error(data.error||"기수 신청 실패");
    if(data.status==="REJECTED"){
-    SetMessage("기수 신청 거절: "+data.jockeyName+" · "+(data.reason==="ALREADY_DECLINED_THIS_RACE"?"이미 거절한 기수입니다.":"기수 성향에 따른 수락 가능성 "+data.acceptanceChance+"%")+
-     " · 다른 기수에게 신청할 수 있습니다.");
+    SetMessage("기수 신청 불가: "+data.jockeyName+" · "+(data.reason==="ALREADY_DECLINED_THIS_RACE"?"이미 심사에서 거절된 기수입니다.":"이미 확정된 계약이 있습니다.")+" 다른 기수를 선택해 주세요.");
     return;
    }
-   SetMessage("기수 신청 승인: "+data.jockeyName+" · 이번 게임 날짜 "+data.dailyRidesAfter+"/"+data.maxDailyRides+"회");
+   if(data.status==="CONTRACT_LOCKED"||data.status==="ALREADY_ACCEPTED"){
+    SetMessage("이미 기승 계약이 확정된 상태입니다. 확정된 기수는 임의로 변경할 수 없습니다.");
+    SetActive(null);await load(week);return;
+   }
+   if(data.status==="PENDING"){
+    SetMessage("기수 신청 접수: "+data.jockeyName+" · 선호도 심사 대기 중 ("+data.competingOffers+"건 접수). 오전 10시~11시 55분에 10분 간격으로 비교 심사합니다. 미선정 시 다른 기수에게 다시 신청할 수 있습니다.");
+    SetActive(null);SetJockeys([]);await load(week);return;
+   }
+   SetMessage("기수 신청 처리: "+(data.jockeyName||data.status));
    SetActive(null);SetJockeys([]);await load(week);
   }catch(e){SetMessage(explain(e.message))}finally{SetJockeyBusy(false)}
  };
@@ -199,14 +208,14 @@ export default function EntriesPage(){
    <a href="/world" className="outline" style={{display:"inline-block",marginBottom:12,textDecoration:"none"}}>‹ 월드 화면</a>
    <a href="/schedule" className="outline" style={{display:"inline-block",marginBottom:12,marginLeft:8,textDecoration:"none"}}>공식 시간표 ›</a>
    <div className="section"><h2>출전 및 기수 신청</h2><button onClick={()=>load(week)} disabled={!token||loading}>새로고침 ↻</button></div>
-   <div className="notice">실제 공식 경주 편성에 저장됩니다. 신청과 기수 선택은 조건 충족 시 즉시 승인되며,
+   <div className="notice">실제 공식 경주 편성에 저장됩니다. 출전 신청은 조건을 충족하면 확정되지만, 기수 신청은 즉시 확정되지 않고 선호도 심사를 거칩니다.
    기존 NPC 출전으로 만석이면 NPC 슬롯을 1개 교체합니다.
    일반 경주는 경주마와 소속 지역·등급이 같아야 신청할 수 있습니다.
    OPEN·대상경주는 소속 지역 및 해당 경주의 ageCond(연령 조건)를 충족하면 등급과 관계없이 신청할 수 있습니다.
-   OPEN·대상경주는 4일 전, 일반 경주는 2일 전 00:00(한국시간)부터 신청 가능하며, 경주 당일에는 신청할 수 없습니다.
+   OPEN·대상경주는 4일 전, 일반 경주는 2일 전 00:00(한국시간)부터 신청 가능하며, 6등급은 경주 당일 정오 전까지 가능합니다.
    ageCond가 확인되지 않은 OPEN·대상경주는 조건 등록 전까지 출전 신청을 제한합니다.
    건강·피로도 및 중복 출전 제한은 유지합니다.
-   기수는 경주당 한 마리, 게임 날짜당 최대 8회까지 기승할 수 있습니다.</div>
+   기수는 경주당 한 마리, 게임 날짜당 최대 8회까지 기승할 수 있습니다. 같은 기수에게 여러 신청이 오면 능력·전법 궁합·기존 협업·경주 등급·기수 판단력으로 비교해 선정합니다. 심사에서 거절되면 다른 기수에게 재신청할 수 있으며, 정오에 출전표가 확정됩니다.</div>
    {message&&<div className="notice" role="status">{message}</div>}
    {error&&<div className="notice" role="alert">{error}</div>}
    {checking&&<div className="notice">로그인 상태 확인 중…</div>}
@@ -254,7 +263,10 @@ export default function EntriesPage(){
      <div className="muted" style={{marginTop:4}}>지역 {r.track} · 등급 {r.gradeNo} · NPC 교체 가능 {r.npcReplaceableCount}두</div>
      {mine.map(e=><div key={e.horseId} className="card" style={{padding:12,marginTop:12}}>
       <div className="row"><div><b>✓ <HorseLink horseId={e.horseId}>{horses.find(h=>h.id===e.horseId)?.name||"내 경주마"}</HorseLink> 출전 확정</b>
-        <div className="muted">{e.gateNo}번 게이트 · 현재 기수 {e.jockeyName||"미배정"}</div></div>
+        <div className="muted">{e.gateNo}번 게이트 · 현재 기수 {e.jockeyName||"미배정"}</div>
+        {e.jockeyOfferStatus==="PENDING"&&<div className="muted" style={{color:"#f0c572"}}>⌛ {e.jockeyOfferName} 기수 신청 심사 대기 · 결과 확인 후 재신청 가능</div>}
+        {e.jockeyOfferStatus==="ACCEPTED"&&<div className="muted" style={{color:"#91d8ad"}}>✓ {e.jockeyOfferName||e.jockeyName} 기승 계약 확정</div>}
+        {e.jockeyOfferStatus==="REJECTED"&&<div className="muted" style={{color:"#f0c572"}}>신청 거절됨 · 다른 기수에게 재신청할 수 있습니다.</div></div>
        <div className="controls">
         <button className="outline" disabled={close||busy||jockeyBusy}
          onClick={()=>showJockeys(r.id,e.horseId)}>기수 선택 ›</button>
@@ -280,14 +292,14 @@ export default function EntriesPage(){
        </div>}
       {active?.raceId===r.id&&active?.horseId===e.horseId&&
        <div style={{marginTop:14}}>
-        <div className="muted">NPC 기수에게 신청하면 기수의 성향·기승일정에 따라 수락 또는 거절됩니다.</div>
+        <div className="muted">기승 제안을 접수하면 같은 기수의 다른 제안과 점수를 비교해 선택합니다. 현재 기본 배정 기수는 심사 중 유지되며, 계약이 확정되면 교체되지 않습니다.</div>
         <select className="field" aria-label="기수 선택" value={jockeyChoice} onChange={e=>SetJockeyChoice(e.target.value)}>
-         {jockeys.map(j=><option key={j.id} value={j.id} disabled={!j.selected&&(j.busyInRace||j.dailyRides>=j.maxDailyRides)}>
-          {j.name} · {j.dailyRides}/{j.maxDailyRides}회 {j.busyInRace?"(해당 경주 기승 중)":""}
+         {jockeys.map(j=><option key={j.id} value={j.id} disabled={!j.selected&&!j.myApplicationStatus&&(j.committedInRace||j.dailyRides>=j.maxDailyRides&&!j.busyInRace)}>
+          {j.name} · {j.dailyRides}/{j.maxDailyRides}회 {j.myApplicationStatus==="PENDING"?"(내 신청 심사 대기)":j.myApplicationStatus==="ACCEPTED"?"(내 계약 확정)":j.myApplicationStatus==="REJECTED"?"(내 신청 거절)":j.committedInRace?"(계약 확정)":j.busyInRace?"(자동 배정 중)":""} · 신청 {j.pendingOffers||0}건
          </option>)}
         </select>
         <div className="controls">
-         <button className="primary" disabled={jockeyBusy||!jockeyChoice} onClick={submitJockey}>{jockeyBusy?"처리 중…":"기수 신청 확정"}</button>
+         <button className="primary" disabled={jockeyBusy||!jockeyChoice} onClick={submitJockey}>{jockeyBusy?"신청 중…":"기수에게 제안 보내기"}</button>
          <button className="outline" onClick={()=>SetActive(null)}>닫기</button>
         </div>
        </div>}
