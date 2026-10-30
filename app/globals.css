@@ -59,3 +59,44 @@
  .dir-record-sub{font-size:10px}
  .dir-skill-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
 }
+
+
+/* Official race time-slot cards on the mobile home screen */
+.official-slot-grid{display:grid;grid-template-columns:1fr;gap:12px;margin:12px 0}
+.official-slot-card{display:block;text-decoration:none;color:inherit;border:1px solid #6e4c2d;
+ border-radius:14px;padding:16px 17px 14px;background:linear-gradient(125deg,#3e2919,#281d15);
+ transition:border-color .15s,background .15s}
+.official-slot-card:hover,.official-slot-card:focus-visible{border-color:#f0bf6f;background:#46301f;outline:none}
+.official-slot-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.official-slot-kicker{font-size:9px;letter-spacing:2px;color:#b79d7d;margin-bottom:5px;font-weight:700}
+.official-slot-hour{font-size:33px;color:#f1cc84;font-weight:800;line-height:1.15;letter-spacing:-1px}
+.official-slot-hour span{font-size:17px;letter-spacing:0;margin-left:5px;color:#e9c78b}
+.official-slot-badge{border:1px solid #796344;padding:6px 11px;min-width:58px;border-radius:100px;
+ font-size:12px;font-weight:800;text-align:center;color:#e7d3ad;background:#55412a}
+.official-slot-badge-running{color:#c3f3c3;background:#25543a;border-color:#3b9566}
+.official-slot-badge-finished{color:#dbdbdb;background:#3c3b3b;border-color:#5e5e5e}
+.official-slot-badge-empty{color:#b0a6a2;background:#40342b;border-color:#5e4b3c}
+.official-slot-running{border-color:#3e8860}
+.official-slot-finished{border-color:#5d5247}
+.official-slot-detail{margin:12px 0 10px;color:#d6c0a3;font-size:12px}
+.official-slot-bottom{display:flex;justify-content:space-between;align-items:center;gap:9px;
+ color:#b9a794;font-size:11px}
+.official-slot-view{color:#f3c677;font-weight:700;font-size:12px}
+.official-slot-progress{height:5px;overflow:hidden;border-radius:99px;background:#5b4836;margin-top:11px}
+.official-slot-progress span{height:100%;display:block;background:#dcb263;border-radius:99px}
+.official-slot-running .official-slot-progress span{background:#68bd83}
+.official-slot-finished .official-slot-progress span{background:#8d9a88}
+/* Slot selection on the existing official race schedule */
+.official-slot-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-bottom:13px}
+.official-slot-tabs button{border-radius:10px;border:1px solid #58402b;background:#302216;color:#cdb391;
+ display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:57px;gap:4px;padding:7px 4px;
+ font-size:13px;font-weight:750}
+.official-slot-tabs button.active{background:#674522;color:#f9dc9b;border-color:#e0a955}
+.official-slot-tabs button strong{font-size:14px}
+.official-slot-tabs button small{font-size:10px;font-weight:400;white-space:nowrap;color:#d8bda1}
+.official-slot-tabs button.active small{color:#fce8ba}
+@media (max-width:370px){
+ .official-slot-tabs{gap:4px}
+ .official-slot-tabs button{padding:6px 2px}
+ .official-slot-tabs button small{font-size:9px}
+}
