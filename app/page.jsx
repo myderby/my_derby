@@ -59,7 +59,7 @@ useEffect(()=>{
     throw new Error(result.error||"잔액 조회 실패");
    }
    // Response comes from the very same player_finance_dashboard RPC as /finance.
-   if(!/^-?\\d+$/.test(String(result.balance)))
+   if(!/^-?\d+$/.test(String(result.balance)))
     throw new Error("잔액 데이터 형식이 올바르지 않습니다.");
    SetWalletBalance({status:"READY",balance:String(result.balance)});
   }catch(_error){
