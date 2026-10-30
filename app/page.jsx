@@ -363,6 +363,32 @@ return <main className="shell"><header className="header"><div onClick={()=>go("
 <div className="notice">교배 승인·임신·출산·유전 계산은 아직 구현되지 않았습니다. 위 ‘교배용 영구 은퇴’ 버튼은 로그인한 본인 소유마의 실제 DB 상태를 변경합니다.</div>
 <button className="outline wide" onClick={()=>notReady("교배 신청")}>교배 신청 (개발 예정)</button>
 </div></>}
-{screen==="menu"&&<>{title("전체 메뉴","MY DERBY")}<div className="area"><a href="/my-record" className="card action row" style={{textDecoration:"none",color:"inherit",display:"flex",borderColor:"#9a743b"}}><div><b className="gold">🏅 나의 정보</b><div className="muted">통산·시즌별 전적 · OPEN 성적 · 대상경주 트로피</div></div><span>›</span></a><a href="/world" className="card action row" style={{textDecoration:"none",color:"inherit",display:"flex"}}><div><b className="gold">🐎 내 말 관리</b><div className="muted">내 보유마 · 훈련 · 출전 · 번식</div></div><span>›</span></a>{[["경주 관리","공식 출전표 · 경주 진행 · 결과","races"],["공식 편성 강제 테스트","19시·20시·21시 공식 출전마 복사 · 정식 기록 미반영","testRaces"],["내 말 관리","보유마 · 훈련 · 출전 · 번식","horses"],["전체 경주마","통산·최근 1년 전적, 등급, 나이, 성별","allHorses"],["전체 기수","소속·기승 성적·능력치 8종","allJockeys"],["전체 마주","NPC 및 플레이어 명부","ownersDirectory"],["전체 조교사","경마장별 소속","trainersDirectory"],["성적","기수·마주·조교사 성적","participantsRecords"],["조교사 계약","NPC 위탁 신청 및 수락","trainers"],["경주마 시장","말 구매·판매 · 게임머니 거래","market"],["경주마 경매","입찰·낙찰 및 거래","auction"],["레이팅·등급","KRA 안내 기반 게임 레이팅","ratings"],["재무 내역","잔액·상금·운영비","finance"],["훈련계획 · 리포트","실제 성장 방향과 7일 정산","training"],["개인목장","회복 · 재활 · 어린말","ranch"],["교배","씨수말 · 혈통 · 자마","breeding"],["공식 결과","실제 경주 기록","races"],].map(([a,b,c])=><div key={a}>{box(a,b,()=>go(c))}</div>)}<div className="footer">MY DERBY · WEB MVP</div></div></>}
+{screen==="menu"&&<>{title("전체 메뉴","MY DERBY")}<div className="area">
+ {[
+  ["🏇 경주","출전 · 결과 · 분석",[
+   ["출전 및 경주",[["공식 경주 시간표","races"],["출전 신청","entry"],["공식 결과","results"]]],
+   ["경주 분석",[["레이팅·등급","ratings"],["전체 경주마","allHorses"]]]
+  ]],
+  ["🐎 말 관리","보유마 · 훈련 · 번식",[
+   ["내 말과 마방",[["내 말 관리","horses"],["조교사 계약","trainers"],["훈련계획 · 리포트","training"]]],
+   ["목장 및 교배",[["개인목장","ranch"],["교배","breeding"]]]
+  ]],
+  ["📊 정보와 기록","나의 성적 · 명부 · 순위",[
+   ["개인 기록",[["나의 정보","myRecord"]]],
+   ["전체 명부",[["전체 기수","allJockeys"],["전체 마주","ownersDirectory"],["전체 조교사","trainersDirectory"]]],
+   ["경주 성적",[["기수·마주·조교사 성적","participantsRecords"]]]
+  ]],
+  ["💰 시장과 재무","경매 · 거래 · 자산",[
+   ["경주마 시장",[["경주마 매매","market"],["경주마 경매","auction"]]],
+   ["내 자산",[["재무 내역","finance"]]]
+  ]]
+ ].map(([category,description,groups])=><details key={category} className="menu-depth-one">
+   <summary><b className="gold">{category}</b><span className="muted">{description}</span></summary>
+   <div className="menu-depth-content">{groups.map(([group,items])=><details key={group} className="menu-depth-two">
+    <summary>{group}</summary>
+    <div className="menu-depth-links">{items.map(([label,dest])=><button key={label} className="menu-depth-link" onClick={()=>dest==="myRecord"?window.location.assign("/my-record"):go(dest)}>{label}<span>›</span></button>)}</div>
+   </details>)}</div>
+  </details>)}
+ <div className="footer">MY DERBY · GAME MENU</div></div></>}
 {screen==="account"&&<>{title("계정 및 연결","Supabase 이메일 로그인")}<div className="area"><div className="notice">Supabase 로그인·회원가입만 연결합니다. 플레이어 월드 생성과 데이터 저장, NPC 엔진은 아직 연결되지 않았습니다.</div><input className="field" placeholder="이메일" value={email} onChange={e=>Mail(e.target.value)}/><input className="field" placeholder="비밀번호" type="password" value={password} onChange={e=>Pass(e.target.value)}/><div className="stack"><button className="primary wide" onClick={()=>auth(false)}>로그인</button><button className="outline wide" onClick={()=>auth(true)}>회원가입</button></div></div></>}
 <nav className="bottom">{[["home","⌂","홈"],["horses","♞","말 관리"],["races","♜","경주"],["menu","☰","메뉴"]].map(([x,icon,label])=><button className={screen===x?"active":""} onClick={()=>go(x)} key={x}><span>{icon}</span>{label}</button>)}</nav>{toast&&<div className="toast">{toast}</div>}</main>}
