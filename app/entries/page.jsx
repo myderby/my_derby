@@ -1,5 +1,6 @@
 "use client";
 import HorseLink from "../components/HorseLink";
+import StaffLink from "../components/StaffLink";
 import {useEffect,useState} from "react";
 import {createClient} from "@supabase/supabase-js";
 
@@ -263,7 +264,7 @@ export default function EntriesPage(){
      <div className="muted" style={{marginTop:4}}>지역 {r.track} · 등급 {r.gradeNo} · NPC 교체 가능 {r.npcReplaceableCount}두</div>
      {mine.map(e=><div key={e.horseId} className="card" style={{padding:12,marginTop:12}}>
       <div className="row"><div><b>✓ <HorseLink horseId={e.horseId}>{horses.find(h=>h.id===e.horseId)?.name||"내 경주마"}</HorseLink> 출전 확정</b>
-        <div className="muted">{e.gateNo}번 게이트 · 현재 기수 {e.jockeyName||"미배정"}</div>
+        <div className="muted">{e.gateNo}번 게이트 · 현재 기수 <StaffLink kind="jockey" staffId={e.jockeyId}>{e.jockeyName||"미배정"}</StaffLink></div>
         {e.jockeyOfferStatus==="PENDING"&&<div className="muted" style={{color:"#f0c572"}}>⌛ {e.jockeyOfferName} 기수 신청 심사 대기 · 결과 확인 후 재신청 가능</div>}
         {e.jockeyOfferStatus==="ACCEPTED"&&<div className="muted" style={{color:"#91d8ad"}}>✓ {e.jockeyOfferName||e.jockeyName} 기승 계약 확정</div>}
         {e.jockeyOfferStatus==="REJECTED"&&<div className="muted" style={{color:"#f0c572"}}>신청 거절됨 · 다른 기수에게 재신청할 수 있습니다.</div>}</div>
@@ -298,6 +299,7 @@ export default function EntriesPage(){
           {j.name} · {j.dailyRides}/{j.maxDailyRides}회 {j.myApplicationStatus==="PENDING"?"(내 신청 심사 대기)":j.myApplicationStatus==="ACCEPTED"?"(내 계약 확정)":j.myApplicationStatus==="REJECTED"?"(내 신청 거절)":j.committedInRace?"(계약 확정)":j.busyInRace?"(자동 배정 중)":""} · 신청 {j.pendingOffers||0}건
          </option>)}
         </select>
+        {jockeyChoice&&<div className="muted" style={{marginTop:8}}>선택한 기수: <StaffLink kind="jockey" staffId={jockeyChoice}>{jockeys.find(j=>j.id===jockeyChoice)?.name||"기수"}</StaffLink> 상세정보 보기</div>}
         <div className="controls">
          <button className="primary" disabled={jockeyBusy||!jockeyChoice} onClick={submitJockey}>{jockeyBusy?"신청 중…":"기수에게 제안 보내기"}</button>
          <button className="outline" onClick={()=>SetActive(null)}>닫기</button>
