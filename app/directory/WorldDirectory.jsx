@@ -19,7 +19,7 @@ function RecordCard({title,record}){
  </div>;
 }
 
-function HorseCard({horse}){
+function HorseCard({horse,recordMode}){
  const [expanded,show]=useState(false);
  const grade=horse.grade==null?"등급 미정":horse.grade+"등급";
  return <article className="card dir-entry">
@@ -31,7 +31,7 @@ function HorseCard({horse}){
     <div className="muted">#{horse.horseNo||horse.id.slice(0,8)} · {grade} · {horse.age}세 · {sexText[horse.sex]||horse.sex||"-"} · {stageText[horse.stage]||horse.stage}</div></div>
    <div className="dir-rating">{horse.rating==null?"미부여":horse.rating+"점"}<small>레이팅</small></div>
   </div>
-  <div className="dir-records"><RecordCard title={horse.recordMode==="WORLD"?"게임 통산 전적":"원본 통산 전적"} record={horse.career}/>
+  <div className="dir-records"><RecordCard title={recordMode==="world"?"게임 통산 전적":"원본 통산 전적"} record={horse.career}/>
     <RecordCard title={horse.recordMode==="WORLD"?"게임 최근 364일":"원본 최근 1년"} record={horse.recentYear}/></div>
   {horse.ratingPending&&<div className="dir-alert">레이팅 기준 {horse.ratingProposedGrade}등급 전환 대기 · 기존 확정 출전표 유지</div>}
   <div className="dir-footer">
@@ -177,7 +177,7 @@ export default function WorldDirectory({kind}){
    {loading&&<div className="notice" aria-live="polite">실제 경주 기록을 조회하고 있습니다…</div>}
    {!loading&&data?.items?.length===0&&<div className="notice">조건에 맞는 {horses?"경주마":"기수"}가 없습니다. 필터를 변경해주세요.</div>}
    {!loading&&(data?.items||[]).map(item=>horses?
-    <HorseCard key={item.id} horse={item}/>:
+    <HorseCard key={item.id} horse={item} recordMode={mode}/>:
     <JockeyCard key={item.id} jockey={item}/>)}
    {data&&data.total>24&&<nav className="dir-pagination" aria-label="페이지 선택">
     <button type="button" className="outline" disabled={page<=1||loading} onClick={()=>goPage(1)}>처음</button>
