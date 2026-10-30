@@ -47,7 +47,7 @@ export default function Ranch(){
  };
  return <main className="shell"><header className="header"><a href="/" className="brand" style={{textDecoration:"none"}}>MY DERBY</a><span className="coin">🌲 개인목장</span></header>
  <div className="area">
-  <div className="controls" style={{marginBottom:14}}><a className="outline" href="/world" style={{textDecoration:"none"}}>‹ 내 경주마</a><a href="/finance" className="outline" style={{textDecoration:"none"}}>재무 현황 ›</a></div>
+  <div className="controls" style={{marginBottom:14}}><a className="outline" href="/world" style={{textDecoration:"none"}}>‹ 내 경주마</a><a href="/finance" className="outline" style={{textDecoration:"none"}}>재무 현황 ›</a><a href="/ranch/management" className="outline" style={{textDecoration:"none"}}>목장 확장·직원 ›</a></div>
   <div className="section"><h2>목장 휴양 · 재활 · 어린말 육성</h2><button disabled={!token||busy} onClick={()=>refresh()}>새로고침 ↻</button></div>
   <div className="notice">실제 게임 DB에 코스 신청·비용·회복을 기록합니다. 매일 22:50(한국시간) 종료 대상 코스를 정산합니다.
    코스 기간 중에는 출전 예정 경주와 겹치지 않도록 제한합니다.</div>
