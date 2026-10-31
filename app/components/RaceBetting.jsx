@@ -56,7 +56,8 @@ export default function RaceBetting({raceId}){
     <button className="outline" type="button" onClick={load}>새로고침 ↻</button></div>
   <div className="notice">게임머니(G) 전용 가상 단승식입니다. 현금 베팅·환전은 지원하지 않습니다.
    AI 추천과 예상 배당은 결과 보장이 아니며, 참가 마주와 NPC 마주의 베팅으로 배당이 변동합니다.
-   운영 공제 10%, 경주 확정 후 당첨금이 정산됩니다.</div>
+   최대 운영 공제 10%이며 적중하면 최소 원금을 돌려받습니다. 경주 확정 후 정산됩니다.</div>
+  {data?.entryAnnouncementPending&&<div className="notice">경주 당일 낮 12시(한국시간) 출전표 발표 후 예상가·배당이 공개됩니다.</div>}
   {err&&<div className="notice" role="alert">{err}</div>}
   {notice&&<div className="notice">{notice}</div>}
   {data&&<>
