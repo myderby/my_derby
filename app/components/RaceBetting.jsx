@@ -1,6 +1,8 @@
 "use client";
 import {useCallback,useEffect,useMemo,useState} from "react";
 import {createClient} from "@supabase/supabase-js";
+import betPayout from "../../lib/racing/bet-payout.cjs";
+const {estimatePayout}=betPayout;
 const fmt=n=>new Intl.NumberFormat("ko-KR").format(Number(n||0));
 const types=[
  {id:"WIN",label:"단승",count:1,rule:"1착 1두"},
@@ -73,6 +75,16 @@ export default function RaceBetting({raceId}){
   },350);
   return()=>{live=false;clearTimeout(timer)};
  },[raceId,type,picks.join(","),horses.length,valid,data?.betCount,(data?.betTypePools||[]).find(p=>p.type===type)?.pool]);
+ const refundPreview=useMemo(()=>{
+  const activePool=(data?.betTypePools||[]).find(p=>p.type===type);
+  if(!valid||!data?.bettingOpen||!quote||quote.betType!==type||
+    !Array.isArray(quote.selection)||quote.selection.join(",")!==picks.join(",")||
+    Number(quote.pool)!==Number(activePool?.pool))return null;
+  return estimatePayout({
+    pool:quote.pool,combinationPool:quote.combinationPool,stake:Number(amount)
+  });
+ },[valid,data?.bettingOpen,data?.betTypePools,quote,type,picks.join(","),amount]);
+ const isMultiWinner=type==="PLACE"||type==="QUINELLA_PLACE";
  const choose=(i,id)=>{if(picks.some((v,index)=>v===id&&index!==i)){
    setError("같은 경주마를 두 번 선택할 수 없습니다.");return;}
   setError("");setPicks(x=>x.map((v,j)=>j===i?id:v));
@@ -149,6 +161,25 @@ export default function RaceBetting({raceId}){
     <label className="bet-stake-label">신청 금액 (G)
      <input className="field" type="number" min={100} max={10000} step={100}
       value={amount} onChange={e=>setAmount(Number(e.target.value))}/></label>
+    <div className="bet-refund-preview" aria-live="polite" aria-atomic="true">
+     <div className="row" style={{alignItems:"center",gap:10}}>
+      <strong>예상 환급액{isMultiWinner?" (상한)":""}</strong>
+      <strong className="gold bet-refund-amount">
+       {refundPreview?"약 "+fmt(refundPreview.estimatedRefund)+"G":"—"}
+      </strong>
+     </div>
+     {refundPreview?<div className="muted" style={{marginTop:7}}>
+      현재 조합에 {fmt(amount)}G를 추가했을 때 예상 배당 {refundPreview.estimatedOdds.toFixed(2)}배
+      {isMultiWinner?
+       " · 다른 적중 조합의 베팅액은 제외한 최대 예상치입니다.":
+       " · 선택 조합 적중 시 지급 예상액입니다."}
+     </div>:<div className="muted" style={{marginTop:7}}>
+      유효한 신청 금액과 선택 조합을 확인하면 예상 환급액이 표시됩니다.
+     </div>}
+     <small className="muted" style={{display:"block",marginTop:5}}>
+      실제 환급액은 추가 베팅과 경주 결과에 따라 달라집니다.
+     </small>
+    </div>
     <button className="primary" style={{width:"100%",marginTop:12}}
      disabled={busy||!token||!data.bettingOpen||!valid||Number(data.maxStake||0)<100}
      onClick={place}>{busy?"신청 처리 중…":current.label+" 가상 베팅 신청"}</button>
