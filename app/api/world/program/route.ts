@@ -11,7 +11,7 @@ export async function GET(request:Request){
   const week=param?Number(param):Number(overview.world.week);
   if(!Number.isInteger(week)||week<1||week>52)
    return NextResponse.json({error:"주차는 1~52 사이여야 합니다."},{status:400});
-  const gameDay=(week-1)*7+1;
+  const gameDay=(Math.max(1,Number(overview.world.season||1))-1)*364+(week-1)*7+1;
   const {data:events,error}=await api.from("races")
    .select("id,track,race_no,race_day,start_time,class_name,distance_m,status,prize_policy,target_runner_count")
    .eq("world_id",overview.world.worldId).eq("race_day",gameDay)
@@ -20,7 +20,7 @@ export async function GET(request:Request){
   if(error)throw error;
   return NextResponse.json({
    mode:"GAME_WEEKLY_PROGRAM",world:overview.world,
-   requestedWeek:week,gameDay,raceCount:(events||[]).length,
+   requestedSeason:Math.max(1,Number(overview.world.season||1)),requestedWeek:week,gameDay,raceCount:(events||[]).length,
    timeRule:"3-minute start intervals, 3-minute result delay",
    races:(events||[]).map(r=>({
     id:r.id,raceNo:r.race_no,date:r.prize_policy?.kst_date,week:r.prize_policy?.game_week,
