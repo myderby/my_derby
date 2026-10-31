@@ -15,7 +15,7 @@ export default function MyRecord(){
   if(active)setState({loading:false,data:body,error:""});
  }catch(error){if(active)setState({loading:false,data:null,error:error.message});}};load();return()=>{active=false};},[]);
  const data=state.data;
- return <main className="shell"><header className="header"><div><div className="brand">MY DERBY</div><div className="sub">마주 기록실</div></div><a className="outline" href="/" style={{textDecoration:"none"}}>홈</a></header>
+ return <main className="shell"><header className="header"><div><div className="brand">MY DERBY</div><div className="sub">마주 기록실</div></div><div className="controls"><a className="outline" href="/" style={{textDecoration:"none"}}>홈</a><a className="outline" href="/bets" style={{textDecoration:"none"}}>베팅 이력 ›</a></div></header>
  <div className="area"><div className="section"><h2>🏅 나의 정보</h2><a href="/" style={{color:"#efc779",fontSize:12}}>돌아가기</a></div>
  {state.loading?<div className="notice">공식 경주 기록을 조회하고 있습니다.</div>:state.error?<div className="notice" role="alert">{state.error}</div>:data&&<>
  <div className="card"><div className="muted">마주</div><h2 style={{margin:"8px 0",color:"#f0c572"}}>{data.profile.nickname}</h2><div className="muted">공식 결과가 확정된 경주만 집계합니다. 출전 당시의 마주를 기준으로 합니다.</div></div>
