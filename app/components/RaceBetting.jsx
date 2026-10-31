@@ -72,7 +72,7 @@ export default function RaceBetting({raceId}){
    }catch{if(live)setQuote(null)}
   },350);
   return()=>{live=false;clearTimeout(timer)};
- },[raceId,type,picks.join(","),horses.length,valid,data?.betCount]);
+ },[raceId,type,picks.join(","),horses.length,valid,data?.betCount,(data?.betTypePools||[]).find(p=>p.type===type)?.pool]);
  const choose=(i,id)=>{if(picks.some((v,index)=>v===id&&index!==i)){
    setError("같은 경주마를 두 번 선택할 수 없습니다.");return;}
   setError("");setPicks(x=>x.map((v,j)=>j===i?id:v));
@@ -159,7 +159,7 @@ export default function RaceBetting({raceId}){
      onClick={place}>{busy?"신청 처리 중…":current.label+" 가상 베팅 신청"}</button>
     {!token&&<div className="muted" style={{marginTop:8}}>로그인 후 신청할 수 있습니다. 배당 조회는 로그인 없이 가능합니다.</div>}
    </div>
-   {data.mine?.length>0&&<div className="card"><div className="row"><b className="gold">🎟️ 이 경주의 내 베팅</b>
+   {token&&data.mine?.length>0&&<div className="card"><div className="row"><b className="gold">🎟️ 이 경주의 내 베팅</b>
      <a href="/bets" className="outline" style={{textDecoration:"none"}}>전체 이력 ›</a></div>
     {data.mine.map(b=><div className="bet-ticket-row" key={b.betId}><div><b>{names[b.betType]||"단승"}</b>
      <span className="muted"> {b.selections?.map(id=>horses.find(h=>h.horseId===id)?.name||"경주마").join(" → ")}</span>
