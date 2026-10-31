@@ -1,6 +1,7 @@
 "use client";
 import HorseLink, {HorseMentions} from "../../components/HorseLink";
 import StaffLink from "../../components/StaffLink";
+import RaceBetting from "../../components/RaceBetting";
 import {useEffect,useMemo,useState} from "react";
 import {useParams} from "next/navigation";
 import {selectRaceCommentary} from "../../../lib/racing/commentary";
@@ -159,6 +160,7 @@ export default function RaceDetailPage(){
      </table>
     </div>:<div className="notice">{race.entryAnnouncementPending?"공식 출전마는 낮 12시에 공개됩니다.":"출전마 정보가 없습니다."}</div>}
     <div className="muted" style={{margin:"-4px 0 18px"}}>마명을 누르면 상세정보를 확인할 수 있습니다. 제공되지 않는 항목은 — 로 표시됩니다. 모바일에서는 표를 좌우로 스크롤하세요.</div>
+    <RaceBetting raceId={id}/>
     {!completed&&race.status==="RESULT_NOT_AVAILABLE"&&<div className="notice">공식 결과를 저장하는 중입니다. 이 화면을 새로고침해 주세요.</div>}
     {completed&&tab==="result"&&<>
      <div className="section"><h2>🏁 공식 최종 순위</h2></div>
