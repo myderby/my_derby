@@ -336,3 +336,15 @@
 .staff-bond-metrics small{display:block;font-size:10px;color:#c6b296}
 .staff-bond-metrics strong{display:block;color:#f2d49c;font-size:14px;margin-top:8px}
 @media(max-width:390px){.staff-bond-metrics strong{font-size:12px}}
+
+/* Hidden jockey / trainer skills: owner-only discovered effects, no undiscovered count. */
+.staff-hidden-panel{background:linear-gradient(130deg,#322418,#211913);border:1px solid #755739}
+.staff-hidden-list{display:grid;gap:11px}
+.staff-hidden-trait{border:1px solid #97703b;border-radius:10px;background:#3d2c1b;padding:14px}
+.staff-hidden-trait b{display:block;color:#f4d7a3;font-size:16px;margin:7px 0}
+.staff-hidden-trait p{font-size:12px;color:#e1ceb2;line-height:1.7;margin:6px 0}
+.staff-hidden-trait small{font-size:11px;color:#ae987d}
+.staff-hidden-badge{font-size:10px;background:#745026;color:#ffe0a1;padding:4px 8px;border-radius:6px}
+.staff-hidden-locked{border:1px dashed #755a3b;border-radius:9px;text-align:center;padding:18px 12px}
+.staff-hidden-locked strong{color:#ebc996}
+.staff-hidden-locked p{color:#bfae93;font-size:12px;margin-bottom:0;line-height:1.6}
