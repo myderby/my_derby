@@ -348,3 +348,15 @@
 .staff-hidden-locked{border:1px dashed #755a3b;border-radius:9px;text-align:center;padding:18px 12px}
 .staff-hidden-locked strong{color:#ebc996}
 .staff-hidden-locked p{color:#bfae93;font-size:12px;margin-bottom:0;line-height:1.6}
+
+/* In-game AI odds and virtual win wagering */
+.bet-analysts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}
+.bet-analyst{border:1px solid #73542c;border-radius:10px;background:#312417;text-align:center;padding:12px 8px}
+.bet-analyst small{display:block;color:#bdb29a;font-size:11px}
+.bet-analyst b{display:block;color:#f4d49a;font-size:13px;margin-top:7px;word-break:keep-all}
+.race-betting .race-entry-table tr:hover{background:rgba(201,154,78,.1)}
+.race-betting select.field,.race-betting input.field{min-height:39px}
+.race-betting .controls label{display:block;flex:1;min-width:120px;color:#cfb995;font-size:12px}
+.ranch-worker-list{display:grid;gap:8px;margin-top:10px}
+.ranch-worker{border:1px solid #664a30;border-radius:8px;background:#2d2117;padding:10px}
+@media(max-width:430px){.bet-analysts{grid-template-columns:1fr 1fr}.bet-analyst:last-child{grid-column:span 2}}
