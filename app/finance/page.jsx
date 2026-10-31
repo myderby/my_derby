@@ -27,7 +27,7 @@ export default function Finance(){
  };
 
  return <main className="shell"><header className="header"><a href="/" className="brand" style={{textDecoration:"none"}}>MY DERBY</a><span className="coin">💳 재무 관리</span></header>
- <div className="area"><div className="controls" style={{marginBottom:12}}><a className="outline" href="/world" style={{textDecoration:"none"}}>‹ 월드</a><a className="outline" href="/market" style={{textDecoration:"none"}}>경주마 시장 ›</a></div>
+ <div className="area"><div className="controls" style={{marginBottom:12}}><a className="outline" href="/world" style={{textDecoration:"none"}}>‹ 월드</a><a className="outline" href="/market" style={{textDecoration:"none"}}>경주마 시장 ›</a><a className="outline" href="/bets" style={{textDecoration:"none"}}>📒 베팅 이력 ›</a></div>
  <div className="section"><h2>내 재무 내역</h2><button disabled={!token} onClick={()=>load()}>새로고침 ↻</button></div>
  {error&&<div className="notice" role="alert">{error}</div>}
  {message&&<div className="notice" role="status">{message}</div>}
