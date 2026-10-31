@@ -395,3 +395,16 @@
  .bet-pick-grid{grid-template-columns:1fr}
  .bet-history-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
+
+/* Payout estimate beneath the current ticket's stake input. */
+.bet-refund-preview{
+ margin-top:10px;
+ border:1px solid #99703d;
+ background:linear-gradient(125deg,#3b2b1a,#251c14);
+ border-radius:10px;
+ padding:13px 14px;
+}
+.bet-refund-preview>div:first-child>strong:first-child{font-size:13px;color:#f1dfbb}
+.bet-refund-amount{font-size:19px;white-space:nowrap}
+.bet-refund-preview .muted{font-size:11px;line-height:1.6}
+@media(max-width:390px){.bet-refund-amount{font-size:16px}}
