@@ -48,8 +48,16 @@ export default function RaceBetting({raceId}){
  const horses=data?.horses||[];
  useEffect(()=>{
   if(!horses.length)return;
-  setPicks(previous=>Array.from({length:current.count},(_,i)=>
-   previous[i]&&horses.some(h=>h.horseId===previous[i])?previous[i]:horses.find(h=>!previous.includes(h.horseId))?.horseId||horses[i]?.horseId||""));
+  setPicks(previous=>{
+   const chosen=[];
+   for(let i=0;i<current.count;i++){
+    const previousId=previous[i];
+    const id=previousId&&horses.some(h=>h.horseId===previousId)&&!chosen.includes(previousId)
+      ?previousId:(horses.find(h=>!chosen.includes(h.horseId))?.horseId||"");
+    chosen.push(id);
+   }
+   return chosen;
+  });
  },[data?.raceId, data?.horses?.length,current.count]);
  const valid=picks.length===current.count&&picks.every(Boolean)&&new Set(picks).size===picks.length;
  useEffect(()=>{
