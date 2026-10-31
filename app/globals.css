@@ -360,3 +360,38 @@
 .ranch-worker-list{display:grid;gap:8px;margin-top:10px}
 .ranch-worker{border:1px solid #664a30;border-radius:8px;background:#2d2117;padding:10px}
 @media(max-width:430px){.bet-analysts{grid-template-columns:1fr 1fr}.bet-analyst:last-child{grid-column:span 2}}
+
+/* Seven independent virtual betting pools and betting-history ledger */
+.bet-type-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:12px 0}
+.bet-type-card{background:#322518;border:1px solid #745638;border-radius:10px;padding:10px 7px;text-align:left;color:#eee;cursor:pointer}
+.bet-type-card.selected{border:2px solid #d8a657;background:#49331b}
+.bet-type-card b,.bet-type-card small,.bet-type-card span{display:block}
+.bet-type-card b{font-size:14px;color:#f1ce91}
+.bet-type-card small{font-size:12px;color:#dfd2bc;margin:7px 0 4px}
+.bet-type-card span{font-size:10px;color:#bfa988}
+.bet-pick-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:13px}
+.bet-pick-grid label{font-size:12px;color:#e4d1ad}
+.bet-pick-grid select{display:block;width:100%;margin-top:5px;padding:9px 6px}
+.bet-stake-label{display:block;font-size:12px;color:#cdb995;margin-top:10px}
+.bet-stake-label input{display:block;margin-top:5px;width:100%}
+.bet-ticket-row{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid #634a2e;padding:11px 0}
+.bet-ticket-row small{display:block;color:#c1ae91;font-size:11px;margin-top:6px}
+.bet-ticket-row>div:last-child{text-align:right;flex-shrink:0}
+.bet-history-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.bet-history-summary .card{margin:0;padding:12px 8px;text-align:center}
+.bet-history-summary small{display:block;color:#c1ad90;font-size:11px}
+.bet-history-summary b{display:block;color:#f0dbb5;font-size:15px;margin-top:7px}
+.bet-negative{color:#ee9f88!important}
+.bet-history-list{display:grid;gap:11px}
+.bet-history-item{margin:0}
+.bet-history-picks{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin:14px 0;color:#f2d29d}
+.bet-history-picks strong{font-size:14px}
+.bet-history-picks em{color:#a99a80;font-style:normal;margin:0 4px}
+.bet-history-numbers{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;border-top:1px solid #685039;padding-top:12px}
+.bet-history-numbers small{display:block;font-size:11px;color:#a9987e}
+.bet-history-numbers b{display:block;font-size:13px;margin-top:5px}
+@media(max-width:550px){
+ .bet-type-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .bet-pick-grid{grid-template-columns:1fr}
+ .bet-history-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
