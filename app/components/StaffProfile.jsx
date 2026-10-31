@@ -97,6 +97,26 @@ export default function StaffProfile({kind,id}){
        친밀도·신뢰도는 계약 평가에서 최대 10점만 반영되며,
        더 뛰어난 경주마가 경쟁하면 관계 점수가 높아도 선택되지 않을 수 있습니다.
       </div>
+     </section>
+     <div className="section"><h2>🔒 히든 특성 발견</h2><span className="tag">마주별 관찰 정보</span></div>
+     <section className="card staff-hidden-panel">
+      {ownerBond.discoveredTraits?.length ? <>
+        <div className="staff-hidden-list">{ownerBond.discoveredTraits.map(trait=><div className="staff-hidden-trait" key={trait.code}>
+          <span className="staff-hidden-badge">✨ 발견</span>
+          <b>{trait.name}</b>
+          <p>{trait.description}</p>
+          <small>게임 {trait.gameDay}일 · 협업 경험으로 발견</small>
+        </div>)}</div>
+       </> : <div className="staff-hidden-locked">
+        <strong>🔒 아직 밝혀진 특성이 없습니다</strong>
+        <p>{ownerBond.hiddenDiscovery?.status||"기승·훈련 활동을 관찰해 주세요."}</p>
+       </div>}
+       <div className="muted" style={{marginTop:12,lineHeight:1.8}}>
+         {isJockey?"공식 경주에서 전개·거리·상황을 경험":"담당마 훈련에서 연령·거리·강도별 성과를 관찰"}하고
+         친밀도와 신뢰를 쌓으면 새로운 특징을 알아낼 수 있습니다.
+         히든 특성은 미발견 상태에서도 실제 경주·훈련 계산에 적용됩니다.
+         모든 인물이 반드시 특성을 보유한 것은 아닙니다.
+       </div>
      </section></>}
     <div className="section"><h2>📈 개인별 능력 성장·변화</h2></div>
     <section className="card staff-development">
