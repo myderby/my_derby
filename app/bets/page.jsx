@@ -11,8 +11,12 @@ export default function MyBetHistory(){
  useEffect(()=>{
   let live=true;
   const c=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
-  c.auth.getSession().then(({data})=>{if(live)setToken(data.session?.access_token||"");if(live&&!data.session)setLoading(false)}).catch(()=>{if(live)setLoading(false)});
-  const {data:{subscription}}=c.auth.onAuthStateChange((_e,s)=>{if(live)setToken(s?.access_token||"")});
+  c.auth.getSession().then(({data})=>{
+   if(live){setToken(data.session?.access_token||"");if(!data.session){setData(null);setLoading(false)}}
+  }).catch(()=>{if(live)setLoading(false)});
+  const {data:{subscription}}=c.auth.onAuthStateChange((_e,s)=>{
+   if(live){setToken(s?.access_token||"");if(!s)setData(null)}
+  });
   return()=>{live=false;subscription.unsubscribe()};
  },[]);
  const load=useCallback(async()=>{
@@ -77,7 +81,8 @@ export default function MyBetHistory(){
        <strong>{h.number??"?"}번 {h.name}</strong></span>)}</div>
       <div className="bet-history-numbers">
        <div><small>베팅액</small><b>{fmt(t.amount)}G</b></div>
-       <div><small>지급액</small><b>{fmt(t.payout)}G</b></div>
+       <div><small>지급액</small><b>{fmt(t.payout)}G</b>
+        {t.status==="WON"&&<small>최종 배당 {(Number(t.payout)/Number(t.amount)).toFixed(2)}배</small>}</div>
        <div><small>확정 손익</small>
         <b className={ticketProfit!=null&&ticketProfit<0?"bet-negative":"gold"}>
          {ticketProfit==null?"정산 대기":(ticketProfit>0?"+":"")+fmt(ticketProfit)+"G"}</b></div>
