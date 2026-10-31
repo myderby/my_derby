@@ -77,7 +77,6 @@ export default function RaceBetting({raceId}){
    setError("같은 경주마를 두 번 선택할 수 없습니다.");return;}
   setError("");setPicks(x=>x.map((v,j)=>j===i?id:v));
  };
- const selectedPool=(data?.betTypePools||[]).find(p=>p.type===type);
  const place=async()=>{
   if(!token||!data?.bettingOpen||busy||!valid)return;
   const stake=Number(amount);
@@ -101,9 +100,6 @@ export default function RaceBetting({raceId}){
  return <section className="race-betting">
   <div className="section"><h2>📈 AI 예상가 · 7개 승식 배당</h2>
    <a className="outline" href="/bets" style={{textDecoration:"none"}}>📒 나의 베팅 이력 ›</a></div>
-  <div className="notice">베팅은 환전할 수 없는 게임머니(G) 전용입니다. <b>승식별로 별도 공동 풀</b>을 구성해
-   당첨자가 있으면 최종 베팅 총액의 90%를 해당 승식의 적중 베팅 금액 비율대로 지급합니다.
-   적중자가 전혀 없으면 그 승식은 전액 환급합니다. 실제 배당은 AI 예상 점수가 아니라 참가 금액으로 결정됩니다.</div>
   {data?.entryAnnouncementPending&&<div className="notice">경주 당일 12시(한국시간) 출전표 발표 후 공개됩니다.</div>}
   {error&&<div className="notice" role="alert">{error}</div>}
   {notice&&<div className="notice">{notice}</div>}
@@ -114,12 +110,12 @@ export default function RaceBetting({raceId}){
      <div className="bet-analyst" key={t.analyst}><small>{t.analyst}</small><b>{t.name}</b></div>)}</div>
    </div>
    <div className="section"><h2>승식별 배당 풀</h2></div>
-   <div className="bet-type-grid">{types.map(t=>{const p=(data.betTypePools||[]).find(x=>x.type===t.id);
-    return <button type="button" key={t.id} className={"bet-type-card "+(type===t.id?"selected":"")}
+   <div className="bet-type-grid">{types.map(t=>
+    <button type="button" key={t.id} className={"bet-type-card "+(type===t.id?"selected":"")}
      onClick={()=>{setType(t.id);setPicks([]);setQuote(null)}}>
-     <b>{t.label}</b><small>{fmt(p?.pool)}G</small>
-     <span>배분 예정 {fmt(p?.payoutBudget)}G</span></button>
-   })}</div>
+     <b>{t.label}</b>
+    </button>
+   )}</div>
    <div className="card"><div className="row"><b className="gold">{current.label} · {current.rule}</b>
      <span className="tag">{data.bettingOpen?"베팅 접수 중":"접수 마감/준비 중"}</span></div>
     <div className="muted" style={{marginTop:9}}>아래 경주마를 순서대로 선택하세요.
@@ -137,7 +133,6 @@ export default function RaceBetting({raceId}){
        {h.number}번 {h.name}</option>)}</select>
     </label>)}</div>
     <div className="notice" style={{marginTop:12}}>
-     해당 승식 풀 {fmt(selectedPool?.pool)}G · 적중자 배분 예정 {fmt(selectedPool?.payoutBudget)}G
      {quote?.quoteAvailable&&<div style={{marginTop:6}}>
       현재 선택 조합 접수액 {fmt(quote.combinationPool)}G ·
       <b> 참고 배당 상한 {quote.upperBoundOdds}배</b>
