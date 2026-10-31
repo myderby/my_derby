@@ -51,7 +51,13 @@ export default function RanchManagement(){
  <div className="line row"><span>수의사</span><b>{data.vets} / {data.vetMax}명</b></div>
  <div className="controls"><button className="primary" disabled={busy||data.vets>=data.vetMax} onClick={()=>apply("HIRE_VET")}>고용 {fmt(data.prices.hireVet)} G</button>
  <button className="outline" disabled={busy||data.vets<=0} onClick={()=>apply("FIRE_VET")}>감원</button></div>
- <div className="muted" style={{marginTop:10}}>관리사·수의사 인건비는 매일 경제 정산 시 운영비에 포함됩니다.</div>
+ <div className="muted" style={{marginTop:10}}>직원의 등급과 능력치는 목장 휴양·재활·어린말 육성 효과에 영향을 줍니다. 등급별 급여가 게임일마다 청구됩니다.</div>
+ <div className="section"><h3>직원별 등급·능력치</h3></div>
+ <div className="ranch-worker-list">{(data.workers||[]).map(w=><div className="ranch-worker" key={w.id}>
+  <div className="row"><b>{w.role==="VET"?"🩺 수의사":"🌱 관리사"} {w.name}</b><span className="tag">등급 {w.grade}</span></div>
+  <div className="muted" style={{marginTop:7}}>관리 {w.skills?.care} · 의료 {w.skills?.medical} · 육성 {w.skills?.growth} · 안정 {w.skills?.stability}
+   <br/>게임 1일 급여 {fmt(w.salary)}G</div>
+ </div>)}</div>
  </div>
  </>}
  <div className="footer">MY DERBY · 실제 목장 확장/직원 수 및 지갑 데이터 연동</div>
