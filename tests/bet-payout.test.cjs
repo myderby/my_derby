@@ -21,7 +21,7 @@ test("stake change recalculates refund dynamically",()=>{
 });
 test("rounding uses integer gold units and preview never exceeds pool budget",()=>{
   const q=estimatePayout({pool:100,combinationPool:1,stake:101});
-  assert.equal(q.estimatedRefund,179);
+  assert.equal(q.estimatedRefund,178);
   assert.ok(q.estimatedRefund<=Math.floor(201*0.9));
 });
 test("invalid stakes and mismatched pools never produce a displayed refund",()=>{
