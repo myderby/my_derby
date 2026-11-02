@@ -310,8 +310,26 @@ end
 $fn$;
 revoke all on function my_derby_private.record_player_race_result() from public,anon,authenticated;
 drop trigger if exists trg_player_achievement_race_result on my_derby.race_results;
-create trigger trg_player_achievement_race_result after insert on my_derby.race_results
+create trigger trg_player_achievement_race_result after insert or update of finishing_rank on my_derby.race_results
   for each row execute function my_derby_private.record_player_race_result();
+
+-- Backfill previously recorded player results once, in race order. Event keys make reruns idempotent.
+do $backfill$
+declare v record;
+begin
+  for v in
+    select rr.id,rr.finishing_rank
+    from my_derby.race_results rr
+    join my_derby.race_runs ru on ru.id=rr.race_run_id
+    join my_derby.races r on r.id=ru.race_id
+    join my_derby.race_entries e on e.race_id=r.id and e.horse_id=rr.horse_id
+    where e.owner_user_id is not null
+    order by r.race_day,r.start_time,rr.id
+  loop
+    update my_derby.race_results set finishing_rank=v.finishing_rank where id=v.id;
+  end loop;
+end
+$backfill$;
 
 create or replace function my_derby_private.record_player_bet_achievement()
 returns trigger language plpgsql security definer set search_path=''

@@ -27,19 +27,28 @@ export default function AchievementsPage(){
   {categories.map(category=><section key={category} style={{marginTop:26}}>
    <h2 style={{fontSize:18,borderBottom:"1px solid #354151",paddingBottom:8}}>{labels[category]||category}</h2>
    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:10}}>
-    {(data?.definitions||[]).filter(d=>d.category===category).map(d=>{
+    {(data?.definitions||[]).filter(d=>d.category===category).flatMap(d=>{
      const related=(data?.progress||[]).filter(p=>p.achievement_key===d.achievement_key);
-     const p=related.find(x=>x.subject_id==="00000000-0000-0000-0000-000000000000")||related[0];
-     const value=Number(p?.progress||0),done=!!p?.unlocked_at;
-     return <article key={d.achievement_key} style={{background:"#162131",border:"1px solid "+(done?"#c7a65c":"#2d3a4b"),borderRadius:12,padding:14}}>
+     if(d.subject_kind==="HORSE"){
+      return (data?.horses||[]).map(h=>{
+       const p=related.find(x=>x.subject_id===h.id),value=Number(p?.progress||0),done=!!p?.unlocked_at;
+       return <article key={d.achievement_key+":"+h.id} style={{background:"#162131",border:"1px solid "+(done?"#c7a65c":"#2d3a4b"),borderRadius:12,padding:14}}>
+        <div style={{display:"flex",justifyContent:"space-between",gap:8}}><b>{d.title}</b><span>{done?"🏆":"🔒"}</span></div>
+        <div style={{fontSize:13,color:"#e4c778",marginTop:6}}>{h.name}</div>
+        <div style={{height:6,background:"#2d3a4b",borderRadius:99,marginTop:12}}><div style={{height:6,width:Math.min(100,value/Number(d.threshold)*100)+"%",background:"#c7a65c",borderRadius:99}}/></div>
+        <small style={{color:"#aab3c1"}}>{value.toLocaleString()} / {Number(d.threshold).toLocaleString()}</small>
+       </article>
+      });
+     }
+     const p=related.find(x=>x.subject_id==="00000000-0000-0000-0000-000000000000"),value=Number(p?.progress||0),done=!!p?.unlocked_at;
+     return [<article key={d.achievement_key} style={{background:"#162131",border:"1px solid "+(done?"#c7a65c":"#2d3a4b"),borderRadius:12,padding:14}}>
       <div style={{display:"flex",justifyContent:"space-between",gap:8}}><b>{d.title}</b><span>{done?"🏆":"🔒"}</span></div>
       <div style={{fontSize:13,color:"#aab3c1",marginTop:6}}>{d.description}</div>
-      {d.subject_kind==="HORSE"&&p?.horseName&&<div style={{fontSize:12,color:"#e4c778",marginTop:6}}>{p.horseName}</div>}
       <div style={{height:6,background:"#2d3a4b",borderRadius:99,marginTop:12}}><div style={{height:6,width:Math.min(100,value/Number(d.threshold)*100)+"%",background:"#c7a65c",borderRadius:99}}/></div>
       <small style={{color:"#aab3c1"}}>{value.toLocaleString()} / {Number(d.threshold).toLocaleString()}</small>
-     </article>
+     </article>];
     })}
    </div>
   </section>)}
- </main>
+</main>
 }
