@@ -30,7 +30,7 @@ export default function RanchManagement(){
  }catch(e){E(e.message)}finally{CL(false)}};
  useEffect(()=>{if(token){void load(token);void loadCandidates(specialty,token)}},[token]);
  useEffect(()=>{if(token)void loadCandidates(specialty,token)},[specialty]);
- const apply=async(operation,fields={},confirmText=""){
+ const apply=async(operation,fields={},confirmText="")=>{
   if(confirmText&&!window.confirm(confirmText))return;
   B(true);M("");E("");
   try{
