@@ -88,6 +88,24 @@ function Detail(){
      <div className="dir-records">
       <Record title="게임 통산" stats={data.game?.career}/>
       <Record title="게임 최근 364일" stats={data.game?.recentYear}/></div>
+    <div className="section"><h2>최근 공식 경주</h2></div>
+    {(data.game?.recentStarts||[]).length===0?<div className="notice">표시할 공식 경주 기록이 없습니다.</div>:
+     <div className="race-entry-wrap" role="region" aria-label="경주마 최근 공식 경주 기록" tabIndex={0}>
+      <table className="race-entry-table">
+       <thead><tr><th>경주일자</th><th>경주-마번</th><th>등급</th><th>기수</th><th>거리</th><th>부담중량</th><th>순위</th><th>기록</th><th>출전 간격</th></tr></thead>
+       <tbody>{data.game.recentStarts.map(r=>{
+        const sec=Number(r.timeSec||0),minutes=Math.floor(sec/60),seconds=(sec%60).toFixed(1).padStart(4,"0");
+        const day=["일","월","화","수","목","금","토"][Number(r.weekday)]||"";
+        return <tr key={r.raceId}>
+         <td><a href={"/race/result/"+encodeURIComponent(r.raceId)}>{r.date} ({day})</a></td>
+         <td>{r.raceNo}R-{r.gateNo}</td><td>{r.grade||"-"}</td><td>{r.jockeyName||"-"}</td>
+         <td>{fmt(r.distanceM)}m</td><td>{r.weightKg==null?"-":fmt(r.weightKg)+" kg"}</td>
+         <td>{r.rank}/{r.fieldSize}</td><td>{minutes}:{seconds}</td>
+         <td>{r.intervalDays==null?"-":r.intervalDays+"일"}</td>
+        </tr>;
+       })}</tbody>
+      </table>
+     </div>}
      <div className="section"><h2>🔍 능력·잠재력 발견 보고서</h2></div>
      <HorseDiscovery discovery={discovery} horseId={horseId||data?.id}/> 
     </>}
