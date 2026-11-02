@@ -69,14 +69,14 @@ export default function BreedingPage(){
    const data=await res.json();
    if(!res.ok)throw new Error(data.error||"번식정보 조회 실패");
    SetBoard(data);
-   SetMareId(value=>(data.mares||[]).some(m=>m.id===value)?value:data.mares?.find(m=>m.sex==="FEMALE")?.id||"");
+   SetMareId(value=>(data.mares||[]).some(m=>m.id===value)?value:data.mares?.[0]?.id||"");
    SetSireId(value=>(data.sires||[]).some(s=>s.id===value)?value:data.sires?.[0]?.id||"");
    SetError("");
   }catch(e){SetError(messageOf(e.message));}
   finally{SetLoading(false);}
  },[token]);
  useEffect(()=>{if(token)void reload(token);else{SetBoard(null);SetPreview(null);}},[token,reload]);
- const female=useMemo(()=>(board?.mares||[]).filter(m=>m.sex==="FEMALE"),[board]);
+ const female=useMemo(()=>(board?.mares||[]).filter(m=>m.sex==="FEMALE"&&m.stage==="BROODMARE"&&m.retired),[board]);
  const stallions=board?.sires||[];
  const mare=female.find(m=>m.id===mareId);
  const sire=stallions.find(s=>s.id===sireId);
@@ -84,9 +84,9 @@ export default function BreedingPage(){
  const pregnant=requests.filter(r=>r.pregnancy?.status==="PREGNANT");
  const past=requests.filter(r=>r.pregnancy?.status!=="PREGNANT");
  const canRetire=(h)=>
-  !h.retired&&h.stage==="RACING"&&h.health==="HEALTHY"&&
+  !h.retired&&h.stage==="RACING"&&
   (h.sex==="FEMALE"&&h.age>=4&&h.age<=18||
-   h.sex==="MALE"&&h.age>=4);
+   h.sex==="MALE"&&h.age>=2);
  const send=async(body)=>{
   SetBusy(body.action);SetNotice("");SetError("");
   try{
@@ -100,7 +100,7 @@ export default function BreedingPage(){
     return;
    }
    if(body.action==="RETIRE"){
-    SetNotice("번식용 영구 은퇴가 완료되었습니다. 이 말은 다시 경주에 출전할 수 없습니다.");
+    SetNotice("경주마 은퇴 후 번식마 등록이 완료되었습니다. 다시 경주에 출전할 수 없습니다.");
    }else if(data.status==="PREGNANT"){
     SetNotice("교배 신청 결과: 임신 성공! 게임 "+data.dueGameDay+
       "일에 출산 예정입니다. 임신 기간은 게임 330일입니다.");
@@ -113,7 +113,7 @@ export default function BreedingPage(){
   finally{SetBusy("");}
  };
  const retire=(h)=>{
-  if(!window.confirm(h.name+"을(를) 번식마로 영구 은퇴시키겠습니까?\n은퇴하면 경주마로 다시 복귀할 수 없습니다."))return;
+  if(!window.confirm(h.name+"을(를) 먼저 경주마에서 은퇴시키고 번식마로 등록하시겠습니까?\n은퇴하면 경주마로 다시 복귀할 수 없습니다."))return;
   if(!window.confirm("최종 확인: "+h.name+"의 현역 복귀가 영구적으로 불가능해집니다. 계속하시겠습니까?"))return;
   void send({action:"RETIRE",horseId:h.id});
  };
@@ -137,7 +137,7 @@ export default function BreedingPage(){
     <button className="outline" disabled={!token||loading||!!busy} onClick={()=>reload()}>정보 새로고침 ↻</button>
    </div>
    <div className="section"><h2>번식 관리</h2><span className="tag">실제 DB 연동</span></div>
-   <div className="notice"><b>암말 4~18세 / 수말 4세 이상</b> · 번식마 영구 은퇴 후 교배할 수 있습니다.
+   <div className="notice"><b>암말 4~18세 / 씨수말 4~25세</b> · 반드시 경주마 은퇴를 먼저 완료한 말만 교배할 수 있습니다.
     암말은 시즌당 교배 신청 최대 1회, 씨수말은 시즌당 최대 40회이며
     임신에 성공하면 <b>게임 330일</b> 후 출산합니다. 매일 09:15(한국시간)에 출산 대상이 자동 처리됩니다.
     교배 수수료는 경제 시스템 연동 전까지 부과되지 않습니다.</div>
@@ -153,27 +153,27 @@ export default function BreedingPage(){
       <div className="muted">이번 주 게임 {board.world?.gameDayStart}~{Number(board.world?.gameDayStart||0)+6}일</div></div>
      <span className="tag">{pregnant.length}두 임신 중</span></div>
 
-    <div className="section"><h2>교배 신청</h2></div>
+    <div className="section"><h2>2단계 · 은퇴한 번식마 교배 신청</h2></div>
     <div className="card">
      <label className="muted" htmlFor="mare">내 번식암말</label>
      <select id="mare" className="field" value={mareId} onChange={changeMare}>
-      {!female.length&&<option value="">보유 암말이 없습니다</option>}
-      {female.map(m=><option key={m.id} value={m.id}>{m.name} · {m.age}세 · {m.canMate?"신청 가능":m.stage==="BROODMARE"?"이번 시즌/임신 상태 확인":"은퇴·나이 조건 확인"}</option>)}
+      {!female.length&&<option value="">은퇴 후 등록된 내 번식암말이 없습니다</option>}
+      {female.map(m=><option key={m.id} value={m.id}>{m.name} · {m.age}세 · {m.canMate?"신청 가능":"이번 시즌/임신·건강 상태 확인"}</option>)}
      </select>
      {mare&&<div className="muted">
       현재 {mare.age}세 · {mare.stage==="BROODMARE"?"번식암말":mare.stage==="RACING"?"현역 경주마":mare.stage}
       · {mare.canMate?"✓ 신청 가능":"교배 신청 불가"}
      </div>}
-     <label className="muted" htmlFor="sire" style={{display:"block",marginTop:14}}>시스템/NPC 씨수말 선택</label>
+     <label className="muted" htmlFor="sire" style={{display:"block",marginTop:14}}>씨수말 선택 (은퇴한 수말만)</label>
      <select id="sire" className="field" value={sireId} onChange={changeSire}>
       {!stallions.length&&<option value="">이용 가능한 씨수말이 없습니다</option>}
       {stallions.map(s=><option key={s.id} value={s.id} disabled={s.booked>=40}>
-       {s.name} · {s.age}세 · 시즌 예약 {s.booked}/40회
+       {s.name} · {s.age}세 · {s.ownerType==="MY_STALLION"?"내 씨수말":s.ownerType==="NPC_STALLION"?"NPC 은퇴 씨수말":"시스템 씨수말"} · 시즌 예약 {s.booked}/40회
       </option>)}
      </select>
      {sire&&<div className="muted">부마의 실제 유전 잠재력은 공개되지 않습니다. 혈통 및 교배 궁합으로만 판단할 수 있습니다.</div>}
      <div className="controls" style={{marginTop:15}}>
-      <button className="outline" disabled={!mareId||!sireId||!!busy}
+      <button className="outline" disabled={!mare?.canMate||!sireId||!!busy}
        onClick={()=>send({action:"PREVIEW",mareId,sireId})}>
        {busy==="PREVIEW"?"검사 중…":"혈통·궁합 확인"}</button>
       <button className="primary" disabled={!mare?.canMate||!preview||!!busy||!sire||sire.booked>=40}
@@ -186,8 +186,10 @@ export default function BreedingPage(){
       {preview.pedigreeIncomplete&&<div className="muted">⚠ 혈통 정보가 불완전합니다. 근친 계수 0은 무혈연을 의미하지 않으며, 이 평가는 추정값입니다.</div>}
       {!mare?.canMate&&<div className="muted">현재 암말은 교배 신청 조건을 충족하지 못했습니다.</div>}
      </div>}
-     {!mare?.canMate&&female.length>0&&<div className="muted" style={{marginTop:10}}>
-       암말이 4세 이상이 되고 번식암말로 영구 은퇴한 뒤 신청할 수 있습니다.</div>}
+     {!female.length&&<div className="muted" style={{marginTop:10}}>
+       아직 은퇴시킨 내 번식암말이 없습니다. 아래 '번식용 은퇴'에서 현역 암말을 먼저 은퇴 처리하면 이 목록에 등록됩니다.</div>}
+     {mare&&!mare.canMate&&<div className="muted" style={{marginTop:10}}>
+       이 암말은 현재 시즌·임신·건강 상태 때문에 교배를 신청할 수 없습니다.</div>}
     </div>
 
     <div className="section"><h2>임신 현황</h2><span className="tag">{pregnant.length}건</span></div>
@@ -209,16 +211,16 @@ export default function BreedingPage(){
      {r.status==="REJECTED"&&<div className="muted" style={{marginTop:8}}>임신 실패 · 다음 시즌 재신청 가능</div>}
     </div>)}
 
-    <div className="section"><h2>번식용 영구 은퇴</h2></div>
+    <div className="section"><h2>1단계 · 번식용 영구 은퇴</h2></div>
     <div className="notice">⚠ 번식용 은퇴는 되돌릴 수 없습니다. 출전 등록된 말은 은퇴할 수 없으며,
-    은퇴한 말은 경주에 다시 출전할 수 없습니다. 수말 2~3세도 은퇴 자체는 가능하지만
-    씨수말 교배 이용은 4세부터이므로 이 화면에서는 4세 이상만 은퇴 신청을 제공합니다.</div>
-    {(board.mares||[]).map(h=><div className="card row" key={h.id}>
+    은퇴한 말은 경주에 다시 출전할 수 없습니다. 수말은 2세부터 은퇴 가능하지만 실제 씨수말 교배 이용은 4세부터입니다.
+    암말은 4~18세에 은퇴할 수 있으며, 은퇴 완료 후에만 '내 번식암말' 목록에 표시됩니다.</div>
+    {(board.retirementCandidates||[]).map(h=><div className="card row" key={h.id}>
      <div><b><HorseLink horseId={h.id}>{h.name}</HorseLink></b><div className="muted">{h.age}세 · {gender(h.sex)} ·
       {h.stage==="RACING"?"현역":h.stage==="BROODMARE"?"번식암말":h.stage==="STALLION"?"씨수말":h.stage}
       {h.retired?" · 경주 영구 은퇴":""}</div></div>
      {canRetire(h)?<button className="outline" disabled={!!busy} onClick={()=>retire(h)}>
-      번식마 은퇴</button>:<span className="tag">{h.retired?"은퇴 완료":"조건 미달"}</span>}
+      은퇴 · 번식 전환</button>:<span className="tag">{h.retired?"은퇴 완료":"조건 미달"}</span>}
     </div>)}
    </>}
    <div className="footer">MY DERBY · 번식·임신·출산 DB 시스템 · 시스템 씨수말은 실제 KRA 출전마가 아닌 게임용 NPC</div>
