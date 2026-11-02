@@ -84,7 +84,7 @@ export default function BreedingPage(){
  const pregnant=requests.filter(r=>r.pregnancy?.status==="PREGNANT");
  const past=requests.filter(r=>r.pregnancy?.status!=="PREGNANT");
  const canRetire=(h)=>
-  !h.retired&&h.stage==="RACING"&&
+  !h.retired&&!h.hasActiveRaceEntry&&h.stage==="RACING"&&
   (h.sex==="FEMALE"&&h.age>=4&&h.age<=18||
    h.sex==="MALE"&&h.age>=2);
  const send=async(body)=>{
@@ -162,7 +162,7 @@ export default function BreedingPage(){
       {h.stage==="RACING"?"현역":h.stage==="BROODMARE"?"번식암말":h.stage==="STALLION"?"씨수말":h.stage}
       {h.retired?" · 경주 영구 은퇴":""}</div></div>
      {canRetire(h)?<button className="outline" disabled={!!busy} onClick={()=>retire(h)}>
-      은퇴 · 번식 전환</button>:<span className="tag">{h.retired?"은퇴 완료":"조건 미달"}</span>}
+      은퇴 · 번식 전환</button>:<span className="tag">{h.retired?"은퇴 완료":h.hasActiveRaceEntry?"출전 신청 중":"조건 미달"}</span>}
     </div>)}
 
     <div className="section"><h2>2단계 · 은퇴한 번식마 교배 신청</h2></div>
