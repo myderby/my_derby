@@ -40,13 +40,14 @@ export default function RaceBetting({raceId}){
  const load=useCallback(async()=>{
   if(!raceId)return;
   try{
-   const res=await fetch("/api/player/race-bet?raceId="+encodeURIComponent(raceId),
+   const res=await fetch("/api/player/race-bet?raceId="+encodeURIComponent(raceId)+
+    "&popularType="+encodeURIComponent(betType),
     {cache:"no-store",headers:token?{Authorization:"Bearer "+token}:{}});
    const body=await res.json();
    if(!res.ok)throw Error(body.error||"베팅 정보를 조회할 수 없습니다.");
    setData(body);setError("");
   }catch(e){setError(e.message||"배당 조회 실패")}
- },[raceId,token]);
+ },[raceId,token,betType]);
  useEffect(()=>{void load();const timer=setInterval(()=>void load(),30000);return()=>clearInterval(timer)},[load]);
  const current=BET_TYPES.find(t=>t.id===betType)||BET_TYPES[0];
  const horses=(data?.horses||[]).slice().sort((a,b)=>Number(a.number)-Number(b.number));
@@ -140,6 +141,53 @@ export default function RaceBetting({raceId}){
    <div className="bet-type-grid">{BET_TYPES.map(t=>
     <button type="button" key={t.id} className={"bet-type-card "+(betType===t.id?"selected":"")}
       aria-pressed={betType===t.id} onClick={()=>switchType(t.id)}><b>{t.label}</b></button>)}</div>
+   <div className="card popular-odds-card">
+    <div className="row" style={{gap:10,alignItems:"center"}}>
+     <b className="gold">{current.legs===1?current.label+" 배당 현황":current.label+" 인기 조합 TOP 20"}</b>
+     <button className="outline" type="button" onClick={load}>↻ 갱신</button>
+    </div>
+    {data.popularOdds?.betType!==betType?
+     <div className="muted" style={{padding:"13px 0"}}>선택한 승식의 배당을 불러오는 중입니다…</div>:
+     <>
+      {current.legs===1?
+       <div className="race-entry-wrap" style={{marginTop:11}}>
+        <table className="race-entry-table popular-odds-table">
+         <thead><tr><th>마번</th><th>경주마</th><th>현재 배당률</th></tr></thead>
+         <tbody>{horses.map(h=>{
+          const item=(data.popularOdds.popular||[]).find(p=>p.numbers?.[0]===h.number);
+          return <tr key={h.horseId}><td>{h.number}</td><td>{h.name}</td>
+           <td className="popular-odds-value">{item?.odds!=null?Number(item.odds).toFixed(2)+"배":"—"}</td>
+          </tr>;
+         })}</tbody>
+        </table>
+       </div>:
+       (data.popularOdds.popular||[]).length>0?
+        <div className="race-entry-wrap" style={{marginTop:11}}>
+         <table className="race-entry-table popular-odds-table">
+          <thead><tr><th>인기</th><th>조합</th><th>현재 배당률</th></tr></thead>
+          <tbody>{(data.popularOdds.popular||[]).map(p=>
+           <tr key={p.rank}>
+            <td>{p.rank}위</td>
+            <td className="popular-odds-combination">
+             {(p.numbers||[]).join(["EXACTA","TRIFECTA"].includes(betType)?" → ":" - ")}
+            </td>
+            <td className="popular-odds-value">{p.odds!=null?Number(p.odds).toFixed(2)+"배":"—"}</td>
+           </tr>)}</tbody>
+         </table>
+        </div>:
+        <div className="muted" style={{padding:"14px 0"}}>
+         아직 베팅된 조합이 없습니다. 베팅이 접수되면 인기순위가 표시됩니다.
+        </div>}
+      {data.popularOdds.isUpperBound&&
+       <div className="muted" style={{marginTop:7,fontSize:11}}>
+        연승·복연승은 여러 조합이 적중할 수 있어 표시 배당이 예상 상한입니다.
+       </div>}
+      <div className="popular-odds-footer">
+       <span>{current.label} 전체 베팅금액</span>
+       <strong>{fmt(data.popularOdds.totalAmount)}G</strong>
+      </div>
+     </>}
+   </div>
    <div className="card">
     <div className="row"><b className="gold">🎟️ {current.label} OMR 카드</b>
      <span className="tag">{data.bettingOpen?"접수 중":"접수 마감/준비 중"}</span></div>
