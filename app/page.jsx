@@ -4,6 +4,8 @@ import {useEffect,useState} from "react";
 import {createClient} from "@supabase/supabase-js";
 import {selectRaceCommentary} from "../lib/racing/commentary";
 import {officialSlotSummaries} from "../lib/racing/slot-status";
+import raceClock from "../lib/racing/format-race-time.cjs";
+const {formatRaceTime}=raceClock;
 const horses=[{id:1,name:"가을바람",age:4,sex:"수",stage:"현역",condition:82,fatigue:18,stats:[81,74,68,76,70,73]},{id:2,name:"골든레이스",age:3,sex:"수",stage:"현역",condition:77,fatigue:22,stats:[74,76,69,72,70,66]},{id:3,name:"작은별",age:1,sex:"암",stage:"목장",condition:93,fatigue:4,stats:[35,39,42,32,36,41]},{id:4,name:"여왕의꿈",age:6,sex:"암",stage:"교배",breedingRetired:true,condition:89,fatigue:9,stats:[80,78,82,76,73,77]},{id:5,name:"블랙스톰",age:5,sex:"거",stage:"재활",condition:58,fatigue:42,stats:[83,73,77,82,69,74]}];
 const trainers=[["김도윤","스피드·가속",14],["박수진","지구력·회복",8],["이민호","파워·근성",19],["최은영","컨디션·기질",6],["정우석","마일·선입",20]];
 const jockeys=[["박준호","마일·선입",3],["김하늘","중거리·페이스",5],["이승민","출발·단거리",8],["정다은","추입·안정성",2]];
@@ -278,7 +280,7 @@ return <main className="shell"><header className="header"><div onClick={()=>go("
  <b className="gold">19시 1경주 비공식 결과 · 10두</b>
  {gradeFixtureResult.results.map(x=><div className="line row small" key={x.horseId}>
  <b>{x.rank}위</b><span>{x.number}번 <HorseLink horseId={x.horseId}>{x.name}</HorseLink></span>
- <span>{x.timeSec.toFixed(2)}초</span></div>)}
+ <span>{formatRaceTime(x.timeSec)}</span></div>)}
  <a className="outline wide" href="/test-race" style={{display:"block",textAlign:"center",textDecoration:"none",marginTop:12}}>
  전체 출전표 및 구간 중계 보기 ›</a>
 </div>}
@@ -308,16 +310,16 @@ return <main className="shell"><header className="header"><div onClick={()=>go("
  return <><div style={{height:14}}/>{section("선택한 비공식 경주 결과")}
  <div className="card"><b>{r.time} · {r.track} {r.displayNo}경주 · {r.grade}</b>
  <div className="large gold">{winner.number}번 {winner.name} 우승</div>
- <div className="muted">경주기록 {winner.timeSec.toFixed(2)}초 · 결과 발표 예정 {r.resultTime} · 시드 {result.seed}</div></div>
+ <div className="muted">경주기록 {formatRaceTime(winner.timeSec)} · 결과 발표 예정 {r.resultTime} · 시드 {result.seed}</div></div>
  <div className="card">{result.results.map(x=><div className="row line small" key={x.horseId}>
- <b className="gold">{x.rank}위</b><span>{x.number}번 <HorseLink horseId={x.horseId}>{x.name}</HorseLink></span><span>{x.timeSec.toFixed(2)}초</span></div>)}</div>
+ <b className="gold">{x.rank}위</b><span>{x.number}번 <HorseLink horseId={x.horseId}>{x.name}</HorseLink></span><span>{formatRaceTime(x.timeSec)}</span></div>)}</div>
  {section("200m 구간 순위")}
  <div className="card">{result.sections.map(x=><div className="line" key={x.distanceM}>
  <b className="gold">{x.distanceM}m</b>
  <div className="muted">{x.ranks.slice(0,5).map(h=>h.rank+"위 "+h.number+"번 "+h.name).join(" · ")}</div></div>)}</div>
  {section("경주 중계 · 출발부터 결승선까지")}
  {selectRaceCommentary(result.events).map(x=><div className="card" key={x.seq}>
- <div className="muted">{x.timeSec.toFixed(1)}초 · {x.distanceM.toFixed(0)}m</div>
+ <div className="muted">{formatRaceTime(x.timeSec,1)} · {x.distanceM.toFixed(0)}m</div>
  <div className="small">{x.text}</div></div>)}
  </>;
 })()}
@@ -334,7 +336,7 @@ return <main className="shell"><header className="header"><div onClick={()=>go("
 <button className="primary wide" disabled={dbBusy||dbRaceId.trim().length<30} onClick={runDbPreview}>DB 출전마로 계산 · 비공식 기록 저장</button>
 <div style={{height:10}}/><button className="outline wide" disabled={dbBusy} onClick={loadDbHistory}>내 미리보기 기록 조회</button>
 {dbHistory.length>0&&<div className="card">{dbHistory.map(x=><div className="line" key={x.id}><b>{x.result_snapshot?.results?.[0]?.name||"출전 경주"}</b><div className="muted">{x.created_at} · {x.race_id}</div></div>)}</div>}
-{dbPreview&&<div className="card"><b>최근 비공식 경주 순위</b>{dbPreview.results.map(x=><div className="line row small" key={x.horseId}><b>{x.rank}위</b><span>{x.number}번 <HorseLink horseId={x.horseId}>{x.name}</HorseLink></span><span>{x.timeSec}초</span></div>)}</div>}
+{dbPreview&&<div className="card"><b>최근 비공식 경주 순위</b>{dbPreview.results.map(x=><div className="line row small" key={x.horseId}><b>{x.rank}위</b><span>{x.number}번 <HorseLink horseId={x.horseId}>{x.name}</HorseLink></span><span>{formatRaceTime(x.timeSec)}</span></div>)}</div>}
 </div></>}
 {screen==="horses"&&<>{title("보유마","생애 단계와 상태를 한눈에")}<div className="area"><div className="card"><b>전체 5두</b><div className="muted">현역 2 · 목장 1 · 교배 1 · 재활 1</div></div><div className="tabs">{["전체","현역","목장","교배","재활"].map(x=><button className={filter===x?"active":""} onClick={()=>F(x)} key={x}>{x}</button>)}</div>{horses.filter(x=>filter==="전체"||x.stage===filter).map(x=><div key={x.id}>{box("♞ "+x.name,x.age+"세 · "+x.sex+"말 · 컨디션 "+x.condition,()=>{H(x);go("horse")},x.stage)}</div>)}</div></>}
 {screen==="horse"&&<>{title(selected.name,selected.age+"세 · "+selected.sex+"말 · "+selected.stage)}<div className="area"><div className="card"><div className="large gold">♞ {selected.name}</div><div className="muted">컨디션 {selected.condition} · 피로 {selected.fatigue}</div><div className="bar"><div className="fill" style={{width:selected.condition+"%"}}/></div></div>{section("능력치 · 추정")}<div className="grid">{["스피드","가속력","지구력","막판탄력","파워","근성"].map((x,i)=><div className="card" key={x}><div className="row small"><span>{x}</span><b>{selected.stats[i]}</b></div><div className="bar"><div className="fill" style={{width:selected.stats[i]+"%"}}/></div></div>)}</div><div className="notice">현재 능력치 수치는 샘플입니다. 잠재력·유전값·훈련의 실제 결과는 서버 엔진 미연결 상태입니다.</div><div className="twoCol">{[["조교사 찾기","trainers"],["훈련 리포트","training"],["경주 일정","races"],["개인목장","ranch"]].map(([t,p])=><button key={p} className="outline" onClick={()=>go(p)}>{t}</button>)}</div></div></>}
