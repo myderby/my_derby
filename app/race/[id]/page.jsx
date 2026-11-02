@@ -2,6 +2,7 @@
 import HorseLink, {HorseMentions} from "../../components/HorseLink";
 import StaffLink from "../../components/StaffLink";
 import RaceBetting from "../../components/RaceBetting";
+import RaceDividends from "../../components/RaceDividends";
 import {useEffect,useMemo,useState} from "react";
 import {useParams} from "next/navigation";
 import {selectRaceCommentary} from "../../../lib/racing/commentary";
@@ -180,6 +181,7 @@ export default function RaceDetailPage(){
        <div style={{whiteSpace:"nowrap",fontSize:13}}>{formatRaceTime(x.timeSec)}</div>
       </div>;
      })}</div>
+     <RaceDividends result={race.bettingResults}/>
      <div className="notice">이 내용은 실제 월드에서 실행된 경주 엔진의 공식 저장 결과입니다. 상금 및 경제 정산은 별도 기능입니다.</div>
     </>}
     {completed&&tab==="sections"&&<>
