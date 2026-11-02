@@ -22,6 +22,16 @@ export async function GET(req:Request){
    if(error)throw error;board=data;
   }
   if(!board)return failure("경주를 찾을 수 없습니다.",404);
+  const popularType=url.searchParams.get("popularType");
+  if(popularType){
+   if(!types.includes(popularType))return failure("올바르지 않은 승식입니다.");
+   const {data:popularOdds,error:popularError}=await createPublicDb()
+    .schema("my_derby").rpc("public_race_popular_odds",{
+      p_race:raceId,p_type:popularType
+    });
+   if(popularError)throw popularError;
+   return NextResponse.json({...board,popularOdds},{headers:{"Cache-Control":"no-store"}});
+  }
   const type=url.searchParams.get("betType"),selection=url.searchParams.get("selection");
   if(type&&selection){
    const picks=selection.split(",").filter(Boolean);
