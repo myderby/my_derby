@@ -39,9 +39,27 @@ export async function GET(req:Request){
 export async function POST(req:Request){
  try{
   const {db}=await requireUser(req);
-  if(Number(req.headers.get("content-length")||0)>1500)return failure("요청이 너무 큽니다.",413);
+  if(Number(req.headers.get("content-length")||0)>14000)return failure("요청이 너무 큽니다.",413);
   const x=await req.json();
   const type=x?.betType||"WIN";
+  if(x?.action==="omr-batch"){
+   const tickets=x?.combinations;
+   if(!uuid.test(x?.raceId||"")||!uuid.test(x?.requestId||"")||
+     !types.includes(type)||!Number.isInteger(x?.amountEach)||
+     x.amountEach<100||x.amountEach>10000||
+     !Array.isArray(tickets)||tickets.length<1||tickets.length>100||
+     tickets.some((ticket:unknown)=>!Array.isArray(ticket)||
+       ticket.length<1||ticket.length>3||
+       ticket.some((h:unknown)=>typeof h!=="string"||!uuid.test(h)))||
+     tickets.length*x.amountEach>10000)
+      return failure("OMR 선택 조합·조합당 금액·전체 베팅 한도를 확인해주세요.");
+   const {data,error}=await db.schema("my_derby").rpc("player_place_race_bet_batch",{
+    p_race:x.raceId,p_type:type,p_selections:tickets,p_amount_each:x.amountEach,
+    p_batch_id:x.requestId
+   });
+   if(error)throw error;
+   return NextResponse.json(data,{headers:{"Cache-Control":"no-store"}});
+  }
   const picks=x?.selections|| (x?.horseId?[x.horseId]:[]);
   if(!x||!uuid.test(x.raceId)||!uuid.test(x.requestId)||!types.includes(type)||
     !Array.isArray(picks)||!picks.length||picks.length>3||picks.some((h:unknown)=>typeof h!=="string"||!uuid.test(h))||
