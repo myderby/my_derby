@@ -56,44 +56,7 @@ BEGIN
    JOIN my_derby.race_entries e ON e.race_id=r.id AND e.horse_id=rr.horse_id
    LEFT JOIN my_derby.npc_jockeys j ON j.id=e.jockey_id
    WHERE rr.horse_id=v_h.id
-    AND r.prize_policy->>'kst_date' ~ '^\\d{4}-\\d{2}-\\d{2}
- RETURN jsonb_build_object(
-  'status','OK','gameHorseId',v_h.id,'sourceAvailable',v_p.source_hr_no IS NOT NULL,
-  'name',coalesce(v_h.name,v_p.horse_name),
-  'horseNo',coalesce(v_p.source_hr_no,v_h.source_hr_no),
-  'track',CASE coalesce(v_h.source_meet,v_p.source_meet)
-    WHEN '부산경남' THEN '부산' WHEN '영남' THEN '부산'
-    WHEN '제주' THEN '영천' ELSE coalesce(v_h.source_meet,v_p.source_meet) END,
-  'sex',v_h.sex,'sourceSex',v_p.source_sex,
-  'age',v_h.age_years,'birthDate',coalesce(v_p.birth_date,v_h.source_birth_date),
-  'grade',v_h.source_grade_no,'sourceRank',v_p.source_rank,
-  'rating',v_h.domestic_rating,'sourceRating',v_p.source_rating,
-  'stage',v_h.life_stage,'condition',v_h.condition_score,'fatigue',v_h.fatigue,
-  'health',v_h.health_state,'retired',v_h.racing_retired_permanently,
-  'ratingPending',v_h.rating_pending_grade,
-  'abilities','{}'::jsonb,'discovery',v_ability,
-  'gameTrainer',(select jsonb_build_object('id',n.id,'name',n.name)
-   from my_derby.trainer_contracts c join my_derby.npc_trainers n on n.id=c.trainer_id
-   where c.horse_id=v_h.id and c.status='ACTIVE'
-   order by c.start_game_day desc,c.id desc limit 1),
-  'source',CASE WHEN v_p.source_hr_no IS NULL THEN NULL ELSE jsonb_build_object(
-    'meet',v_p.source_meet,'horseNo',v_p.source_hr_no,'horseName',v_p.horse_name,
-    'country',v_p.country,
-    'fatherName',v_p.father_name,'fatherNo',v_p.father_no,
-    'motherName',v_p.mother_name,'motherNo',v_p.mother_no,
-    'ownerName',v_p.owner_name,'trainerName',v_p.trainer_name,
-    'career',jsonb_build_object('starts',v_p.starts_total,
-      'wins',v_p.wins_total,'second',v_p.seconds_total,'third',v_p.thirds_total),
-    'recentYear',jsonb_build_object('starts',v_p.starts_year,
-      'wins',v_p.wins_year,'second',v_p.seconds_year,'third',v_p.thirds_year),
-    'sourceLabel','USER_CSV_QUERY_56','yearBasis','USER_PROVIDED_ONE_YEAR_SNAPSHOT'
-   ) END,
-  'game',jsonb_build_object('career',v_game_total,'recentYear',v_game_year,
-   'recentStarts',coalesce(v_recent_starts,'[]'::jsonb),
-   'yearBasis','LAST_364_GAME_DAYS','recordsAvailable',v_h.id IS NOT NULL)
- );
-END $function$
-
+    AND r.prize_policy->>'kst_date' ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
   ), recent AS (
    SELECT * FROM ranked ORDER BY race_date DESC,start_time DESC,id LIMIT 20
   )
@@ -140,6 +103,7 @@ END $function$
     'sourceLabel','USER_CSV_QUERY_56','yearBasis','USER_PROVIDED_ONE_YEAR_SNAPSHOT'
    ) END,
   'game',jsonb_build_object('career',v_game_total,'recentYear',v_game_year,
+   'recentStarts',coalesce(v_recent_starts,'[]'::jsonb),
    'yearBasis','LAST_364_GAME_DAYS','recordsAvailable',v_h.id IS NOT NULL)
  );
 END $function$
