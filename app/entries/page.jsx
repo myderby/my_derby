@@ -47,7 +47,7 @@ const entryWindowState=r=>{
  if(now.slice(0,10)>r.kstDate)return "CLOSED";
  if(now.slice(0,10)===r.kstDate){
   if(Number(r.gradeNo)!==6||r.isSpecialRace)return "CLOSED";
-  return now.slice(11,16)<"12:00"?"OPEN":"CLOSED";
+  return now.slice(11,16)<"08:00"?"OPEN":"CLOSED";
  }
  return "OPEN";
 };
@@ -213,10 +213,10 @@ export default function EntriesPage(){
    기존 NPC 출전으로 만석이면 NPC 슬롯을 1개 교체합니다.
    일반 경주는 경주마와 소속 지역·등급이 같아야 신청할 수 있습니다.
    OPEN·대상경주는 소속 지역 및 해당 경주의 ageCond(연령 조건)를 충족하면 등급과 관계없이 신청할 수 있습니다.
-   OPEN·대상경주는 4일 전, 일반 경주는 2일 전 00:00(한국시간)부터 신청 가능하며, 6등급은 경주 당일 정오 전까지 가능합니다.
+   OPEN·대상경주는 4일 전, 일반 경주는 2일 전 00:00(한국시간)부터 신청 가능하며, 6등급은 경주 당일 오전 8시 전까지 가능합니다.
    ageCond가 확인되지 않은 OPEN·대상경주는 조건 등록 전까지 출전 신청을 제한합니다.
    건강·피로도 및 중복 출전 제한은 유지합니다.
-   기수는 경주당 한 마리, 게임 날짜당 최대 8회까지 기승할 수 있습니다. 같은 기수에게 여러 신청이 오면 능력·전법 궁합·기존 협업·경주 등급·기수 판단력으로 비교해 선정합니다. 심사에서 거절되면 다른 기수에게 재신청할 수 있으며, 정오에 출전표가 확정됩니다.</div>
+   기수는 경주당 한 마리, 게임 날짜당 최대 8회까지 기승할 수 있습니다. 같은 기수에게 여러 신청이 오면 능력·전법 궁합·기존 협업·경주 등급·기수 판단력으로 비교해 선정합니다. 심사에서 거절되면 다른 기수에게 재신청할 수 있으며, 오전 8시에 출전표가 공개됩니다.</div>
    {message&&<div className="notice" role="status">{message}</div>}
    {error&&<div className="notice" role="alert">{error}</div>}
    {checking&&<div className="notice">로그인 상태 확인 중…</div>}
@@ -252,7 +252,7 @@ export default function EntriesPage(){
      <div className="row"><div><b className="gold">{r.kstDate} {r.startTime} · {r.track} {r.raceNo}경주</b>
        <div className="muted">{r.grade} · {r.distance}m · {r.confirmedCount}/{r.capacity}두</div></div>
        <span className="tag">{r.status==="FINISHED"?"종료":r.isSpecialRace&&!r.ageCondValid?"연령 조건 미등록":windowState==="NOT_OPEN"?"접수 예정":close?"신청 마감":"신청 가능"}</span></div>
-     <div className="muted" style={{marginTop:8}}>접수 시작 {r.entryOpenDate} 00:00 ({r.isSpecialRace?"OPEN·대상 4일 전":"일반 2일 전"}) · 마감 {r.kstDate} {Number(r.gradeNo)===6&&!r.isSpecialRace?"12:00":"00:00"} ({Number(r.gradeNo)===6&&!r.isSpecialRace?"6등급은 당일 정오까지 신청 가능":"경주 당일 신청 불가"}, 한국시간)</div>
+     <div className="muted" style={{marginTop:8}}>접수 시작 {r.entryOpenDate} 00:00 ({r.isSpecialRace?"OPEN·대상 4일 전":"일반 2일 전"}) · 마감 {r.kstDate} {Number(r.gradeNo)===6&&!r.isSpecialRace?"08:00":"00:00"} ({Number(r.gradeNo)===6&&!r.isSpecialRace?"6등급은 당일 오전 8시 전까지 신청 가능":"경주 당일 신청 불가"}, 한국시간)</div>
      {r.isSpecialRace&&<div className="notice" style={{marginTop:8,fontSize:12}}>
       대상경주 출전 연령 조건(ageCond): <b>{r.ageCondValid?r.ageCond:"확인되지 않음"}</b>
       {!r.ageCondValid&&" · 정확한 원본 경주 연령 조건이 등록될 때까지 신청할 수 없습니다."}
