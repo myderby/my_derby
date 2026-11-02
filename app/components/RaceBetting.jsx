@@ -112,7 +112,7 @@ export default function RaceBetting({raceId}){
  return <section className="race-betting">
   <div className="section"><h2>📈 AI 예상가 · 7개 승식 배당</h2>
    <a className="outline" href="/bets" style={{textDecoration:"none"}}>📒 나의 베팅 이력 ›</a></div>
-  {data?.entryAnnouncementPending&&<div className="notice">경주 당일 12시(한국시간) 출전표 발표 후 공개됩니다.</div>}
+  {data?.entryAnnouncementPending&&<div className="notice">경주 당일 오전 8시(한국시간) 출전표 발표 후 공개됩니다.</div>}
   {error&&<div className="notice" role="alert">{error}</div>}
   {notice&&<div className="notice">{notice}</div>}
   {data&&<>
