@@ -106,7 +106,7 @@ BEGIN
    'recentStarts',coalesce(v_recent_starts,'[]'::jsonb),
    'yearBasis','LAST_364_GAME_DAYS','recordsAvailable',v_h.id IS NOT NULL)
  );
-END $function$
+END $function$;
 
 REVOKE ALL ON FUNCTION my_derby.world_horse_profile(uuid,text,text) FROM PUBLIC,anon,authenticated;
 GRANT EXECUTE ON FUNCTION my_derby.world_horse_profile(uuid,text,text) TO anon,authenticated;
