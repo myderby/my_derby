@@ -15,6 +15,9 @@ const sexLabel={MALE:"수",FEMALE:"암",GELDING:"거"};
 const sec=n=>Number(n||0).toFixed(2);
 const stamp=n=>Number(n||0).toFixed(1);
 const emptyLabel="기록이 아직 없습니다.";
+const BET_NAMES={WIN:"단승",PLACE:"연승",QUINELLA:"복승",QUINELLA_PLACE:"복연승",
+ EXACTA:"쌍승",TRIO:"삼복승",TRIFECTA:"삼쌍승"};
+const fmtOdds=n=>n==null?"—":Number(n).toFixed(2)+"배";
 
 export default function RaceDetailPage(){
  const params=useParams();
@@ -184,6 +187,42 @@ export default function RaceDetailPage(){
      <RaceDividends result={race.bettingResults}/>
      <div className="notice">이 내용은 실제 월드에서 실행된 경주 엔진의 공식 저장 결과입니다. 상금 및 경제 정산은 별도 기능입니다.</div>
     </>}
+    {completed&&tab==="result"&&<section aria-label="경주별 확정 배당 결과">
+     <div className="section"><h2>💰 승식별 적중 조합 · 확정 배당</h2></div>
+     {race.bettingResults?.status==="RECORDED"?<>
+      <div className="race-entry-wrap" role="region" aria-label="적중 조합 및 확정 배당률" tabIndex={0}>
+       <table className="race-entry-table">
+        <thead><tr><th>승식</th><th>적중마 번호</th><th>확정 배당</th></tr></thead>
+        <tbody>{(race.bettingResults.winningCombinations||[]).map((x,i)=><tr key={x.type+"-"+(x.numbers||[]).join("-")+"-"+i}>
+         <td>{BET_NAMES[x.type]||x.type}</td>
+         <td style={{whiteSpace:"nowrap"}}>{(x.numbers||[]).join(["EXACTA","TRIFECTA"].includes(x.type)?" → ":" - ")}</td>
+         <td className="popular-odds-value">{x.result==="PAID"?fmtOdds(x.payoutOdds):"적중 베팅 없음"}</td>
+        </tr>)}</tbody>
+       </table>
+      </div>
+      <div className="muted" style={{margin:"10px 0 16px"}}>
+       실제 적중 베팅금에 지급된 확정 배당입니다. 적중 베팅이 없는 조합은 배당을 임의로 만들지 않습니다.
+      </div>
+      <div className="section"><h2>🏇 마번별 최종 단승·연승 배당</h2></div>
+      <div className="race-entry-wrap" role="region" aria-label="전 출전마 최종 단승 연승 배당" tabIndex={0}>
+       <table className="race-entry-table">
+        <thead><tr><th>마번</th><th>경주마</th><th>단승</th><th>연승</th></tr></thead>
+        <tbody>{(race.bettingResults.runnerOdds||[]).map(h=><tr key={h.horseId}>
+         <td>{h.number}</td><td><HorseLink horseId={h.horseId}>{h.name}</HorseLink></td>
+         <td className="popular-odds-value">{fmtOdds(h.winOdds)}</td>
+         <td className="popular-odds-value">{fmtOdds(h.placeOddsUpper)}</td>
+        </tr>)}</tbody>
+       </table>
+      </div>
+      <div className="muted" style={{margin:"10px 0 16px"}}>
+       마번별 최종 베팅 풀 기준 배당입니다. 연승은 복수 적중마에게 배분되므로 표기값은 정산 전 상한 참고 배당이며, 위 적중 결과의 연승 확정 배당과 다를 수 있습니다.
+      </div>
+     </>:<div className="notice">
+      {race.bettingResults?.status==="HISTORIC_NOT_RECORDED"?
+       "이 경주는 확정 배당 기록 기능 적용 전에 정산되어 이전 배당률을 정확히 복원할 수 없습니다.":
+       "해당 경주의 확정 배당 자료가 아직 저장되지 않았습니다."}
+     </div>}
+    </section>}
     {completed&&tab==="sections"&&<>
      <div className="section"><h2>200m 구간별 전 마필 순위</h2></div>
      {!race.sections?.length&&<div className="notice">{emptyLabel}</div>}
