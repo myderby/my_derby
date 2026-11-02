@@ -148,6 +148,8 @@ export default function RaceBetting({raceId}){
     </div>
     {data.popularOdds?.betType!==betType?
      <div className="muted" style={{padding:"13px 0"}}>선택한 승식의 배당을 불러오는 중입니다…</div>:
+     data.popularOdds.status==="UNANNOUNCED"?
+     <div className="muted" style={{padding:"13px 0"}}>경주 당일 오전 8시 출전표 공개 후 배당이 표시됩니다.</div>:
      <>
       {current.legs===1?
        <div className="race-entry-wrap" style={{marginTop:11}}>
