@@ -11,7 +11,6 @@ const specialists=[
  {code:"VET",label:"수의사",facility:"VET_CLINIC"},
  {code:"YOUNG_HORSE_CARETAKER",label:"육성 관리사",facility:"YOUNG_HORSE_AREA"}
 ];
-const gradeOrder={S:0,A:1,B:2,C:3};
 export default function RanchManagement(){
  const [token,T]=useState(""),[data,D]=useState(null),[error,E]=useState(""),
  [notice,M]=useState(""),[busy,B]=useState(false),[specialty,S]=useState(specialists[0].code),
@@ -49,7 +48,6 @@ export default function RanchManagement(){
  };
  const activeWorkers=data?.workers||[];
  const selected=specialists.find(x=>x.code===specialty)||specialists[0];
- const candidateCount=activeWorkers.filter(w=>w.specialty===specialty).length;
  const assignedCount=activeWorkers.filter(w=>w.assignedFacilityId).length;
  return <main className="shell"><header className="header"><a className="brand" href="/" style={{textDecoration:"none"}}>MY DERBY</a><span className="coin">🏗️ 목장 경영</span></header>
  <div className="area"><div className="controls"><a href="/ranch" className="outline" style={{textDecoration:"none"}}>‹ 목장 코스</a><a href="/finance" className="outline" style={{textDecoration:"none"}}>재무 ›</a></div>
