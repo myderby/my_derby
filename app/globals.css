@@ -408,3 +408,28 @@
 .bet-refund-amount{font-size:19px;white-space:nowrap}
 .bet-refund-preview .muted{font-size:11px;line-height:1.6}
 @media(max-width:390px){.bet-refund-amount{font-size:16px}}
+
+/* OMR card: number bubbles, up to three independent ticket selection rows. */
+.omr-card-row{margin-top:12px;padding:12px 10px;border:1px solid #765739;background:#312416;border-radius:12px}
+.omr-card-row>.row{margin-bottom:10px}
+.omr-card-row>.row strong{font-size:13px;color:#f3d7a8}
+.omr-card-row>.row .outline{font-size:11px;padding:5px 8px}
+.omr-number-grid{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:7px}
+.omr-number{display:grid;place-items:center;border:2px solid #8f7964;
+ background:#f4eee2;color:#42311e;border-radius:50%;width:100%;max-width:45px;aspect-ratio:1;
+ padding:0;font-weight:800;font-size:14px;cursor:pointer;transition:background .12s,border-color .12s}
+.omr-number.marked{background:#c06c32;color:#fff3e3;border-color:#ffce8d;
+ box-shadow:0 0 0 2px rgba(250,198,114,.26) inset}
+.omr-number:focus-visible{outline:3px solid #f0c678;outline-offset:3px}
+.omr-horse-legend{display:flex;flex-wrap:wrap;gap:6px 10px;margin:12px 0;color:#ccbda7;font-size:11px}
+.omr-horse-legend b{color:#f0ca8d}
+.omr-combinations{border:1px solid #80613f;padding:12px;border-radius:10px;margin-top:13px;background:#271c12}
+.omr-combo-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;max-height:180px;overflow:auto}
+.omr-combo-list span{background:#4b3421;border:1px solid #86603c;color:#f4deb8;border-radius:5px;
+ padding:5px 9px;font-size:12px;white-space:nowrap}
+.omr-stake-summary{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;
+ border-bottom:1px solid #5f4a31;color:#d8c3a7;font-size:12px}
+.omr-stake-summary b{font-size:13px;white-space:normal;text-align:right}
+@media(max-width:420px){.omr-number-grid{gap:5px}
+ .omr-number{font-size:12px;border-width:1.5px}
+ .omr-stake-summary{align-items:start;flex-direction:column}}
