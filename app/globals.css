@@ -468,3 +468,18 @@
 .popular-odds-footer strong{color:#f0d391;font-size:17px;font-variant-numeric:tabular-nums;white-space:nowrap}
 @media(max-width:410px){.popular-odds-table th,.popular-odds-table td{padding:7px 6px;font-size:12px}
  .popular-odds-footer strong{font-size:15px}}
+
+/* Stored official dividends: compact enough for the mobile result screen. */
+.dividend-result-table{width:100%;min-width:0}
+.dividend-result-table th:last-child,
+.dividend-result-table td:last-child{text-align:right;white-space:nowrap}
+.dividend-result-table td:first-child{white-space:nowrap}
+.dividend-result-table .dividend-horses{color:#eed6aa;font-weight:700;white-space:nowrap}
+.dividend-result-table .dividend-value{color:#efc97f;font-weight:800;font-variant-numeric:tabular-nums}
+.dividend-result-table td{font-size:12px;padding:9px 5px}
+.dividend-result-table th{font-size:11px;padding:9px 5px}
+.dividend-result-table .muted{font-size:11px;font-weight:400}
+@media(max-width:390px){
+ .dividend-result-table td{font-size:11px;padding:7px 3px}
+ .dividend-result-table th{font-size:10px;padding:7px 3px}
+}
