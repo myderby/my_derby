@@ -96,7 +96,7 @@ const walletText=walletBalance.status==="READY"
  :walletBalance.status==="ERROR"?"◉ 잔액 조회 실패"
  :"◉ 잔액 조회 중";
 
-const go=x=>{const routes={ownersDirectory:"/participants?view=owners",trainersDirectory:"/participants?view=trainers",participantsRecords:"/participants?view=records",testFixture:"/test-race",allHorses:"/horses",allJockeys:"/jockeys",ratings:"/ratings",auction:"/auction",injuries:"/injuries",ranchManagement:"/ranch/management",notifications:"/notifications",races:"/schedule",training:"/training",breeding:"/breeding",horses:"/world",trainers:"/stable",ranch:"/ranch",market:"/market",finance:"/finance",myBets:"/bets",entry:"/entries",jockey:"/entries",strategy:"/entries",results:"/schedule",dailyNews:"/news",myNews:"/news?view=mine"};if(routes[x]&&typeof window!=="undefined"){window.location.assign(routes[x]);return;}S(x);if(typeof window!=="undefined")window.scrollTo(0,0)},msg=x=>{Q(x);setTimeout(()=>Q(""),3500)};
+const go=x=>{const routes={ownersDirectory:"/participants?view=owners",trainersDirectory:"/participants?view=trainers",participantsRecords:"/participants?view=records",testFixture:"/test-race",allHorses:"/horses",allJockeys:"/jockeys",ratings:"/ratings",auction:"/auction",injuries:"/injuries",ranchManagement:"/ranch/management",notifications:"/notifications",races:"/schedule",training:"/training",breeding:"/breeding",horses:"/world",trainers:"/stable",ranch:"/ranch",market:"/market",finance:"/finance",myBets:"/bets",entry:"/entries",jockey:"/entries",strategy:"/entries",results:"/schedule",dailyNews:"/news",myNews:"/news?view=mine",achievements:"/achievements",tutorial:"/tutorial"};if(routes[x]&&typeof window!=="undefined"){window.location.assign(routes[x]);return;}S(x);if(typeof window!=="undefined")window.scrollTo(0,0)},msg=x=>{Q(x);setTimeout(()=>Q(""),3500)};
 const title=(x,sub)=><div className="pageTitle"><button className="back" onClick={()=>go("home")}>‹</button><div><h1>{x}</h1><div className="sub">{sub}</div></div></div>;
 const section=(x,next)=><div className="section"><h2>{x}</h2>{next&&<button onClick={()=>go(next)}>전체 보기 ›</button>}</div>;
 const box=(a,b,d,right)=><div className="card action row" onClick={d}><div><b>{a}</b><div className="muted">{b}</div></div><span className="tag">{right||"›"}</span></div>;
@@ -380,6 +380,7 @@ return <main className="shell"><header className="header"><div onClick={()=>go("
   ]],
   ["📊 정보와 기록","나의 성적 · 명부 · 순위",[
    ["개인 기록",[["나의 정보","myRecord"]]],
+   ["업적과 튜토리얼",[["업적과 호칭","achievements"],["첫 시즌 이야기","tutorial"]]],
    ["경마 소식",[["더비 데일리 · 전체 뉴스","dailyNews"],["나의 경주 소식","myNews"]]],
    ["전체 명부",[["전체 기수","allJockeys"],["전체 마주","ownersDirectory"],["전체 조교사","trainersDirectory"]]],
    ["경주 성적",[["기수·마주·조교사 성적","participantsRecords"]]]

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
+import TutorialOnboarding from "./TutorialOnboarding";
 
 export default function AuthGate({ children }) {
   const client = useMemo(() => {
@@ -74,7 +75,7 @@ export default function AuthGate({ children }) {
   }
 
   if (status === "signed-in") {
-    return <><div className="auth-session"><span>MY DERBY</span><button type="button" onClick={logout} disabled={busy}>로그아웃</button></div>{children}</>;
+    return <><div className="auth-session"><span>MY DERBY</span><button type="button" onClick={logout} disabled={busy}>로그아웃</button></div>{children}<TutorialOnboarding/></>;
   }
   if (status === "loading") return <main className="auth-screen"><div className="auth-panel"><h1>MY DERBY</h1><p>계정을 확인하고 있습니다.</p></div></main>;
   return <main className="auth-screen"><section className="auth-panel">
