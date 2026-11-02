@@ -153,6 +153,18 @@ export default function BreedingPage(){
       <div className="muted">이번 주 게임 {board.world?.gameDayStart}~{Number(board.world?.gameDayStart||0)+6}일</div></div>
      <span className="tag">{pregnant.length}두 임신 중</span></div>
 
+    <div className="section"><h2>1단계 · 번식용 영구 은퇴</h2></div>
+    <div className="notice">⚠ 번식용 은퇴는 되돌릴 수 없습니다. 출전 등록된 말은 은퇴할 수 없으며,
+    은퇴한 말은 경주에 다시 출전할 수 없습니다. 수말은 2세부터 은퇴 가능하지만 실제 씨수말 교배 이용은 4세부터입니다.
+    암말은 4~18세에 은퇴할 수 있으며, 은퇴 완료 후에만 '내 번식암말' 목록에 표시됩니다.</div>
+    {(board.retirementCandidates||[]).map(h=><div className="card row" key={h.id}>
+     <div><b><HorseLink horseId={h.id}>{h.name}</HorseLink></b><div className="muted">{h.age}세 · {gender(h.sex)} ·
+      {h.stage==="RACING"?"현역":h.stage==="BROODMARE"?"번식암말":h.stage==="STALLION"?"씨수말":h.stage}
+      {h.retired?" · 경주 영구 은퇴":""}</div></div>
+     {canRetire(h)?<button className="outline" disabled={!!busy} onClick={()=>retire(h)}>
+      은퇴 · 번식 전환</button>:<span className="tag">{h.retired?"은퇴 완료":"조건 미달"}</span>}
+    </div>)}
+
     <div className="section"><h2>2단계 · 은퇴한 번식마 교배 신청</h2></div>
     <div className="card">
      <label className="muted" htmlFor="mare">내 번식암말</label>
@@ -211,17 +223,6 @@ export default function BreedingPage(){
      {r.status==="REJECTED"&&<div className="muted" style={{marginTop:8}}>임신 실패 · 다음 시즌 재신청 가능</div>}
     </div>)}
 
-    <div className="section"><h2>1단계 · 번식용 영구 은퇴</h2></div>
-    <div className="notice">⚠ 번식용 은퇴는 되돌릴 수 없습니다. 출전 등록된 말은 은퇴할 수 없으며,
-    은퇴한 말은 경주에 다시 출전할 수 없습니다. 수말은 2세부터 은퇴 가능하지만 실제 씨수말 교배 이용은 4세부터입니다.
-    암말은 4~18세에 은퇴할 수 있으며, 은퇴 완료 후에만 '내 번식암말' 목록에 표시됩니다.</div>
-    {(board.retirementCandidates||[]).map(h=><div className="card row" key={h.id}>
-     <div><b><HorseLink horseId={h.id}>{h.name}</HorseLink></b><div className="muted">{h.age}세 · {gender(h.sex)} ·
-      {h.stage==="RACING"?"현역":h.stage==="BROODMARE"?"번식암말":h.stage==="STALLION"?"씨수말":h.stage}
-      {h.retired?" · 경주 영구 은퇴":""}</div></div>
-     {canRetire(h)?<button className="outline" disabled={!!busy} onClick={()=>retire(h)}>
-      은퇴 · 번식 전환</button>:<span className="tag">{h.retired?"은퇴 완료":"조건 미달"}</span>}
-    </div>)}
    </>}
    <div className="footer">MY DERBY · 번식·임신·출산 DB 시스템 · 시스템 씨수말은 실제 KRA 출전마가 아닌 게임용 NPC</div>
   </div>
