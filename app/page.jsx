@@ -379,8 +379,7 @@ return <main className="shell"><header className="header"><div onClick={()=>go("
    ["목장 및 교배",[["개인목장","ranch"],["교배","breeding"]]]
   ]],
   ["📊 정보와 기록","나의 성적 · 명부 · 순위",[
-   ["개인 기록",[["나의 정보","myRecord"]]],
-   ["업적과 튜토리얼",[["업적과 호칭","achievements"],["첫 시즌 이야기","tutorial"]]],
+   ["개인 기록",[["나의 정보","myRecord"],["달성 업적","myAchievements"]]],
    ["경마 소식",[["더비 데일리 · 전체 뉴스","dailyNews"],["나의 경주 소식","myNews"]]],
    ["전체 명부",[["전체 기수","allJockeys"],["전체 마주","ownersDirectory"],["전체 조교사","trainersDirectory"]]],
    ["경주 성적",[["기수·마주·조교사 성적","participantsRecords"]]]
@@ -393,7 +392,7 @@ return <main className="shell"><header className="header"><div onClick={()=>go("
    <summary><b className="gold">{category}</b><span className="muted">{description}</span></summary>
    <div className="menu-depth-content">{groups.map(([group,items])=><details key={group} className="menu-depth-two">
     <summary>{group}</summary>
-    <div className="menu-depth-links">{items.map(([label,dest])=><button key={label} className="menu-depth-link" onClick={()=>dest==="myRecord"?window.location.assign("/my-record"):go(dest)}>{label}<span>›</span></button>)}</div>
+    <div className="menu-depth-links">{items.map(([label,dest])=><button key={label} className="menu-depth-link" onClick={()=>dest==="myRecord"?window.location.assign("/my-record"):dest==="myAchievements"?window.location.assign("/my-record#achievements"):go(dest)}>{label}<span>›</span></button>)}</div>
    </details>)}</div>
   </details>)}
  <div className="footer">MY DERBY · GAME MENU</div></div></>}
