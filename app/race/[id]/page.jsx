@@ -5,6 +5,8 @@ import RaceBetting from "../../components/RaceBetting";
 import {useEffect,useMemo,useState} from "react";
 import {useParams} from "next/navigation";
 import {selectRaceCommentary} from "../../../lib/racing/commentary";
+import raceClock from "../../../lib/racing/format-race-time.cjs";
+const {formatRaceTime}=raceClock;
 
 const statusName={OPEN:"경주 예정",CLOSED:"출전 마감",RUNNING:"공식 경주 진행 중",
  FINISHED:"공식 결과 확정",CANCELLED:"취소",RESULT_NOT_AVAILABLE:"공식 결과 처리 중"};
@@ -136,7 +138,7 @@ export default function RaceDetailPage(){
     {completed&&<div className="card" style={{borderColor:"#94662c"}}>
      <div className="muted">🏆 공식 우승마</div>
      <div className="large gold" style={{marginTop:7}}>{race.results[0].number}번 <HorseLink horseId={race.results[0].horseId}>{race.results[0].name}</HorseLink></div>
-     <div className="muted">우승 기록 {sec(race.results[0].timeSec)}초 · 공식 완료 {race.completedAt?new Date(race.completedAt).toLocaleString("ko-KR",{timeZone:"Asia/Seoul"}):"확정"}</div>
+     <div className="muted">우승 기록 {formatRaceTime(race.results[0].timeSec)} · 공식 완료 {race.completedAt?new Date(race.completedAt).toLocaleString("ko-KR",{timeZone:"Asia/Seoul"}):"확정"}</div>
      <div className="controls" style={{marginTop:12}}>
       <button className="primary" onClick={goReplay}>▶ 실제 중계 다시보기</button>
       <button className="outline" onClick={()=>{SetTab("sections");resetReplay()}}>구간별 순위</button>
@@ -165,7 +167,7 @@ export default function RaceDetailPage(){
      </table>
     </div>:<div className="notice">{race.entryAnnouncementPending?"공식 출전마는 오전 8시에 공개됩니다.":"출전마 정보가 없습니다."}</div>}
     <div className="muted" style={{margin:"-4px 0 18px"}}>마명을 누르면 상세정보를 확인할 수 있습니다. 제공되지 않는 항목은 — 로 표시됩니다. 모바일에서는 표를 좌우로 스크롤하세요.</div>
-    <RaceBetting raceId={id}/>
+    <RaceBetting raceId={id} readOnly={race.status!=="OPEN"}/>
     {!completed&&race.status==="RESULT_NOT_AVAILABLE"&&<div className="notice">공식 결과를 저장하는 중입니다. 이 화면을 새로고침해 주세요.</div>}
     {completed&&tab==="result"&&<>
      <div className="section"><h2>🏁 공식 최종 순위</h2></div>
@@ -175,7 +177,7 @@ export default function RaceDetailPage(){
        <div style={{flex:1}}><b className="gold">{x.rank}위</b>
         <b style={{marginLeft:12}}>{x.number}번 <HorseLink horseId={x.horseId}>{x.name}</HorseLink></b>
         <div className="muted">기수 <StaffLink kind="jockey" staffId={e?.jockeyId}>{e?.jockeyName||"정보 없음"}</StaffLink> · {e?.weightKg??"-"}kg</div></div>
-       <div style={{whiteSpace:"nowrap",fontSize:13}}>{sec(x.timeSec)}초</div>
+       <div style={{whiteSpace:"nowrap",fontSize:13}}>{formatRaceTime(x.timeSec)}</div>
       </div>;
      })}</div>
      <div className="notice">이 내용은 실제 월드에서 실행된 경주 엔진의 공식 저장 결과입니다. 상금 및 경제 정산은 별도 기능입니다.</div>
@@ -196,7 +198,7 @@ export default function RaceDetailPage(){
      <div className="notice">공식 DB에 저장된 중계 이벤트를 시간순으로 표시합니다. 영상이 아닌 실제 경주 엔진 로그입니다. 이벤트 개수 제한은 없습니다.</div>
      <div className="card">
       <div className="row"><b className="gold">{replay?"중계 다시보기":"전체 중계 기록"}</b>
-       <span className="tag">{replay?stamp(replayTime)+"/"+stamp(finish)+"초":"전체 공개"}</span></div>
+       <span className="tag">{replay?formatRaceTime(replayTime,1)+" / "+formatRaceTime(finish,1):"전체 공개"}</span></div>
       <div className="controls" style={{marginTop:12,flexWrap:"wrap"}}>
        {replay?<><button className="primary" onClick={()=>{if(replayTime>=finish)SetReplayTime(0);SetPlaying(!playing)}}>{playing?"⏸ 일시정지":"▶ 재생"}</button>
         <button className="outline" onClick={resetReplay}>전체 보기</button></>:
@@ -221,7 +223,7 @@ export default function RaceDetailPage(){
       {logFilter==="horse"&&selectedHorse&&<div className="muted">선택한 말이 언급된 이벤트만 표시합니다. 다른 말과의 추월·경합 로그도 포함합니다.</div>}
      </div>
      {visibleEvents.length?visibleEvents.map((e,i)=><div className="card" key={e.seq+"-"+i} style={{marginBottom:8}}>
-      <div className="muted">{stamp(e.timeSec)}초 · {Math.min(Number(e.distanceM)||0,race.distanceM).toFixed(0)}m · {e.eventType==="FINISH"?"🏁 결승":e.eventType==="START"?"출발":"경주 진행"}</div>
+      <div className="muted">{formatRaceTime(e.timeSec,1)} · {Math.min(Number(e.distanceM)||0,race.distanceM).toFixed(0)}m · {e.eventType==="FINISH"?"🏁 결승":e.eventType==="START"?"출발":"경주 진행"}</div>
       <div className="small" style={{marginTop:4,lineHeight:1.65}}><HorseMentions text={e.text} horseList={(race.entries||[]).map(h=>({id:h.horseId,name:h.name}))}/></div>
      </div>):<div className="notice">선택한 조건에 해당하는 중계 이벤트가 없습니다.</div>}
     </>}
