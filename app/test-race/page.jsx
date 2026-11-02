@@ -2,6 +2,8 @@
 import HorseLink, {HorseMentions} from "../components/HorseLink";
 import {useEffect,useState} from "react";
 import {selectRaceCommentary} from "../../lib/racing/commentary";
+import raceClock from "../../lib/racing/format-race-time.cjs";
+const {formatRaceTime}=raceClock;
 
 export default function FixtureRace(){
  const [race,R]=useState(null),[label,L]=useState(""),
@@ -58,7 +60,7 @@ export default function FixtureRace(){
     <div className="notice">비공식 결과 · 시드 {result.seed} · 정식 기록 미반영</div>
     <div className="card">{result.results.map(x=><div className="line row small" key={x.horseId}>
       <b className="gold">{x.rank}위</b><span>{x.number}번 <HorseLink horseId={x.horseId}>{x.name}</HorseLink> · {sorted.find(h=>h.id===x.horseId)?.gradeNo}등급</span>
-      <span>{x.timeSec.toFixed(2)}초</span></div>)}</div>
+      <span>{formatRaceTime(x.timeSec)}</span></div>)}</div>
     <div className="section"><h2>구간 순위</h2></div>
     <div className="card">{result.sections.map(x=><div className="line" key={x.distanceM}>
       <b className="gold">{x.distanceM}m</b>
@@ -66,7 +68,7 @@ export default function FixtureRace(){
     </div>)}</div>
     <div className="section"><h2>경주 중계 로그</h2></div>
     {selectRaceCommentary(result.events).map(x=><div className="card" key={x.seq}>
-      <div className="muted">{x.timeSec.toFixed(1)}초 · {x.distanceM.toFixed(0)}m</div>
+      <div className="muted">{formatRaceTime(x.timeSec,1)} · {x.distanceM.toFixed(0)}m</div>
       <div className="small"><HorseMentions text={x.text} horseList={sorted.map(h=>({id:h.id,name:h.name}))}/></div></div>)}
    </>}
    <div className="footer">MY DERBY · test-only fixture · 공식 레이팅·경제 정산 미반영</div>
