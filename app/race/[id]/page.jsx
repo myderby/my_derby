@@ -149,12 +149,17 @@ export default function RaceDetailPage(){
     <div className="section"><h2>🏇 출전마 정보</h2><span className="tag">{race.entries?.length||0}두</span></div>
     {race.entries?.length?<div className="race-entry-wrap" role="region" aria-label="경주 출전표" tabIndex={0}>
      <table className="race-entry-table">
-      <thead><tr><th scope="col">번호</th><th scope="col">마명</th><th scope="col">산지</th><th scope="col">성별</th><th scope="col">연령</th><th scope="col">부담중량</th><th scope="col">레이팅</th><th scope="col">기수</th><th scope="col">조교사</th></tr></thead>
+      <thead><tr><th scope="col">번호</th><th scope="col">마명</th><th scope="col">산지</th><th scope="col">성별</th><th scope="col">연령</th><th scope="col">부담중량</th><th scope="col">레이팅</th><th scope="col">출전주기</th><th scope="col">직전 출전</th><th scope="col">기수</th><th scope="col">조교사</th></tr></thead>
       <tbody>{[...race.entries].sort((a,b)=>Number(a.number||999)-Number(b.number||999)).map(e=><tr key={e.horseId}>
        <td className="race-entry-number">{e.number??"-"}</td>
        <td className="race-entry-name"><HorseLink horseId={e.horseId} title={e.name+" 상세정보"}>{e.name}</HorseLink></td>
        <td>{e.origin||e.country||"—"}</td><td>{sexLabel[e.sex]||e.sex||"—"}</td><td>{e.age??"—"}</td>
        <td>{e.weightKg??"—"}</td><td>{e.rating??"—"}</td>
+       <td style={{whiteSpace:"nowrap"}}>{e.raceIntervalWeeks!=null?Number(e.raceIntervalWeeks).toFixed(1)+"주":
+         e.firstStart?"첫 출전":"—"}</td>
+       <td style={{whiteSpace:"nowrap"}}>{e.lastRaceDate||"—"}
+        {e.lastRaceOrigin==="IMPORTED"&&<small className="muted" style={{display:"block"}}>기존 기록</small>}
+       </td>
        <td><StaffLink kind="jockey" staffId={e.jockeyId}>{e.jockeyName||"—"}</StaffLink></td><td><StaffLink kind="trainer" staffId={e.trainerId}>{e.trainerName||"—"}</StaffLink></td>
       </tr>)}</tbody>
      </table>
