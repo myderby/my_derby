@@ -3,6 +3,18 @@ ALTER TABLE my_derby.ranch_workers
   ADD COLUMN IF NOT EXISTS specialty text NOT NULL DEFAULT 'PASTURE_CARETAKER',
   ADD COLUMN IF NOT EXISTS assigned_facility_id uuid;
 
+WITH ranked AS (
+ SELECT id, row_number() OVER (PARTITION BY ranch_id ORDER BY
+   CASE grade WHEN 'S' THEN 0 WHEN 'A' THEN 1 WHEN 'B' THEN 2 ELSE 3 END, id) AS rn
+ FROM my_derby.ranch_workers WHERE role='CARETAKER'
+)
+UPDATE my_derby.ranch_workers rw SET specialty=CASE ranked.rn
+ WHEN 1 THEN 'PASTURE_CARETAKER' WHEN 2 THEN 'RECOVERY_CARETAKER'
+ WHEN 3 THEN 'REHAB_CARETAKER' WHEN 4 THEN 'YOUNG_HORSE_CARETAKER'
+ ELSE 'PASTURE_CARETAKER' END
+FROM ranked WHERE ranked.id=rw.id;
+UPDATE my_derby.ranch_workers SET specialty='VET' WHERE role='VET';
+
 ALTER TABLE my_derby.ranch_workers DROP CONSTRAINT IF EXISTS ranch_workers_specialty_check;
 ALTER TABLE my_derby.ranch_workers ADD CONSTRAINT ranch_workers_specialty_check
  CHECK (specialty = ANY (ARRAY[
@@ -15,17 +27,6 @@ ALTER TABLE my_derby.ranch_workers DROP CONSTRAINT IF EXISTS ranch_workers_assig
 ALTER TABLE my_derby.ranch_workers ADD CONSTRAINT ranch_workers_assignment_role_check
  CHECK (role = 'VET' AND specialty = 'VET' OR role = 'CARETAKER' AND specialty <> 'VET');
 
-WITH ranked AS (
- SELECT id, row_number() OVER (PARTITION BY ranch_id ORDER BY
-   CASE grade WHEN 'S' THEN 0 WHEN 'A' THEN 1 WHEN 'B' THEN 2 ELSE 3 END, id) AS rn
- FROM my_derby.ranch_workers WHERE role='CARETAKER'
-)
-UPDATE my_derby.ranch_workers rw SET specialty=CASE ranked.rn
- WHEN 1 THEN 'PASTURE_CARETAKER' WHEN 2 THEN 'RECOVERY_CARETAKER'
- WHEN 3 THEN 'REHAB_CARETAKER' WHEN 4 THEN 'YOUNG_HORSE_CARETAKER'
- ELSE 'PASTURE_CARETAKER' END
-FROM ranked WHERE ranked.id=rw.id;
-UPDATE my_derby.ranch_workers SET specialty='VET' WHERE role='VET';
 
 UPDATE my_derby.ranch_facilities
  SET capacity=2 + greatest(level-1,0)*2
