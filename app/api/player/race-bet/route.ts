@@ -38,10 +38,25 @@ export async function GET(req:Request){
 }
 export async function POST(req:Request){
  try{
-  const {db}=await requireUser(req);
   if(Number(req.headers.get("content-length")||0)>14000)return failure("요청이 너무 큽니다.",413);
   const x=await req.json();
   const type=x?.betType||"WIN";
+  if(x?.action==="omr-quote"){
+   const combos=x?.combinations;
+   if(!uuid.test(x?.raceId||"")||!types.includes(type)||
+      !Array.isArray(combos)||combos.length<1||combos.length>100||
+      combos.some((c:unknown)=>!Array.isArray(c)||c.length<1||c.length>3||
+        c.some((h:unknown)=>typeof h!=="string"||!uuid.test(h)))||
+      !Number.isInteger(x?.amountEach)||x.amountEach<100||x.amountEach>10000||
+      x.amountEach*combos.length>10000)
+      return failure("OMR 예상 환급액 계산에 필요한 조합이 올바르지 않습니다.");
+   const {data,error}=await createPublicDb().schema("my_derby").rpc("public_race_omr_quote",{
+     p_race:x.raceId,p_type:type,p_selections:combos,p_amount_each:x.amountEach
+   });
+   if(error)throw error;
+   return NextResponse.json(data,{headers:{"Cache-Control":"no-store"}});
+  }
+  const {db}=await requireUser(req);
   if(x?.action==="omr-batch"){
    const tickets=x?.combinations;
    if(!uuid.test(x?.raceId||"")||!uuid.test(x?.requestId||"")||
