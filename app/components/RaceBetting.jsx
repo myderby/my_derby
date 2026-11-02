@@ -115,8 +115,26 @@ export default function RaceBetting({raceId}){
   {data&&<>
    <div className="card"><div className="row"><b className="gold">AI 예상가 3명 · 경주 참고 정보</b>
     <button className="outline" type="button" onClick={load}>↻ 새로고침</button></div>
-    <div className="bet-analysts">{(data.analysts||[]).map(t=>
-     <div className="bet-analyst" key={t.analyst}><small>{t.analyst}</small><b>{t.name}</b></div>)}</div>
+    <div className="bet-analysts expert-grid">{(data.analysts||[]).map(t=>
+     <div className="bet-analyst expert-card" key={t.analyst}>
+      <div className="expert-title"><strong>{t.analyst}</strong>
+       <small>{t.headline||"경주 데이터 분석"}</small></div>
+      <div className="expert-picks">
+       {(t.picks||[]).map((pick,index)=><div className="expert-pick" key={pick.horseId||index}>
+        <b className={"expert-mark "+(index===0?"expert-key":"")}>{pick.mark}</b>
+        <span className="expert-runner-no">{pick.number}번</span>
+        <span className="expert-runner-name">{pick.name}</span>
+       </div>)}
+      </div>
+      <div className="expert-legend">◎ 축마 · ○ 대항 · ▲ 도전 · △ 복병 · ☆ 관심</div>
+     </div>)}</div>
+    <div className="muted" style={{marginTop:9}}>
+     전문가별 예상은 서로 다른 분석 기준으로 계산한 참고 의견이며 실제 착순을 보장하지 않습니다.
+    </div>
+   </div>
+   <div className="row" style={{margin:"4px 0 10px",gap:10}}>
+    <span className="muted">🎟️ 관중 NPC {fmt(data.spectatorBetCount)}명 참여</span>
+    <span className="muted">인기 경주·상위 등급일수록 관중 참여 증가</span>
    </div>
    <div className="section"><h2>승식 선택</h2></div>
    <div className="bet-type-grid">{BET_TYPES.map(t=>
