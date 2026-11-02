@@ -23,7 +23,7 @@ const errMap={
  INVALID_SELECTION:"선택마를 다시 확인해 주세요.",
  INSUFFICIENT_STARTERS_FOR_BET_TYPE:"현재 출전두수로 구매할 수 없는 승식입니다."
 };
-export default function RaceBetting({raceId}){
+export default function RaceBetting({raceId,readOnly=false}){
  const [data,setData]=useState(null),[token,setToken]=useState(""),[betType,setBetType]=useState("WIN");
  const [rows,setRows]=useState([[],[],[]]),[stakeEach,setStakeEach]=useState(100);
  const [quote,setQuote]=useState(null),[busy,setBusy]=useState(false);
@@ -41,13 +41,13 @@ export default function RaceBetting({raceId}){
   if(!raceId)return;
   try{
    const res=await fetch("/api/player/race-bet?raceId="+encodeURIComponent(raceId)+
-    "&popularType="+encodeURIComponent(betType),
+    (readOnly?"":"&popularType="+encodeURIComponent(betType)),
     {cache:"no-store",headers:token?{Authorization:"Bearer "+token}:{}});
    const body=await res.json();
    if(!res.ok)throw Error(body.error||"베팅 정보를 조회할 수 없습니다.");
    setData(body);setError("");
   }catch(e){setError(e.message||"배당 조회 실패")}
- },[raceId,token,betType]);
+ },[raceId,token,betType,readOnly]);
  useEffect(()=>{void load();const timer=setInterval(()=>void load(),30000);return()=>clearInterval(timer)},[load]);
  const current=BET_TYPES.find(t=>t.id===betType)||BET_TYPES[0];
  const horses=(data?.horses||[]).slice().sort((a,b)=>Number(a.number)-Number(b.number));
@@ -62,7 +62,7 @@ export default function RaceBetting({raceId}){
     Number(data?.maxStake||0)>=total;
  const comboKey=combos.map(arr=>arr.join(":")).join("|");
  useEffect(()=>{
-  if(!validStake||!data?.bettingOpen){setQuote(null);return;}
+  if(readOnly||!validStake||!data?.bettingOpen){setQuote(null);return;}
   let live=true;
   const timer=setTimeout(async()=>{
    try{
@@ -75,7 +75,7 @@ export default function RaceBetting({raceId}){
    }catch{if(live)setQuote(null);}
   },350);
   return()=>{live=false;clearTimeout(timer)};
- },[raceId,betType,comboKey,stakeEach,validStake,data?.bettingOpen,data?.betCount]);
+ },[raceId,betType,comboKey,stakeEach,validStake,data?.bettingOpen,data?.betCount,readOnly]);
  const switchType=id=>{setBetType(id);setRows([[],[],[]]);setQuote(null);setError("");setNotice("")};
  const toggle=(rowIndex,id)=>{
   setRows(before=>before.map((row,i)=>i!==rowIndex?row:
@@ -106,10 +106,10 @@ export default function RaceBetting({raceId}){
    await load();
   }catch(e){setError(e.message||"OMR 베팅 구매 실패")}finally{setBusy(false);}
  };
- if(!data&&!error)return <div className="notice">OMR 베팅 출전표와 배당을 불러오는 중입니다…</div>;
+ if(!data&&!error)return <div className="notice">경주 전문가 정보와 배당을 불러오는 중입니다…</div>;
  return <section className="race-betting omr-betting">
-  <div className="section"><h2>📈 AI 예상가 · OMR 7개 승식</h2>
-   <a className="outline" href="/bets" style={{textDecoration:"none"}}>📒 나의 베팅 이력 ›</a></div>
+  <div className="section"><h2>{readOnly?"📈 경주 전문가 예상지":"📈 AI 예상가 · OMR 7개 승식"}</h2>
+   {!readOnly&&<a className="outline" href="/bets" style={{textDecoration:"none"}}>📒 나의 베팅 이력 ›</a>}</div>
   {data?.entryAnnouncementPending&&<div className="notice">출전마 발표는 경주 당일 오전 8시(한국시간)입니다.</div>}
   {error&&<div className="notice" role="alert">{error}</div>}
   {notice&&<div className="notice" role="status">{notice}</div>}
@@ -133,6 +133,7 @@ export default function RaceBetting({raceId}){
      전문가별 예상은 서로 다른 분석 기준으로 계산한 참고 의견이며 실제 착순을 보장하지 않습니다.
     </div>
    </div>
+   {!readOnly&&<>
    <div className="row" style={{margin:"4px 0 10px",gap:10}}>
     <span className="muted">🎟️ 관중 NPC {fmt(data.spectatorBetCount)}명 참여</span>
     <span className="muted">인기 경주·상위 등급일수록 관중 참여 증가</span>
@@ -265,6 +266,7 @@ export default function RaceBetting({raceId}){
     </div>)}
     {data.mine.length>12&&<div className="muted">나머지 {fmt(data.mine.length-12)}건은 전체 이력에서 볼 수 있습니다.</div>}
    </div>}
+   </>}
   </>}
  </section>;
 }
