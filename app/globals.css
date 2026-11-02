@@ -433,3 +433,24 @@
 @media(max-width:420px){.omr-number-grid{gap:5px}
  .omr-number{font-size:12px;border-width:1.5px}
  .omr-stake-summary{align-items:start;flex-direction:column}}
+
+/* Racing-form analyst predictions: five marked runners for every specialist. */
+.bet-analysts.expert-grid{grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch;gap:10px}
+.bet-analyst.expert-card{text-align:left;padding:12px 10px;min-width:0}
+.expert-title{border-bottom:1px solid #71512d;padding-bottom:9px;margin-bottom:9px}
+.expert-title strong{display:block;color:#f4d3a0;font-size:14px}
+.expert-title small{display:block;color:#c3b197;font-size:11px;margin-top:4px}
+.expert-picks{display:flex;flex-direction:column;gap:5px}
+.expert-pick{display:flex;align-items:center;gap:7px;min-width:0;border-bottom:1px solid #5f462b;padding:6px 1px}
+.expert-mark{display:grid;place-items:center;flex-shrink:0;width:24px;height:24px;border-radius:6px;background:#4a3724;color:#f5e2b9;font-size:18px}
+.expert-mark.expert-key{background:#b36a2b;color:#fff8de}
+.expert-runner-no{font-size:11px;color:#f0c887;white-space:nowrap}
+.expert-runner-name{font-size:12px;color:#f8ecdb;font-weight:600;overflow-wrap:anywhere}
+.expert-legend{font-size:9px;color:#c5ad88;line-height:1.5;margin-top:10px;text-align:center}
+@media(max-width:700px){.bet-analysts.expert-grid{grid-template-columns:1fr}
+ .bet-analyst.expert-card{padding:12px}
+ .expert-picks{display:grid;grid-template-columns:1fr 1fr;gap:5px 12px}
+ .expert-pick{padding:6px 1px}
+ .expert-legend{text-align:left}
+}
+@media(max-width:390px){.expert-picks{grid-template-columns:1fr}}
