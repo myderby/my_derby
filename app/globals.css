@@ -504,6 +504,8 @@
  display:flex;justify-content:flex-end;pointer-events:none}
 .tutorial-replay-button{max-width:100%;padding:10px 13px;border:1px solid #b99a56;border-radius:999px;background:#111b2b;
  color:#f0c572;font-size:13px;font-weight:700;white-space:nowrap;box-shadow:0 8px 24px #0008;pointer-events:auto}
+.participant-sort-button{border:0;background:transparent;color:inherit;font:inherit;font-weight:700;padding:2px 0;white-space:nowrap}
+.participant-sort-button span{display:inline-block;margin-left:3px;color:#f4d28d}
 
 /* Stored official dividends: compact enough for the mobile result screen. */
 .dividend-result-table{width:100%;min-width:0}

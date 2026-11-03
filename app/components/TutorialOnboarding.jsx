@@ -163,7 +163,7 @@ export default function TutorialOnboarding(){
    )}</div>
   </div>}
   {canReplay&&!topicOpen&&!topicPickerOpen&&<div className="tutorial-replay-dock">
-   <button onClick={openReplay} className="tutorial-replay-button">？ 이 화면 튜토리얼</button>
+   <button onClick={openReplay} className="tutorial-replay-button">？ 화면 설명</button>
   </div>}
  </>;
 }
