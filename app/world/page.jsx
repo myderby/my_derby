@@ -14,6 +14,9 @@ const regionOptions=[["SEOUL","서울"],["YEONGCHEON","영천"],["BUSAN","부산
 const patternOptions=[["solid","민무늬"],["stripe","줄무늬"],["check","체크"],
  ["diamond","다이아"],["dot","점무늬"],["star","별무늬"]];
 const defaultSilks={bodyColor:"#D6A84F",sleeveColor:"#23180F",pattern:"solid",patternColor:"#FFFFFF"};
+const silksColorOptions=["#111111","#3D1E0B","#7A1F1F","#C62828","#EF6C00","#F9A825",
+ "#D6A84F","#F5E6C8","#FFFFFF","#9E9E9E","#4CAF50","#1B5E20","#00897B",
+ "#00ACC1","#1565C0","#283593","#6A1B9A","#AD1457"];
 const setupSteps=["마주명 정하기","마주복 꾸미기","시작 지역 고르기","첫 육성마와 직원 받기"];
 const setupGuide=[
  "안녕하세요, 새 마주님! 먼저 경주장에서 사용할 마주명을 정해볼까요?",
@@ -74,6 +77,7 @@ export default function WorldPage(){
  const [tutorialStep,TutorialStep]=useState(0);
  const [startingRegion,StartingRegion]=useState("SEOUL");
  const [silksDesign,SilksDesign]=useState(defaultSilks);
+ const [colorTarget,ColorTarget]=useState(null),[colorDraft,ColorDraft]=useState("");
  const [busy,Busy]=useState(false),[notice,Notice]=useState("");
  const [refresh,Refresh]=useState(0);
 
@@ -161,6 +165,12 @@ export default function WorldPage(){
    filter==="회복 필요"&&injured(h));
  const activeCount=horses.filter(h=>h.life_stage==="RACING").length;
  const fmt=n=>typeof n==="number"?Math.round(n):"-";
+ const openColorPicker=(field,label)=>{ColorTarget({field,label});ColorDraft(silksDesign[field])};
+ const confirmSilksColor=()=>{
+  if(!/^#[0-9A-Fa-f]{6}$/.test(colorDraft)){Notice("색상 코드는 #RRGGBB 형식으로 입력해주세요.");return}
+  SilksDesign(v=>({...v,[colorTarget.field]:colorDraft.toUpperCase()}));
+  ColorTarget(null);
+ };
  const raceDate=r=>r?.date|| (r?.gameDay?`게임 ${r.gameDay}일`:"");
  const raceLabel=r=>r?`${raceDate(r)}${r.time?` ${String(r.time).slice(0,5)}`:""} · ${trackName(r.track)} ${r.raceNo}경주 · ${r.distanceM}m${r.className?` · ${r.className}`:""}`:"";
  return <main className="shell">
@@ -210,15 +220,15 @@ export default function WorldPage(){
        <div><b>마주복 미리보기</b><div className="muted">상의와 소매 색상, 무늬를 자유롭게 골라보세요. 모자는 설정하지 않습니다.</div></div>
       </div>
       <div className="twoCol">
-       <label className="field">상의 색상<input aria-label="상의 색상" type="color"
-        value={silksDesign.bodyColor} disabled={busy}
-        onChange={e=>SilksDesign(v=>({...v,bodyColor:e.target.value}))}/></label>
-       <label className="field">소매 색상<input aria-label="소매 색상" type="color"
-        value={silksDesign.sleeveColor} disabled={busy}
-        onChange={e=>SilksDesign(v=>({...v,sleeveColor:e.target.value}))}/></label>
-       <label className="field">무늬 색상<input aria-label="무늬 색상" type="color"
-        value={silksDesign.patternColor} disabled={busy}
-        onChange={e=>SilksDesign(v=>({...v,patternColor:e.target.value}))}/></label>
+       {[["bodyColor","상의 색상"],["sleeveColor","소매 색상"],["patternColor","무늬 색상"]].map(([field,label])=><button
+        key={field} type="button" className="field" disabled={busy}
+        aria-label={label+" 선택"} onClick={()=>openColorPicker(field,label)}
+        style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,textAlign:"left"}}>
+        <span>{label}</span><span style={{display:"flex",alignItems:"center",gap:8}}>
+         <span aria-hidden="true" style={{width:24,height:24,borderRadius:6,border:"1px solid #b4a28e",background:silksDesign[field]}}/>
+         <code style={{color:"inherit"}}>{silksDesign[field]}</code>
+        </span>
+       </button>)}
        <label className="field">상의 무늬<select className="field" value={silksDesign.pattern}
         disabled={busy} onChange={e=>SilksDesign(v=>({...v,pattern:e.target.value}))}>
         {patternOptions.map(([value,label])=><option key={value} value={value}>{label}</option>)}
@@ -334,5 +344,34 @@ export default function WorldPage(){
     </section>:null}
    <div className="footer">MY DERBY · 내 소유 경주마 관리</div>
   </div>
+  {colorTarget&&<div role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget)ColorTarget(null)}}
+   style={{position:"fixed",inset:0,zIndex:10000,background:"#000b",display:"grid",placeItems:"center",padding:16}}>
+   <section role="dialog" aria-modal="true" aria-labelledby="silks-color-title"
+    style={{width:"min(420px,100%)",maxHeight:"90dvh",overflowY:"auto",background:"#211810",color:"#f7edde",border:"1px solid #84633b",borderRadius:16,padding:18,boxShadow:"0 20px 60px #0009"}}>
+    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12}}>
+     <h2 id="silks-color-title" style={{fontSize:18,margin:"0 0 12px"}}>{colorTarget.label} 선택</h2>
+     <button type="button" aria-label="색상 선택 취소" className="outline" onClick={()=>ColorTarget(null)}>×</button>
+    </div>
+    <div className="card" style={{display:"flex",alignItems:"center",gap:12}}>
+     <SilksPreview design={{...silksDesign,[colorTarget.field]:colorDraft}}/>
+     <div><b>마주복 미리보기</b><div className="muted">색상을 고른 뒤 확인을 누르면 적용됩니다.</div></div>
+    </div>
+    <div className="muted" style={{margin:"12px 0 5px"}}>색상 팔레트</div>
+    <div style={{display:"grid",gridTemplateColumns:"repeat(6,minmax(0,1fr))",gap:8}}>
+     {silksColorOptions.map(color=><button key={color} type="button" aria-label={color}
+      aria-pressed={colorDraft.toUpperCase()===color} onClick={()=>ColorDraft(color)}
+      style={{height:38,borderRadius:8,border:colorDraft.toUpperCase()===color?"3px solid #edb94d":"1px solid #8c765e",background:color}}/>)}
+    </div>
+    <label className="muted" style={{display:"block",marginTop:14}}>직접 입력 (#RRGGBB)
+     <input className="field" aria-label="색상 코드" inputMode="text" maxLength={7}
+      value={colorDraft} onChange={e=>ColorDraft(e.target.value)} placeholder="#D6A84F"/>
+    </label>
+    <div className="controls" style={{marginTop:12}}>
+     <button type="button" className="outline" onClick={()=>ColorTarget(null)}>취소</button>
+     <button type="button" className="primary" disabled={!/^#[0-9A-Fa-f]{6}$/.test(colorDraft)}
+      onClick={confirmSilksColor}>확인</button>
+    </div>
+   </section>
+  </div>}
  </main>;
 }
