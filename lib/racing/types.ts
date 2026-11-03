@@ -15,10 +15,14 @@ export interface RaceRunner {
   horse: HorseAbilities; jockey: JockeyAbilities;
   strategies: Strategy[]; condition: number; fatigue: number;
   weightKg: number; distanceFit?: number; trainerReadiness?: number;
+  trackAdaptation?: TrackCondition;
 }
+export type WeatherCode = "CLEAR" | "CLOUDY" | "RAIN" | "SNOW";
+export type TrackCondition = "FIRM" | "GOOD" | "YIELDING" | "SOFT" | "HEAVY";
 export interface RaceInput {
   raceId: string; track: string; distanceM: number; seed: number;
   runners: RaceRunner[]; trackFactor?: number;
+  weather?: WeatherCode; trackCondition?: TrackCondition;
 }
 export interface RunnerState {
   id: string; number: number; name: string; distanceM: number; speedMps: number;
@@ -41,6 +45,7 @@ export interface RaceFinisher {
 }
 export interface RaceResult {
   version: string; raceId: string; track: string; distanceM: number; seed: number;
+  weather: WeatherCode; trackCondition: TrackCondition;
   durationSec: number; results: RaceFinisher[]; sections: SectionRank[];
   events: RaceEvent[]; tickSeconds: number; simulated: true;
 }

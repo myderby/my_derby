@@ -1,4 +1,4 @@
-import type {HorseAbilities,JockeyAbilities,RaceInput,RaceRunner,Strategy} from "./types";
+import type {HorseAbilities,JockeyAbilities,RaceInput,RaceRunner,Strategy,WeatherCode,TrackCondition} from "./types";
 
 type RecordLike=Record<string,unknown>;
 const isObject=(v:unknown):v is RecordLike=>v!==null&&typeof v==="object"&&!Array.isArray(v);
@@ -29,13 +29,13 @@ export function readStrategies(plans:{plan_no:number;strategy_code:string}[]):St
  if(ordered.length>3)throw new Error("Maximum 3 race strategies");
  return ordered.map(p=>{const val=MAP[p.strategy_code];if(!val)throw new Error("Unsupported strategy "+p.strategy_code);return val;});
 }
-export interface DbRaceRow { id:string; track:string; distance_m:number; status:string; }
+export interface DbRaceRow { id:string; track:string; distance_m:number; status:string; weather_code?:string|null; track_condition?:string|null; }
 export interface DbEntryRow {
  id:string;horse_id:string;owner_user_id:string|null;jockey_id:string|null;
  gate_no:number|null;weight_kg:number|null;status:string;snapshot:unknown;
 }
 export interface DbHorseRow {id:string;name:string;condition_score:number;fatigue:number;life_stage:string;racing_retired_permanently:boolean;breeding_retired_at?:string|null;}
-export interface DbAbilityRow {horse_id:string;current_stats:unknown;distance_affinity?:unknown;}
+export interface DbAbilityRow {horse_id:string;current_stats:unknown;distance_affinity?:unknown;hidden_traits?:unknown;}
 export interface DbJockeyRow {id:string;skill_stats:unknown;}
 export interface DbStrategyRow {race_entry_id:string;plan_no:number;strategy_code:string;}
 export function makeRaceInputFromDatabase(params:{
@@ -57,6 +57,11 @@ export function makeRaceInputFromDatabase(params:{
    const snap=isObject(entry.snapshot)?entry.snapshot:{};
    const distanceFitRaw=isObject(a.distance_affinity)?a.distance_affinity[String(race.distance_m)]:undefined;
    const trainerReadyRaw=snap.trainerReadiness;
+   const hiddenTraits=isObject(a.hidden_traits)?a.hidden_traits:{};
+   const tags=Array.isArray(hiddenTraits.tags)?hiddenTraits.tags:[];
+   const adaptationTag=tags.find((tag)=>isObject(tag)&&typeof tag.code==="string"&&tag.code.startsWith("TRACK_AFFINITY_"));
+   const adaptationCode=isObject(adaptationTag)&&typeof adaptationTag.code==="string"
+     ?adaptationTag.code.replace("TRACK_AFFINITY_",""):"";
    const snapshotHorse=snap.horse;
    const snapshotJockey=snap.jockey;
    return {
@@ -68,8 +73,13 @@ export function makeRaceInputFromDatabase(params:{
      fatigue:toNumber(snap.fatigue??h.fatigue,"fatigue"),
      weightKg:toNumber(entry.weight_kg,"weight"),
      distanceFit:distanceFitRaw===undefined?75:toNumber(distanceFitRaw,"distance fit"),
-     trainerReadiness:trainerReadyRaw===undefined?75:toNumber(trainerReadyRaw,"trainer readiness")
+     trainerReadiness:trainerReadyRaw===undefined?75:toNumber(trainerReadyRaw,"trainer readiness"),
+     trackAdaptation:["FIRM","GOOD","YIELDING","SOFT","HEAVY"].includes(adaptationCode)
+       ?adaptationCode as TrackCondition:undefined
    };
  });
- return {raceId:race.id,track:race.track,distanceM:race.distance_m,seed,runners:out};
+ const validWeather=(value:string|null|undefined):WeatherCode|undefined=>["CLEAR","CLOUDY","RAIN","SNOW"].includes(value??"")?value as WeatherCode:undefined;
+ const validCondition=(value:string|null|undefined):TrackCondition|undefined=>["FIRM","GOOD","YIELDING","SOFT","HEAVY"].includes(value??"")?value as TrackCondition:undefined;
+ return {raceId:race.id,track:race.track,distanceM:race.distance_m,seed,runners:out,
+  weather:validWeather(race.weather_code),trackCondition:validCondition(race.track_condition)};
 }

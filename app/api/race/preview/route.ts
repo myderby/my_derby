@@ -27,7 +27,7 @@ export async function POST(request:Request){
   if(!body||typeof body!=="object"||!uuid.test(body.raceId)||Object.keys(body).some(k=>k!=="raceId"))
    return fail("올바른 경주 ID가 필요합니다.",400);
   const api=db.schema("my_derby");
-  const {data:race,error:raceError}=await api.from("races").select("id,track,distance_m,status")
+  const {data:race,error:raceError}=await api.from("races").select("id,track,distance_m,status,weather_code,track_condition")
    .eq("id",body.raceId).single();
   if(raceError||!race)return fail("경주를 찾을 수 없습니다.",404);
   if(!["CLOSED","FINISHED"].includes(race.status))
@@ -46,7 +46,7 @@ export async function POST(request:Request){
   if(jockeyIds.length!==entries.length)return fail("기수가 미배정된 출전마가 있습니다.",409);
   const [horses,abilities,jockeys,strategies]=await Promise.all([
    api.from("horses").select("id,name,condition_score,fatigue,life_stage,racing_retired_permanently").in("id",horseIds),
-   api.from("horse_abilities").select("horse_id,current_stats,distance_affinity").in("horse_id",horseIds),
+   api.from("horse_abilities").select("horse_id,current_stats,distance_affinity,hidden_traits").in("horse_id",horseIds),
    api.from("npc_jockeys").select("id,skill_stats").in("id",jockeyIds),
    api.from("race_strategies").select("race_entry_id,plan_no,strategy_code").in("race_entry_id",entries.map(e=>e.id))
   ]);

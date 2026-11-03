@@ -1,8 +1,14 @@
 import type {RaceInput,RaceEvent,RaceResult,RaceRunner,RunnerState,Strategy,Phase,SectionRank,RaceFinisher} from "./types";
 
-export const RACE_ENGINE_VERSION = "0.1.0";
+export const RACE_ENGINE_VERSION = "0.2.0";
 export const TICK_SECONDS = 0.2;
 const EPS=1e-7;
+const WEATHER_SPEED={CLEAR:1,CLOUDY:.997,RAIN:.988,SNOW:.972} as const;
+const WEATHER_STAMINA={CLEAR:1,CLOUDY:1.01,RAIN:1.045,SNOW:1.065} as const;
+const TRACK_SPEED={FIRM:1.008,GOOD:1,YIELDING:.987,SOFT:.972,HEAVY:.95} as const;
+const TRACK_STAMINA={FIRM:.975,GOOD:1,YIELDING:1.035,SOFT:1.075,HEAVY:1.13} as const;
+const WEATHER_CODES=["CLEAR","CLOUDY","RAIN","SNOW"] as const;
+const TRACK_CONDITIONS=["FIRM","GOOD","YIELDING","SOFT","HEAVY"] as const;
 const clamp=(x:number,a:number,b:number)=>Math.max(a,Math.min(b,x));
 const rnd=(n:number)=>Math.round(n*1000)/1000;
 class Random {
@@ -23,6 +29,8 @@ export function validateRace(input:RaceInput):void {
   if(!Number.isInteger(input.distanceM)||input.distanceM<800||input.distanceM>3200)throw new Error("Distance must be 800..3200m");
   if(!Array.isArray(input.runners)||input.runners.length<2||input.runners.length>16)throw new Error("Race requires 2..16 horses");
   if(input.trackFactor!==undefined&&(!Number.isFinite(input.trackFactor)||input.trackFactor<.75||input.trackFactor>1.1))throw new Error("Invalid track factor");
+  if(input.weather!==undefined&&!WEATHER_CODES.includes(input.weather))throw new Error("Invalid weather");
+  if(input.trackCondition!==undefined&&!TRACK_CONDITIONS.includes(input.trackCondition))throw new Error("Invalid track condition");
   const ids=new Set<string>(), numbers=new Set<number>(), gates=new Set<number>();
   for(const r of input.runners){
     if(typeof r.id!=="string"||!r.id||r.id.length>80||ids.has(r.id))throw new Error("Invalid or duplicate horse ID");
@@ -105,7 +113,8 @@ function blockedBy(st:RunnerState,others:RunnerState[],elapsedSec:number){
     st.speedMps>=o.speedMps-0.15
   );
 }
-function targetSpeed(r:RaceRunner,st:RunnerState,phase:Phase,pressure:number,blocked:boolean,trackFactor:number):number{
+function targetSpeed(r:RaceRunner,st:RunnerState,phase:Phase,pressure:number,blocked:boolean,trackFactor:number,
+ weatherFactor:number,conditionFactor:number,aptitudeBonus:number):number{
   const h=r.horse,j=r.jockey;
   const speedStat=.68*h.speed+.2*h.power+.12*h.acceleration;
   const baseSpeed=14.45+(speedStat-50)*.065;
@@ -125,9 +134,10 @@ function targetSpeed(r:RaceRunner,st:RunnerState,phase:Phase,pressure:number,blo
   const blockedFactor=blocked?.88:1;
   const weightFactor=clamp(1-(r.weightKg-54)*.005,.93,1.055);
   return clamp(baseSpeed*fitness*staminaFactor*distanceFactor*strategyFactor*phaseFactor*jockeyFactor*weightFactor*
-    (trackFactor??1)*(1-pressurePenalty-lanePenalty)*blockedFactor,7,21.7);
+    (trackFactor??1)*weatherFactor*conditionFactor*aptitudeBonus*(1-pressurePenalty-lanePenalty)*blockedFactor,7,21.7);
 }
-function staminaCost(r:RaceRunner,st:RunnerState,phase:Phase,pressure:number,dt:number){
+function staminaCost(r:RaceRunner,st:RunnerState,phase:Phase,pressure:number,dt:number,
+ weatherCost:number,conditionCost:number,aptitudeBonus:number){
   const h=r.horse;
   const effort=st.strategy==="FRONT"?1.35:st.strategy==="PRESS"?1.13:st.strategy==="MOVE"&&phase==="MOVE"?1.58:
     st.strategy==="CLOSER"&&phase==="FINAL"?1.55:st.strategy==="SAVE"?.81:1;
@@ -135,11 +145,14 @@ function staminaCost(r:RaceRunner,st:RunnerState,phase:Phase,pressure:number,dt:
   const endurance=clamp(1.20-h.stamina*.0045,.75,1.2);
   const stretch=phase==="FINAL"?1.1:1;
   return dt*(.46+st.speedMps*.014)*(effort+pressureCost)*endurance*stretch*
-    (1+(r.weightKg-54)*.008);
+    (1+(r.weightKg-54)*.008)*weatherCost*conditionCost/(aptitudeBonus>1?1.05:1);
 }
 const copy=(s:RunnerState):RunnerState=>({...s});
 export function simulateRace(input:RaceInput):RaceResult {
   validateRace(input);
+  const weather=input.weather??"CLEAR",trackCondition=input.trackCondition??"GOOD";
+  const weatherFactor=WEATHER_SPEED[weather],weatherCost=WEATHER_STAMINA[weather];
+  const conditionFactor=TRACK_SPEED[trackCondition],conditionCost=TRACK_STAMINA[trackCondition];
   const runners=[...input.runners].sort((a,b)=>a.number-b.number);
   const byId=new Map(runners.map(r=>[r.id,r]));
   const rng=new Random(input.seed);
@@ -178,6 +191,7 @@ export function simulateRace(input:RaceInput):RaceResult {
     for(const st of snapshot){
       if(st.finishedAt!==null){next.push(st);continue;}
       const runner=byId.get(st.id)!;
+      const aptitudeBonus=runner.trackAdaptation===trackCondition?1.05:1;
       const progress=clamp(st.distanceM/input.distanceM,0,1);
       const phase=phaseOf(progress);
       const blocked=blockedBy(st,snapshot,elapsed);
@@ -213,7 +227,8 @@ export function simulateRace(input:RaceInput):RaceResult {
             st.number+"번 "+st.name+", 앞서 가는 "+ahead.number+"번 "+ahead.name+"에 막혀 잠시 진로를 찾습니다.");
         }
       }
-      const desired=targetSpeed(runner,ns,phase,frontPressure,blocked,input.trackFactor??1);
+      const desired=targetSpeed(runner,ns,phase,frontPressure,blocked,input.trackFactor??1,
+        weatherFactor,conditionFactor,aptitudeBonus);
       const acceleration=.48+runner.horse.acceleration*.011+(phase==="START"?runner.horse.start*.004:0);
       const stepSpeed=clamp(desired-ns.speedMps,-(1.45+runner.horse.stability*.004)*TICK_SECONDS,acceleration*TICK_SECONDS);
       ns.speedMps=clamp(ns.speedMps+stepSpeed,3.0,22);
@@ -235,7 +250,8 @@ export function simulateRace(input:RaceInput):RaceResult {
       }
       const distanceDelta=ns.speedMps*TICK_SECONDS;
       ns.distanceM+=distanceDelta;
-      ns.stamina=clamp(st.stamina-staminaCost(runner,ns,phase,frontPressure,TICK_SECONDS),0,100);
+      ns.stamina=clamp(st.stamina-staminaCost(runner,ns,phase,frontPressure,TICK_SECONDS,
+        weatherCost,conditionCost,aptitudeBonus),0,100);
       ns.blocked=blocked;
       ns.elapsedSec=elapsed+TICK_SECONDS;
       if(ns.distanceM>=input.distanceM-EPS){
@@ -352,6 +368,7 @@ export function simulateRace(input:RaceInput):RaceResult {
   events.sort((a,b)=>a.timeSec-b.timeSec||a.seq-b.seq);
   events.forEach((e,i)=>e.seq=i+1);
   return {version:RACE_ENGINE_VERSION,raceId:input.raceId,track:input.track,distanceM:input.distanceM,
+    weather,trackCondition,
     seed:input.seed,durationSec:rnd(Math.max(...results.map(x=>x.timeSec))),results,sections,events,
     tickSeconds:TICK_SECONDS,simulated:true};
 }

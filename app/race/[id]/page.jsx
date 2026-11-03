@@ -17,6 +17,8 @@ const stamp=n=>Number(n||0).toFixed(1);
 const emptyLabel="기록이 아직 없습니다.";
 const BET_NAMES={WIN:"단승",PLACE:"연승",QUINELLA:"복승",QUINELLA_PLACE:"복연승",
  EXACTA:"쌍승",TRIO:"삼복승",TRIFECTA:"삼쌍승"};
+const WEATHER_NAMES={CLEAR:"맑음",CLOUDY:"흐림",RAIN:"비",SNOW:"눈"};
+const TRACK_NAMES={FIRM:"건조",GOOD:"양호",YIELDING:"다습",SOFT:"포화",HEAVY:"불량"};
 const fmtOdds=n=>n==null?"—":Number(n).toFixed(2)+"배";
 
 export default function RaceDetailPage(){
@@ -132,6 +134,9 @@ export default function RaceDetailPage(){
       <div className="muted">{today} · {race.startTime} 출발</div>
       <h1 style={{fontSize:24,margin:"9px 0 5px"}}>{race.track} {race.gameRaceNo||race.raceNo}경주</h1>
       <div className="muted">{race.className} · {race.distanceM}m · {race.entries?.length||0}두 출전</div>
+      {(race.weatherCode||race.trackCondition)&&<div className="notice" style={{marginTop:12}}>
+       🌦️ 경주 환경 · {WEATHER_NAMES[race.weatherCode]||"날씨 기록 없음"} · 주로 {TRACK_NAMES[race.trackCondition]||"기록 없음"}
+      </div>}
      </div><span className="tag">{status}</span></div>
      <div className="muted" style={{marginTop:10}}>결과 공개 {race.resultTime||"미정"} (한국시간)</div>
      {race.status==="RUNNING"&&<div className="notice">🏇 공식 경주가 진행되고 있습니다. 결과가 확정되면 자동으로 표시됩니다. (약 15초 간격 조회)</div>}
