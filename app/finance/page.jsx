@@ -2,8 +2,24 @@
 import {useEffect,useState} from "react";
 import {createClient} from "@supabase/supabase-js";
 const fmt=n=>new Intl.NumberFormat("ko-KR").format(Number(n||0));
-const names={INITIAL_CAPITAL:"초기 자본",RACE_PRIZE:"경주 상금",DAILY_OPERATION:"일일 운영비",
- HORSE_PURCHASE:"경주마 구매",HORSE_SALE:"경주마 판매"};
+const transactionNames={
+ INITIAL_CAPITAL:"게임 시작 자금",
+ RACE_PRIZE:"경주 상금",
+ DAILY_OPERATION:"일일 운영비 납부",
+ OPERATING_DEBT_PAYMENT:"미납 운영비 상환",
+ EMERGENCY_RECOVERY_GRANT:"재정 회생 지원금",
+ HORSE_PURCHASE:"경주마 구매",
+ HORSE_SALE:"경주마 판매 수익",
+ HORSE_NPC_SALE:"NPC 경주마 판매 수익",
+ HORSE_AUCTION_SALE:"경매 경주마 판매 수익",
+ RACE_ENTRY_FEE:"경주 출전료",
+ RACE_ENTRY_REFUND:"출전 취소 환불",
+ AUCTION_BID_HOLD:"경매 입찰금 예치",
+ AUCTION_BID_REFUND:"경매 입찰금 환불",
+ RANCH_COURSE_FEE:"목장 코스 이용료",
+ RANCH_MANAGEMENT:"목장 시설·직원 관리비",
+};
+const transactionName=type=>transactionNames[type]||"기타 거래";
 export default function Finance(){
  const [token,T]=useState(""),[checking,C]=useState(true),[data,D]=useState(null),[error,E]=useState(""),[busy,B]=useState(false),[message,M]=useState("");
  useEffect(()=>{let live=true;const api=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
@@ -48,7 +64,7 @@ export default function Finance(){
  <div className="section"><h2>거래 내역</h2><span className="tag">{data.recentTransactions?.length||0}건</span></div>
  {!data.recentTransactions?.length&&<div className="notice">거래 내역이 없습니다.</div>}
  {(data.recentTransactions||[]).map((t,i)=><div className="card row" key={i}>
- <div><b>{names[t.type]||t.type}</b><div className="muted">게임 {t.gameDay}일 · 잔액 {fmt(t.balanceAfter)} G</div></div>
+ <div><b>{transactionName(t.type)}</b><div className="muted">게임 {t.gameDay}일 · 잔액 {fmt(t.balanceAfter)} G</div></div>
  <b style={{color:t.amount>=0?"#a6cb7d":"#efb4a9"}}>{t.amount>=0?"+":""}{fmt(t.amount)}</b></div>)}
  </>}
  <div className="footer">MY DERBY · 원본 경제_v2 우선 · 미확정 요율은 임시 설정값으로 분리</div>
