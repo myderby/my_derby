@@ -14,6 +14,13 @@ const regionOptions=[["SEOUL","서울"],["YEONGCHEON","영천"],["BUSAN","부산
 const patternOptions=[["solid","민무늬"],["stripe","줄무늬"],["check","체크"],
  ["diamond","다이아"],["dot","점무늬"],["star","별무늬"]];
 const defaultSilks={bodyColor:"#D6A84F",sleeveColor:"#23180F",pattern:"solid",patternColor:"#FFFFFF"};
+const setupSteps=["마주명 정하기","마주복 꾸미기","시작 지역 고르기","첫 말과 직원 받기"];
+const setupGuide=[
+ "안녕하세요, 새 마주님! 먼저 경주장에서 사용할 마주명을 정해볼까요?",
+ "좋아요. 이제 상의와 소매 색, 무늬를 골라 나만의 마주복을 만들어보세요.",
+ "첫 목장을 시작할 지역을 선택해주세요. 선택한 지역은 마주 정보에 저장됩니다.",
+ "준비가 거의 끝났어요. 시작 말을 확인하고 등록하면 목장과 함께 자동 배정해드릴게요."
+];
 function SilksPreview({design,small=false}){
  const patternId="silks-pattern-"+design.pattern;
  return <svg viewBox="0 0 120 96" role="img" aria-label="마주복 상의 미리보기"
@@ -64,6 +71,7 @@ export default function WorldPage(){
  const [expanded,Expand]=useState(null);
  const [email,Email]=useState(""),[password,Password]=useState("");
  const [nickname,Nickname]=useState("");
+ const [tutorialStep,TutorialStep]=useState(0);
  const [startingRegion,StartingRegion]=useState("SEOUL");
  const [silksDesign,SilksDesign]=useState(defaultSilks);
  const [busy,Busy]=useState(false),[notice,Notice]=useState("");
@@ -182,38 +190,68 @@ export default function WorldPage(){
     </div>:
     mine&&!mine.joined?
     <div className="card">
-     <h2 style={{fontSize:18}}>마주 등록</h2>
-     <p className="muted">닉네임과 시작 지역, 나만의 마주복을 정하면 말 3두와 C등급 목장 인력이 배정됩니다.</p>
-     <input className="field" value={nickname} maxLength={32}
-      placeholder="마주 닉네임 (2~32자)" onChange={e=>Nickname(e.target.value)}/>
-     <b style={{display:"block",margin:"10px 0 7px"}}>시작 지역</b>
-     <div className="controls" aria-label="시작 지역 선택">
-      {regionOptions.map(([value,label])=><button key={value}
-       className={startingRegion===value?"primary":"outline"}
-       aria-pressed={startingRegion===value} disabled={busy}
-       onClick={()=>StartingRegion(value)}>{label}</button>)}
+     <h2 style={{fontSize:18}}>첫 시작 튜토리얼</h2>
+     <div className="muted">단계 {tutorialStep+1} / {setupSteps.length} · {setupSteps[tutorialStep]}</div>
+     <div style={{display:"flex",gap:5,margin:"10px 0 14px"}} aria-label="튜토리얼 진행 상황">
+      {setupSteps.map((_,i)=><span key={i} style={{height:5,flex:1,borderRadius:8,
+       background:i<=tutorialStep?"#e8b64d":"#493725"}}/>)} 
      </div>
-     <div className="card" style={{display:"flex",alignItems:"center",gap:12,marginTop:14}}>
-      <SilksPreview design={silksDesign}/>
-      <div><b>마주복 미리보기</b><div className="muted">상의와 소매를 꾸며보세요. 모자는 설정하지 않습니다.</div></div>
+     <div className="notice" role="status">🧑‍🏫 안내자 · {setupGuide[tutorialStep]}</div>
+     {tutorialStep===0&&<>
+      <label className="muted" htmlFor="ownerNickname">마주명</label>
+      <input id="ownerNickname" className="field" value={nickname} maxLength={32}
+       placeholder="마주 닉네임 (2~32자)" autoFocus onChange={e=>Nickname(e.target.value)}/>
+      <div className="muted">게임에서 다른 마주에게 표시될 이름입니다.</div>
+     </>}
+     {tutorialStep===1&&<>
+      <div className="card" style={{display:"flex",alignItems:"center",gap:12,marginTop:8}}>
+       <SilksPreview design={silksDesign}/>
+       <div><b>마주복 미리보기</b><div className="muted">상의와 소매 색상, 무늬를 자유롭게 골라보세요. 모자는 설정하지 않습니다.</div></div>
+      </div>
+      <div className="twoCol">
+       <label className="field">상의 색상<input aria-label="상의 색상" type="color"
+        value={silksDesign.bodyColor} disabled={busy}
+        onChange={e=>SilksDesign(v=>({...v,bodyColor:e.target.value}))}/></label>
+       <label className="field">소매 색상<input aria-label="소매 색상" type="color"
+        value={silksDesign.sleeveColor} disabled={busy}
+        onChange={e=>SilksDesign(v=>({...v,sleeveColor:e.target.value}))}/></label>
+       <label className="field">무늬 색상<input aria-label="무늬 색상" type="color"
+        value={silksDesign.patternColor} disabled={busy}
+        onChange={e=>SilksDesign(v=>({...v,patternColor:e.target.value}))}/></label>
+       <label className="field">상의 무늬<select className="field" value={silksDesign.pattern}
+        disabled={busy} onChange={e=>SilksDesign(v=>({...v,pattern:e.target.value}))}>
+        {patternOptions.map(([value,label])=><option key={value} value={value}>{label}</option>)}
+       </select></label>
+      </div>
+     </>}
+     {tutorialStep===2&&<>
+      <b style={{display:"block",margin:"10px 0 7px"}}>처음 활동할 지역</b>
+      <div className="controls" aria-label="시작 지역 선택">
+       {regionOptions.map(([value,label])=><button key={value}
+        className={startingRegion===value?"primary":"outline"}
+        aria-pressed={startingRegion===value} disabled={busy}
+        onClick={()=>StartingRegion(value)}>{label}</button>)}
+      </div>
+      <div className="muted" style={{marginTop:10}}>선택한 지역은 마주 정보에 저장됩니다.</div>
+     </>}
+     {tutorialStep===3&&<>
+      <div className="line"><b>시작 지역</b><span> · {regionName[startingRegion]}</span></div>
+      <div className="line"><b>시작 말</b><div className="muted">2세 육성마 1마리</div>
+       <div className="muted">3세 6등급 신마 1마리</div>
+       <div className="muted">3세 미국산 외국 4등급 신마 1마리</div></div>
+      <div className="line"><b>초기 목장 직원</b><div className="muted">관리사 4명과 수의사 1명 · 모두 C등급</div>
+       <div className="muted">시설 배치는 목장에 들어간 뒤 직접 할 수 있습니다.</div></div>
+      <div className="muted" style={{marginTop:10}}>마주명과 마주복을 다시 확인하고 등록을 완료하세요.</div>
+     </>}
+     <div className="controls" style={{marginTop:14}}>
+      {tutorialStep>0&&<button className="outline" disabled={busy}
+       onClick={()=>TutorialStep(x=>Math.max(0,x-1))}>이전</button>}
+      {tutorialStep<setupSteps.length-1?
+       <button className="primary" disabled={busy||(tutorialStep===0&&nickname.trim().length<2)}
+        onClick={()=>TutorialStep(x=>Math.min(setupSteps.length-1,x+1))}>다음 단계</button>:
+       <button className="primary" disabled={busy||nickname.trim().length<2}
+        onClick={join}>{busy?"등록 중…":"등록 완료하고 시작하기"}</button>}
      </div>
-     <div className="twoCol">
-      <label className="field">상의 색상<input aria-label="상의 색상" type="color"
-       value={silksDesign.bodyColor} disabled={busy}
-       onChange={e=>SilksDesign(v=>({...v,bodyColor:e.target.value}))}/></label>
-      <label className="field">소매 색상<input aria-label="소매 색상" type="color"
-       value={silksDesign.sleeveColor} disabled={busy}
-       onChange={e=>SilksDesign(v=>({...v,sleeveColor:e.target.value}))}/></label>
-      <label className="field">무늬 색상<input aria-label="무늬 색상" type="color"
-       value={silksDesign.patternColor} disabled={busy}
-       onChange={e=>SilksDesign(v=>({...v,patternColor:e.target.value}))}/></label>
-      <label className="field">상의 무늬<select className="field" value={silksDesign.pattern}
-       disabled={busy} onChange={e=>SilksDesign(v=>({...v,pattern:e.target.value}))}>
-       {patternOptions.map(([value,label])=><option key={value} value={value}>{label}</option>)}
-      </select></label>
-     </div>
-     <button className="primary wide" disabled={busy||nickname.trim().length<2||!startingRegion}
-      onClick={join}>마주 등록 · 경주마 3두 배정</button>
     </div>:
     mine&&mine.joined?<section>
      <div className="card">
