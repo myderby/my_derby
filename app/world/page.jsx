@@ -14,6 +14,15 @@ const regionOptions=[["SEOUL","서울"],["YEONGCHEON","영천"],["BUSAN","부산
 const patternOptions=[["solid","민무늬"],["stripe","줄무늬"],["check","체크"],
  ["diamond","다이아"],["dot","점무늬"],["star","별무늬"]];
 const defaultSilks={bodyColor:"#D6A84F",sleeveColor:"#23180F",pattern:"solid",patternColor:"#FFFFFF"};
+const tutorialTopics=[
+ {key:"training",title:"훈련과 성장",text:"훈련계획을 세우고 목장에서 휴양·육성·재활을 관리하세요.",href:"/ranch"},
+ {key:"racing",title:"경주 출전",text:"출전표에서 경주와 기수를 확인한 뒤 출전을 신청하세요.",href:"/entries"},
+ {key:"results",title:"결과와 기록",text:"출전이 끝나면 결과와 말의 전적을 확인하세요.",href:"/my-record"},
+ {key:"ranch",title:"목장과 직원",text:"시설과 관리사를 직접 배치해 말의 회복과 육성을 도와주세요.",href:"/ranch"},
+ {key:"betting",title:"경주 베팅",text:"베팅은 선택 기능입니다. 원할 때 경주 정보를 살펴 참여하세요.",href:"/bets"},
+ {key:"breeding",title:"교배와 번식",text:"번식 자격을 얻은 말은 번식 메뉴에서 교배를 신청할 수 있어요.",href:"/breeding"},
+ {key:"achievements",title:"업적",text:"첫 승리 뒤 나의 정보에서 통산·말별 기록과 우승 호칭을 확인하세요.",href:"/my-record"}
+];
 const silksColorOptions=["#111111","#3D1E0B","#7A1F1F","#C62828","#EF6C00","#F9A825",
  "#D6A84F","#F5E6C8","#FFFFFF","#9E9E9E","#4CAF50","#1B5E20","#00897B",
  "#00ACC1","#1565C0","#283593","#6A1B9A","#AD1457"];
@@ -80,6 +89,8 @@ export default function WorldPage(){
  const [colorTarget,ColorTarget]=useState(null),[colorDraft,ColorDraft]=useState("");
  const [busy,Busy]=useState(false),[notice,Notice]=useState("");
  const [refresh,Refresh]=useState(0);
+ const [tutorial,Tutorial]=useState(null);
+ const [tutorialTopic,TutorialTopic]=useState(null);
 
  useEffect(()=>{
   let mounted=true;
@@ -146,6 +157,17 @@ export default function WorldPage(){
   }catch(e){Notice("마주 등록 오류: "+e.message)}
   finally{Busy(false)}
  };
+ const saveTutorial=async payload=>{
+  if(!token)return;
+  try{
+   const response=await fetch("/api/player/tutorial",{method:"POST",cache:"no-store",
+    headers:{"Content-Type":"application/json",Authorization:"Bearer "+token},
+    body:JSON.stringify(payload)});
+   const data=await response.json();
+   if(!response.ok)throw new Error(data.error||"튜토리얼 저장 실패");
+   Tutorial(v=>({...v,...data}));
+  }catch(e){Notice("튜토리얼 안내 저장 실패: "+e.message)}
+ };
  const logout=async()=>{
   Busy(true);
   try{
@@ -155,6 +177,15 @@ export default function WorldPage(){
   }catch(e){Notice(e.message)}
   finally{Busy(false)}
  };
+ useEffect(()=>{
+  let mounted=true;
+  if(!token||!mine?.joined){Tutorial(null);return;}
+  fetch("/api/player/tutorial",{cache:"no-store",headers:{Authorization:"Bearer "+token}})
+   .then(async res=>{const data=await res.json();if(!res.ok)throw new Error(data.error||"상태 조회 실패");return data;})
+   .then(data=>{if(mounted)Tutorial(data);})
+   .catch(e=>{if(mounted)Notice("튜토리얼 상태 조회 실패: "+e.message);});
+  return()=>{mounted=false};
+ },[token,mine?.joined,refresh]);
  const horses=mine?.horses||[];
  const breeding=h=>["STALLION","BROODMARE","RETIRED","DECEASED"].includes(h.life_stage);
  const injured=h=>h.health_state==="INJURED"||Number(h.condition_score)<50;
@@ -275,6 +306,49 @@ export default function WorldPage(){
        <div><b>{horses.length}</b><span>보유마</span></div>
        <div><b>{activeCount}</b><span>현역</span></div>
        <div><b>{horses.filter(breeding).length}</b><span>번식·은퇴</span></div>
+      </div>
+     </div>
+     {tutorial&&tutorial.storyStage===0&&<div className="card" aria-live="polite">
+      <div className="row"><b className="gold">🧑‍🏫 첫 시작 이야기</b><span className="tag">이야기 1 / 3</span></div>
+      <div className="notice">“명마는 하루아침에 만들어지지 않습니다. ${tutorial.starterHorse?.name||"새로 맡은 2세마"}와 함께 최고의 경주마를 키워보시죠.”
+       <div className="muted" style={{marginTop:6}}>먼저 목장에서 2세 육성마의 육성 과정을 신청해주세요. 과정이 시작되면 경주를 경험할 말이 합류합니다. 튜토리얼 말 세 마리는 각각 첫 출전 신청비가 면제됩니다.</div>
+       <a className="primary" href="/ranch" style={{display:"inline-block",textDecoration:"none",marginTop:10}}>육성하러 가기 ›</a>
+      </div>
+     </div>}
+     {tutorial&&tutorial.storyStage===1&&<div className="card" aria-live="polite">
+      <div className="row"><b className="gold">🧑‍🏫 첫 시작 이야기</b><span className="tag">이야기 2 / 3</span></div>
+      <div className="notice">“육성에는 시간이 필요하니, 경주도 먼저 경험해보세요. 3세 6등급 신마를 맡기겠습니다.”
+       <div className="muted" style={{marginTop:6}}>출전표에서 경주와 기수를 확인해 첫 출전을 신청하세요. 이 말의 첫 출전 신청비는 면제됩니다.</div>
+       <a className="primary" href="/entries" style={{display:"inline-block",textDecoration:"none",marginTop:10}}>출전표 보기 ›</a>
+      </div>
+     </div>}
+     {tutorial&&tutorial.storyStage===2&&<div className="card" aria-live="polite">
+      <div className="row"><b className="gold">🧑‍🏫 첫 시작 이야기</b><span className="tag">이야기 3 / 3</span></div>
+      <div className="notice">“경매에서 아쉽게 놓쳤던 미국산 외산마가 급히 새 마주를 찾고 있습니다. 이번에는 직접 출전시켜 실력을 확인해보세요.”
+       <div className="muted" style={{marginTop:6}}>3세 미국산 4등급 신마를 목장에 추가했습니다. 이 말도 첫 출전 신청비가 면제됩니다.</div>
+       <a className="primary" href="/entries" style={{display:"inline-block",textDecoration:"none",marginTop:10}}>외산마 출전 신청 ›</a>
+       <button className="outline" style={{marginLeft:8}} disabled={busy} onClick={()=>saveTutorial({storyStage:3})}>이야기 마무리</button>
+      </div>
+     </div>}
+     {tutorial&&tutorial.storyStage===3&&!tutorial.completed&&<div className="notice">
+      첫 시작 이야기를 모두 진행했습니다.
+      <button className="outline" style={{marginLeft:10}} disabled={busy} onClick={()=>saveTutorial({completeStory:true})}>튜토리얼 완료</button>
+     </div>}
+     {tutorial&&tutorial.completed&&<div className="notice">첫 시작 튜토리얼을 완료했습니다. 아래 기능 안내는 언제든 다시 볼 수 있습니다.</div>}
+     <div className="card">
+      <b>게임 기능 안내</b>
+      <div className="muted" style={{margin:"5px 0 10px"}}>항목을 눌러 간단한 설명을 보고 해당 기능으로 이동하세요.</div>
+      <div className="my-horse-action-grid">
+       {tutorialTopics.map(topic=><div key={topic.key} className="card my-horse-action">
+        <button className="outline" style={{textAlign:"left",width:"100%"}}
+         aria-expanded={tutorialTopic===topic.key}
+         onClick={()=>{TutorialTopic(tutorialTopic===topic.key?null:topic.key);
+          if(!tutorial?.seenTopics?.includes(topic.key))saveTutorial({topic:topic.key});}}>
+         {tutorial?.seenTopics?.includes(topic.key)?"✓ ":""}{topic.title}
+        </button>
+        {tutorialTopic===topic.key&&<><span className="muted">{topic.text}</span>
+         <a href={topic.href} className="my-horse-race-link">기능 열기 ›</a></>}
+       </div>)}
       </div>
      </div>
      <div className="tabs my-horse-nav" aria-label="내 말 관리 메뉴">
