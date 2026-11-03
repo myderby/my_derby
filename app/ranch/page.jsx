@@ -12,7 +12,8 @@ const errors={RANCH_COURSE_ALREADY_ACTIVE:"이미 진행 중인 목장 코스가
  INSUFFICIENT_FUNDS:"게임머니가 부족합니다.",
  HORSE_NOT_RANCH_ELIGIBLE:"경주마의 상태상 목장에 입소할 수 없습니다.",
  REHAB_REQUIRES_INJURY:"재활은 건강 문제가 있는 경주마에게만 가능합니다.",
- RANCH_COURSE_AGE_MISMATCH:"경주마 나이와 코스가 맞지 않습니다."};
+ RANCH_COURSE_AGE_MISMATCH:"경주마 나이와 코스가 맞지 않습니다.",
+ STARTER_GRADE6_UNAVAILABLE:"튜토리얼 3세 6등급 신마를 지금 배정할 수 없습니다. 목장 코스 신청은 반영되지 않았습니다. 잠시 후 다시 시도해주세요."};
 const explain=e=>{const k=Object.keys(errors).find(k=>String(e).includes(k));return k?errors[k]:String(e)};
 export default function Ranch(){
  const [token,T]=useState(""),[loadState,Loaded]=useState(false),[board,B]=useState(null),
@@ -42,6 +43,7 @@ export default function Ranch(){
    body:JSON.stringify({horseId:horse,course})});const result=await r.json();
    if(!r.ok)throw new Error(result.error);
    N("목장 입소 확정 · 비용 "+fmt(result.fee)+" G · 게임 "+result.startGameDay+"~"+result.endGameDay+"일");
+   window.dispatchEvent(new Event("my-derby:progress"));
    await refresh();
   }catch(e){E(explain(e.message))}
   finally{X(false)}

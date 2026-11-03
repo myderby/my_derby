@@ -25,6 +25,7 @@ const readable={
  JOCKEY_NOT_ELIGIBLE:"선택한 기수가 해당 지역에서 활동하지 않거나 비활성 상태입니다.",
  OWN_CONFIRMED_ENTRY_REQUIRED:"먼저 내 경주마를 공식 경주에 출전 신청하세요.",
  NO_JOCKEY_AVAILABLE:"배정 가능한 기수가 없습니다.",
+ STARTER_US_GRADE4_UNAVAILABLE:"튜토리얼 미국산 외국 4등급 신마를 지금 배정할 수 없습니다. 출전 신청은 반영되지 않았습니다. 잠시 후 다시 시도해주세요.",
  NPC_REPLACEMENT_UNAVAILABLE:"출전 정원을 유지할 대체 NPC 말이 없어 현재는 취소할 수 없습니다."
 };
 function explain(message){
@@ -134,6 +135,7 @@ export default function EntriesPage(){
    const data=await r.json();if(!r.ok)throw new Error(data.error||"신청 실패");
    SetMessage(data.status==="ALREADY_CONFIRMED"?"이미 출전 확정된 경주입니다.":
      "출전 확정! "+race.track+" "+race.raceNo+"경주 · "+data.gateNo+"번 게이트 · 기수는 기본 배정되었습니다.");
+   if(data.status!=="ALREADY_CONFIRMED")window.dispatchEvent(new Event("my-derby:progress"));
    await load(week);
   }catch(e){SetMessage(explain(e.message))}finally{SetBusy(false)}
  };

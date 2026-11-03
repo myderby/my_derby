@@ -1,57 +1,95 @@
 "use client";
-import {useEffect,useState} from "react";
+import {useCallback,useEffect,useState} from "react";
+import {usePathname} from "next/navigation";
 import {createClient} from "@supabase/supabase-js";
-const steps=[
- {title:"새 마주의 첫날",href:"/world",body:"오랜 경마 경험을 가진 베테랑 관리인이 당신의 첫 목장에 찾아왔습니다. 서울·영천·부산 중 선택한 지역에서 첫 시즌을 시작합니다.",task:"목장과 시작 지역을 확인해 보세요."},
- {title:"첫 목장을 꾸려요",href:"/ranch/management",body:"C등급 관리사와 수의사가 합류했습니다. 어느 시설에 배치할지는 마주인 당신이 결정합니다.",task:"방목지와 수의진료소의 인력 배치를 살펴보세요."},
- {title:"첫 데뷔를 기다리는 신마",href:"/horses",body:"6등급 신마의 기록과 컨디션을 확인하고, 출전표에서 데뷔 준비를 배워보세요.",task:"보유마 목록에서 신마의 기본 정보를 확인하세요."},
- {title:"미래와 가능성",href:"/training",body:"2살 육성마는 아직 경주에 나설 때가 아닙니다. 훈련 계획을 세우고 성장 기록을 살펴보세요.",task:"육성 화면에서 훈련 메뉴를 확인하세요."},
- {title:"먼 길을 온 외국 신마",href:"/market",body:"미국에서 온 4등급 외국 신마가 새 목장에 합류했습니다. 이제 경주 조건을 읽고 첫 출전을 준비할 차례입니다.",task:"대회와 경주 조건을 확인하고 첫 목표를 정하세요."}
+
+const stories=[
+ {title:"명마의 시작",body:"명마는 하루아침에 만들어지지 않습니다. 이 2세마를 함께 키워 최고의 경주마로 만들어보시죠.",task:"2세 육성마가 목장에 도착했습니다. 육성 코스를 한 번 신청하면 다음 이야기가 열립니다.",href:"/ranch",action:"육성 코스 신청하기"},
+ {title:"첫 경주 준비",body:"육성에는 시간이 걸리니, 경주를 먼저 경험해보세요. 3세 6등급 신마를 맡기겠습니다.",task:"육성 코스 신청이 확인되어 3세 6등급 신마를 받았습니다. 시간표와 출전표를 살펴보고 기수를 선택해 첫 경주를 신청해보세요. 튜토리얼로 받은 말은 첫 출전 신청 비용이 들지 않습니다.",href:"/entries",action:"경주 출전 신청하기"},
+ {title:"놓친 경매마의 기회",body:"경매에서 아쉽게 놓쳤던 미국산 외산마가 급히 새 마주를 찾고 있습니다. 이번에는 직접 출전시켜 실력을 확인해보세요.",task:"첫 출전 신청이 완료되어 3세 미국산 외국 4등급 신마가 합류했습니다. 내 말 관리에서 말의 정보를 확인해보세요.",href:"/world",action:"다음 이야기 보기"},
+ {title:"목장으로 출발",body:"세 마리 모두 준비됐습니다. 목장과 직원은 직접 관리하며 마주님의 방식으로 키워보세요.",task:"C등급 관리사와 수의사, 목장 시설을 확인하고 직원 배치와 말 관리를 시작해보세요.",href:"/ranch/management",action:"목장 관리 살펴보기"}
 ];
-export default function TutorialOnboarding({force=false}){
- const [state,S]=useState(null),[busy,B]=useState(false),[dismissed,D]=useState(false),[replayStep,RS]=useState(0);
- useEffect(()=>{
-  let active=true;
-  const load=async()=>{
-   try{
-    const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-    if(!url||!key)return;
-    const client=createClient(url,key),{data:{session}}=await client.auth.getSession();
-    if(!session)return;
-    const r=await fetch("/api/player/tutorial",{headers:{Authorization:"Bearer "+session.access_token},cache:"no-store"});
-    if(!r.ok)return;
-    const data=await r.json();if(active)setState(data);
-   }catch(_){}
-  };
-  void load();return()=>{active=false};
+const topics={
+ training:{title:"훈련·육성",body:"훈련 신청 방법과 조교사 리포트에서 성장·컨디션 변화를 확인하는 법을 살펴보세요."},
+ racing:{title:"경주",body:"19시·20시·21시 시간표에서 출전표를 확인하고, 경주 조건에 맞는 말과 기수를 골라 신청합니다."},
+ results:{title:"경주 결과",body:"경주가 끝나면 순위와 기록을 확인하고, 내 말의 출전 기록과 경주 리포트를 살펴볼 수 있습니다."},
+ ranch:{title:"목장·직원",body:"시설마다 수용 두수가 정해져 있습니다. 관리 두수와 직원 배치에 따라 회복·육성 관리 효과가 달라집니다."},
+ betting:{title:"배팅",body:"배당과 예상 환급액을 확인할 수 있습니다. 배팅은 선택 사항이며 참여하지 않아도 경주와 육성을 계속할 수 있습니다."},
+ breeding:{title:"교배",body:"번식마와 교배 조건을 확인한 뒤 신청합니다. 기능을 이용할 때 필요한 조건과 예상 정보를 이 화면에서 살펴보세요."},
+ achievements:{title:"업적",body:"마주와 경주마의 성적에 따라 업적이 열립니다. 달성 조건과 현재 진행 상황을 확인할 수 있습니다."}
+};
+function topicFor(path){
+ if(path==="/training"||path==="/horses/reports")return "training";
+ if(path==="/entries"||path==="/schedule")return "racing";
+ if(path.startsWith("/race/result/"))return "results";
+ if(path==="/ranch"||path==="/ranch/management"||path==="/stable")return "ranch";
+ if(path==="/bets")return "betting";
+ if(path==="/breeding")return "breeding";
+ if(path==="/achievements")return "achievements";
+ return null;
+}
+function client(){return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)}
+
+export default function TutorialOnboarding(){
+ const pathname=usePathname();
+ const [state,S]=useState(null),[busy,B]=useState(false),[hiddenStage,HS]=useState(null),[topicHidden,TH]=useState(false);
+ const load=useCallback(async()=>{
+  try{
+   const cfg=client(),{data:{session}}=await cfg.auth.getSession();if(!session)return;
+   const r=await fetch("/api/player/tutorial",{headers:{Authorization:"Bearer "+session.access_token},cache:"no-store"});
+   if(r.ok)S(await r.json());
+  }catch(_){/* Tutorial guidance must not block the game. */}
  },[]);
- async function save(step,skip=false){
-  const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-  if(!url||!key)return;
+ useEffect(()=>{void load()},[load]);
+ useEffect(()=>{
+  const refresh=()=>void load();
+  window.addEventListener("my-derby:progress",refresh);
+  window.addEventListener("focus",refresh);
+  return()=>{window.removeEventListener("my-derby:progress",refresh);window.removeEventListener("focus",refresh)};
+ },[load]);
+ useEffect(()=>{TH(false)},[pathname]);
+ async function update(payload){
   B(true);
   try{
-   const client=createClient(url,key),{data:{session}}=await client.auth.getSession();
-   if(!session)return;
-   const r=await fetch("/api/player/tutorial",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+session.access_token},body:JSON.stringify({step,skip})});
-   if(!r.ok)throw new Error("저장 실패");
-   const data=await r.json();S(prev=>({...prev,...data}));RS(Math.min(5,step));
-   if(data.completed)D(true);
-  }catch(_){/* Keep the story open so the player can retry. */}
+   const cfg=client(),{data:{session}}=await cfg.auth.getSession();if(!session)return;
+   const r=await fetch("/api/player/tutorial",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+session.access_token},body:JSON.stringify(payload)});
+   const data=await r.json();if(!r.ok)throw new Error(data.error||"저장 실패");
+   S(prev=>({...prev,...data}));window.dispatchEvent(new Event("my-derby:progress"));
+  }catch(_){/* A failed save leaves the tutorial available for retry. */}
   finally{B(false)}
  }
- if(!state?.joined||dismissed||(!force&&state.completed))return null;
- const index=Math.min(force?replayStep:(state.currentStep||0),steps.length-1),item=steps[index];
- return <div style={{position:"fixed",inset:0,zIndex:9999,background:"rgba(10,15,24,.76)",display:"grid",placeItems:"center",padding:18}}>
-  <section role="dialog" aria-modal="true" aria-labelledby="tutorial-title" style={{width:"min(520px,100%)",background:"#111b2b",color:"#f5f1e7",border:"1px solid #b99a56",borderRadius:20,padding:24,boxShadow:"0 24px 80px #0008"}}>
-   <div style={{color:"#c7a65c",fontSize:12,letterSpacing:2}}>MY DERBY · 첫 시즌 이야기 {index+1}/{steps.length}</div>
-   <h2 id="tutorial-title" style={{fontSize:24,margin:"12px 0"}}>{item.title}</h2>
-   <p style={{lineHeight:1.7,color:"#d7dbe2"}}>{item.body}</p>
-   <div style={{background:"#1a283a",padding:12,borderRadius:10,color:"#e4c778",fontSize:14}}>안내 · {item.task}</div>
+ if(!state?.joined)return null;
+ const stage=Math.min(3,Math.max(0,Number(state.storyStage)||0));
+ const story=stories[stage];
+ const topicKey=topicFor(pathname||"");
+ const topic=topicKey&&!state.seenTopics?.includes(topicKey)?topics[topicKey]:null;
+ const storyOpen=hiddenStage!==stage&&!(stage>=3&&state.completed);
+ const topicOpen=!storyOpen&&!topicHidden&&!!topic;
+ if(!storyOpen&&!topicOpen)return null;
+ if(storyOpen)return <div style={{position:"fixed",inset:0,zIndex:9999,background:"rgba(10,15,24,.76)",display:"grid",placeItems:"center",padding:18}}>
+  <section role="dialog" aria-modal="true" aria-labelledby="tutorial-title" style={{width:"min(540px,100%)",background:"#111b2b",color:"#f5f1e7",border:"1px solid #b99a56",borderRadius:20,padding:24,boxShadow:"0 24px 80px #0008"}}>
+   <div style={{color:"#c7a65c",fontSize:12,letterSpacing:2}}>MY DERBY · 첫 시작 이야기 {stage+1}/4</div>
+   <h2 id="tutorial-title" style={{fontSize:24,margin:"12px 0"}}>{story.title}</h2>
+   <p style={{lineHeight:1.7,color:"#d7dbe2"}}>“{story.body}”</p>
+   <div style={{background:"#1a283a",padding:12,borderRadius:10,color:"#e4c778",fontSize:14}}>안내 · {story.task}</div>
+   {stage===3&&<p style={{color:"#d7dbe2",fontSize:13,marginBottom:0}}>관리사 4명과 수의사 1명은 모두 C등급입니다. 시설별 수용 두수와 직원을 배치하는 방법을 익혀보세요.</p>}
    <div style={{display:"flex",justifyContent:"space-between",gap:8,marginTop:20}}>
-    <button onClick={()=>{D(true);void save(5,true)}} disabled={busy} style={{background:"transparent",border:"1px solid #566174",color:"#d7dbe2",borderRadius:9,padding:"10px 14px"}}>건너뛰기</button>
-    <button onClick={()=>{D(true);void save(index+1);window.location.assign(item.href)}} disabled={busy} style={{background:"transparent",border:"1px solid #c7a65c",color:"#e4c778",fontWeight:700,borderRadius:9,padding:"10px 14px"}}>화면 열기</button>
-    <button onClick={()=>void save(index+1)} disabled={busy} style={{background:"#c7a65c",border:0,color:"#17202b",fontWeight:700,borderRadius:9,padding:"10px 18px"}}>{busy?"저장 중…":index===steps.length-1?"이야기 마치기":"다음"}</button>
+    <button onClick={()=>HS(stage)} style={{background:"transparent",border:"1px solid #566174",color:"#d7dbe2",borderRadius:9,padding:"10px 14px"}}>나중에</button>
+    <button disabled={busy} onClick={async()=>{
+     if(stage===2){await update({storyStage:3});return;}
+     if(stage===3)await update({completeStory:true});
+     HS(stage);window.location.assign(story.href);
+    }} style={{background:"#c7a65c",border:0,color:"#17202b",fontWeight:700,borderRadius:9,padding:"10px 16px"}}>{busy?"저장 중…":story.action}</button>
    </div>
   </section>
+ </div>;
+ return <div style={{position:"fixed",right:16,bottom:16,zIndex:9999,width:"min(410px,calc(100% - 32px))",background:"#111b2b",color:"#f5f1e7",border:"1px solid #b99a56",borderRadius:16,padding:18,boxShadow:"0 14px 44px #0009"}}>
+  <div style={{color:"#c7a65c",fontSize:11,letterSpacing:1.5}}>처음 이용하는 기능</div>
+  <h2 style={{fontSize:20,margin:"8px 0"}}>{topic.title}</h2>
+  <p style={{fontSize:14,lineHeight:1.6,color:"#d7dbe2",margin:"0 0 12px"}}>{topic.body}</p>
+  <div style={{display:"flex",justifyContent:"flex-end",gap:8}}>
+   <button onClick={()=>TH(true)} style={{background:"transparent",border:"1px solid #566174",color:"#d7dbe2",borderRadius:8,padding:"8px 12px"}}>나중에</button>
+   <button disabled={busy} onClick={async()=>{await update({topic:topicKey});TH(true)}} style={{background:"#c7a65c",border:0,color:"#17202b",fontWeight:700,borderRadius:8,padding:"8px 12px"}}>{busy?"저장 중…":"확인"}</button>
+  </div>
  </div>;
 }

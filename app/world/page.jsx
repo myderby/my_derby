@@ -14,12 +14,12 @@ const regionOptions=[["SEOUL","서울"],["YEONGCHEON","영천"],["BUSAN","부산
 const patternOptions=[["solid","민무늬"],["stripe","줄무늬"],["check","체크"],
  ["diamond","다이아"],["dot","점무늬"],["star","별무늬"]];
 const defaultSilks={bodyColor:"#D6A84F",sleeveColor:"#23180F",pattern:"solid",patternColor:"#FFFFFF"};
-const setupSteps=["마주명 정하기","마주복 꾸미기","시작 지역 고르기","첫 말과 직원 받기"];
+const setupSteps=["마주명 정하기","마주복 꾸미기","시작 지역 고르기","첫 육성마와 직원 받기"];
 const setupGuide=[
  "안녕하세요, 새 마주님! 먼저 경주장에서 사용할 마주명을 정해볼까요?",
  "좋아요. 이제 상의와 소매 색, 무늬를 골라 나만의 마주복을 만들어보세요.",
  "첫 목장을 시작할 지역을 선택해주세요. 선택한 지역은 마주 정보에 저장됩니다.",
- "준비가 거의 끝났어요. 시작 말을 확인하고 등록하면 목장과 함께 자동 배정해드릴게요."
+ "준비가 거의 끝났어요. 등록을 마치면 2세 육성마 한 마리와 C등급 관리사·수의사가 먼저 합류합니다."
 ];
 function SilksPreview({design,small=false}){
  const patternId="silks-pattern-"+design.pattern;
@@ -137,6 +137,7 @@ export default function WorldPage(){
    const data=await response.json();
    if(!response.ok)throw new Error(data.error||"마주 등록 실패");
    Notice(data.alreadyJoined?"이미 등록된 마주입니다.":"마주 등록을 완료했습니다.");
+   window.dispatchEvent(new Event("my-derby:progress"));
    Refresh(x=>x+1);
   }catch(e){Notice("마주 등록 오류: "+e.message)}
   finally{Busy(false)}
@@ -236,9 +237,8 @@ export default function WorldPage(){
      </>}
      {tutorialStep===3&&<>
       <div className="line"><b>시작 지역</b><span> · {regionName[startingRegion]}</span></div>
-      <div className="line"><b>시작 말</b><div className="muted">2세 육성마 1마리</div>
-       <div className="muted">3세 6등급 신마 1마리</div>
-       <div className="muted">3세 미국산 외국 4등급 신마 1마리</div></div>
+      <div className="line"><b>먼저 받는 말</b><div className="muted">2세 육성마 1마리 · 육성 코스를 신청하면 3세 6등급 신마를 받습니다.</div>
+       <div className="muted">첫 출전을 신청하면 3세 미국산 외국 4등급 신마가 합류합니다.</div></div>
       <div className="line"><b>초기 목장 직원</b><div className="muted">관리사 4명과 수의사 1명 · 모두 C등급</div>
        <div className="muted">시설 배치는 목장에 들어간 뒤 직접 할 수 있습니다.</div></div>
       <div className="muted" style={{marginTop:10}}>마주명과 마주복을 다시 확인하고 등록을 완료하세요.</div>
