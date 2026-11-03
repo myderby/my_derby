@@ -15,6 +15,7 @@ const transactionNames={
  RACE_ENTRY_FEE:"경주 출전료",
  RACE_ENTRY_REFUND:"출전 취소 환불",
  RACE_PARTICIPATION_ALLOWANCE:"경주 출전수당",
+ HORSE_INSURANCE_PREMIUM:"경주마 보험료",
  AUCTION_BID_HOLD:"경매 입찰금 예치",
  AUCTION_BID_REFUND:"경매 입찰금 환불",
  RANCH_COURSE_FEE:"목장 코스 이용료",
@@ -33,7 +34,7 @@ export default function Finance(){
   }catch(e){E(e.message)}};
  useEffect(()=>{if(token)void load(token)},[token]);
  const requestRecovery=async()=>{
-  if(!window.confirm("이번 시즌 1회 한정 재정 회복 지원금을 신청하시겠습니까? 미납 운영비가 우선 상환됩니다."))return;
+  if(!window.confirm("이번 시즌 1회 한정 재정 회복 지원금을 신청하시겠습니까? 미납 비용이 우선 상환됩니다."))return;
   B(true);E("");M("");
   try{
    const r=await fetch("/api/player/finance",{method:"POST",headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify({action:"RECOVER"})});
@@ -52,15 +53,15 @@ export default function Finance(){
  {!checking&&!token&&<div className="notice">월드에서 로그인해야 재무 내역을 확인할 수 있습니다.</div>}
  {data&&<><div className="card">
  <div className="muted">게임머니 잔액</div><b className="large gold">{fmt(data.balance)} G</b>
- <div className="row small line"><span>미납 운영비</span><b>{fmt(data.unpaidExpenses)} G</b></div>
+ <div className="row small line"><span>미납 비용</span><b>{fmt(data.unpaidExpenses)} G</b></div>
  <div className="row small"><span>재정 보호 필요</span><span className="tag">{data.protected?"미납 발생":"정상"}</span></div>
  <div className="muted" style={{marginTop:9}}>시즌 {data.world?.season}, {data.world?.week}주차 · 실제 DB 원장</div>
  {data.protected&&data.balance<20000&&
   <button className="primary wide" disabled={busy} onClick={requestRecovery} style={{marginTop:12}}>
    {busy?"회생 신청 중…":"시즌 1회 재정 회생 지원 신청"}</button>}
  </div>
- <div className="notice">운영비 20,000 G를 실제 시간 4일마다 22:45(한국시간)에 정산합니다.
-   현실 하루는 게임 7일입니다.
+ <div className="notice">운영비 20,000 G와 초기 지급마를 제외한 경주마 보험료를 실제 시간 4일마다 22:45(한국시간)에 정산합니다.
+   보험료는 각 경주마 구매가의 연 4%이며, 52일 게임 연도에 맞춰 13회로 나누어 납부합니다. 현실 하루는 게임 7일입니다.
    초기 자본 200만 G는 경제 원문에 수치가 없어 설정한 <b>임시 운영값</b>입니다.</div>
  <div className="section"><h2>거래 내역</h2><span className="tag">{data.recentTransactions?.length||0}건</span></div>
  {!data.recentTransactions?.length&&<div className="notice">거래 내역이 없습니다.</div>}
