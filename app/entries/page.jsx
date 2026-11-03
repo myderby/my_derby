@@ -318,7 +318,7 @@ export default function EntriesPage(){
          {r.ageCondRequiresBirthHemisphere&&(" · "+(h.birthHemisphere==="NORTH"?"북반구 출생":h.birthHemisphere==="SOUTH"?"남반구 출생":"출생 반구 미확인"))}
         </option>)}
        </select>
-       <button className="primary wide" disabled={busy||loading} onClick={()=>submitEntry(r,selected)}>
+       <button data-tutorial-target="racing" className="primary wide" disabled={busy||loading} onClick={()=>submitEntry(r,selected)}>
         {busy?"처리 중…":"공식 출전 신청"}
        </button>
       </div>}

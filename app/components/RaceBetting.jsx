@@ -107,7 +107,7 @@ export default function RaceBetting({raceId,readOnly=false}){
   }catch(e){setError(e.message||"OMR 베팅 구매 실패")}finally{setBusy(false);}
  };
  if(!data&&!error)return <div className="notice">경주 전문가 정보와 배당을 불러오는 중입니다…</div>;
- return <section className="race-betting omr-betting">
+ return <section className="race-betting omr-betting" data-tutorial-target={readOnly?"betting":undefined}>
   <div className="section"><h2>{readOnly?"📈 경주 전문가 예상지":"📈 AI 예상가 · OMR 7개 승식"}</h2>
    {!readOnly&&<a className="outline" href="/bets" style={{textDecoration:"none"}}>📒 나의 베팅 이력 ›</a>}</div>
   {data?.entryAnnouncementPending&&<div className="notice">출전마 발표는 경주 당일 오전 8시(한국시간)입니다.</div>}
@@ -140,7 +140,7 @@ export default function RaceBetting({raceId,readOnly=false}){
    </div>
    <div className="section"><h2>승식 선택</h2></div>
    <div className="bet-type-grid">{BET_TYPES.map(t=>
-    <button type="button" key={t.id} className={"bet-type-card "+(betType===t.id?"selected":"")}
+    <button type="button" key={t.id} data-tutorial-target={t.id==="WIN"?"betting":undefined} className={"bet-type-card "+(betType===t.id?"selected":"")}
       aria-pressed={betType===t.id} onClick={()=>switchType(t.id)}><b>{t.label}</b></button>)}</div>
    <div className="card popular-odds-card">
     <div className="row" style={{gap:10,alignItems:"center"}}>

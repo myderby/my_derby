@@ -150,7 +150,7 @@ export default function RaceDetailPage(){
     </div>}
     {completed&&<div className="tabs" aria-label="공식 경주 기록 화면">
       {[["result","최종 순위"],["sections","구간 순위"],["log","전체 중계"]].map(([key,label])=>
-       <button key={key} className={tab===key?"active":""} onClick={()=>SetTab(key)}>{label}</button>)}
+       <button key={key} data-tutorial-target={key==="result"?"results":undefined} className={tab===key?"active":""} onClick={()=>SetTab(key)}>{label}</button>)}
     </div>}
     <div className="section"><h2>🏇 출전마 정보</h2><span className="tag">{race.entries?.length||0}두</span></div>
     {race.entries?.length?<div className="race-entry-wrap" role="region" aria-label="경주 출전표" tabIndex={0}>

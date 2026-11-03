@@ -56,7 +56,7 @@ export default function RanchManagement(){
  {error&&<div className="notice" role="alert">{error}</div>}{notice&&<div className="notice" role="status">{notice}</div>}
  {!token&&<div className="notice"><a href="/world">로그인</a> 후 이용할 수 있습니다.</div>}
  {data&&<>
- <div className="card">
+  <div className="card">
   <div className="row"><div><b className="gold">{data.name}</b><div className="muted">목장 Lv.{data.level}/10 · 정원 {data.horseCapacity}두 · 현재 {data.horses}두</div></div>
    <button className="primary" disabled={busy||data.level>=10} onClick={()=>apply("EXPAND",{},"목장을 확장하시겠습니까? 비용이 차감됩니다.")}>확장 {fmt(data.prices.expand)} G</button></div>
  </div>
@@ -73,7 +73,7 @@ export default function RanchManagement(){
   <div className="muted" style={{marginTop:8}}>활성 직원 {activeWorkers.length}명 · 배치 완료 {assignedCount}명</div>
   <div className="notice" style={{marginTop:12}}>관리사와 수의사는 시설에 직접 배치해야 효과가 적용됩니다. 목장 경주마가 배치 직원 1명당 2두를 넘으면, 초과 1두마다 해당 코스의 실효 능력치가 5점 낮아집니다(최저 0). 직원의 기본 능력치는 낮아지지 않습니다.</div>
   {!activeWorkers.length&&<div className="muted">고용된 직원이 없습니다.</div>}
-  <div className="ranch-worker-list">{activeWorkers.map(w=>{
+  <div className="ranch-worker-list">{activeWorkers.map((w,index)=>{
    const spec=specialists.find(s=>s.code===w.specialty)||specialists[0];
    const options=data.facilities.filter(f=>f.type===spec.facility);
    return <div className="ranch-worker" key={w.id} style={{marginTop:10}}>
@@ -83,7 +83,7 @@ export default function RanchManagement(){
     <div className="muted" style={{marginTop:7}}>관리 {w.skills?.care} · 의료 {w.skills?.medical} · 육성 {w.skills?.growth} · 안정 {w.skills?.stability}<br/>게임 1일 급여 {fmt(w.salary)} G</div>
     <div style={{display:"flex",gap:8,alignItems:"center",marginTop:9,flexWrap:"wrap"}}>
      <label className="muted" htmlFor={"worker-"+w.id}>배치 시설</label>
-     <select id={"worker-"+w.id} className="field" disabled={busy} value={w.assignedFacilityId||""}
+     <select data-tutorial-target={index===0?"ranch":undefined} id={"worker-"+w.id} className="field" disabled={busy} value={w.assignedFacilityId||""}
       onChange={e=>apply("ASSIGN_WORKER",{workerId:w.id,facilityId:e.target.value||null})}>
       <option value="">미배치</option>
       {options.map(f=><option key={f.id} value={f.id}>{facilities[f.type]} · Lv.{f.level}</option>)}

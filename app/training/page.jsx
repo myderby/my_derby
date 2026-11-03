@@ -159,7 +159,7 @@ export default function TrainingPage(){
       가벼운 훈련은 회복을 돕습니다. 피로 75 이상이면 자동 휴식합니다.</div>
      {horse.plan&&<div className="muted" style={{marginTop:9}}>현재 저장: {nameOf(distances,horse.plan.distance)} /
        {nameOf(styles,horse.plan.style)} / {nameOf(intensities,horse.plan.intensity)}</div>}
-     <button className="primary wide" style={{marginTop:12}} disabled={!canTrain||!!busy}
+     <button data-tutorial-target="training" className="primary wide" style={{marginTop:12}} disabled={!canTrain||!!busy}
        onClick={()=>send({action:"SAVE",horseId:horse.id,distance:plan.distance,style:plan.style,intensity:plan.intensity})}>
        {busy==="SAVE"?"저장 중…":"훈련계획 저장"}</button>
     </div>

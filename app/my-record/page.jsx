@@ -35,7 +35,7 @@ export default function MyRecord(){
  <div className="section"><h2>시즌별 전적</h2></div>{data.seasons.length?data.seasons.map(s=><div className="card" key={s.season}><b className="gold">시즌 {s.season}</b><Stats value={s}/></div>):<div className="notice">집계된 시즌 기록이 없습니다.</div>}
  <div className="section"><h2>대상경주(OPEN) 성적</h2></div><div className="card"><Stats value={data.open}/></div>
  <div className="section"><h2>🏆 대상경주 트로피</h2></div>{data.trophies.length?data.trophies.map(t=><div className="card" key={t.raceId}><b className="gold">🏆 {t.name} 우승</b><div className="muted" style={{marginTop:7}}>시즌 {t.season} · {t.track} · {t.raceNo}경주</div></div>):<div className="notice">아직 획득한 대상경주 트로피가 없습니다. OPEN 경주 우승 시 이곳에 기록됩니다.</div>}
- <div className="section" id="achievements"><h2>🎖️ 달성 업적</h2><span className="tag">{achievementState.items.length}개</span></div>
+ <div className="section" id="achievements" data-tutorial-target="achievements"><h2>🎖️ 달성 업적</h2><span className="tag">{achievementState.items.length}개</span></div>
  {achievementState.error?<div className="notice" role="alert">업적 기록을 불러오지 못했습니다. {achievementState.error}</div>:achievementState.items.length?achievementCategories.map(category=><section key={category} style={{marginBottom:18}}>
   <h3 className="gold" style={{fontSize:14,margin:"0 0 8px"}}>{achievementLabels[category]||category}</h3>
   {achievementState.items.filter(item=>item.definition.category===category).map(item=><div className="card" key={item.achievement_key+":"+item.subject_id} style={{marginBottom:8}}>

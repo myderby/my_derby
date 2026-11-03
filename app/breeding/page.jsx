@@ -185,7 +185,7 @@ export default function BreedingPage(){
      </select>
      {sire&&<div className="muted">부마의 실제 유전 잠재력은 공개되지 않습니다. 혈통 및 교배 궁합으로만 판단할 수 있습니다.</div>}
      <div className="controls" style={{marginTop:15}}>
-      <button className="outline" disabled={!mare?.canMate||!sireId||!!busy}
+      <button data-tutorial-target="breeding" className="outline" disabled={!mare?.canMate||!sireId||!!busy}
        onClick={()=>send({action:"PREVIEW",mareId,sireId})}>
        {busy==="PREVIEW"?"검사 중…":"혈통·궁합 확인"}</button>
       <button className="primary" disabled={!mare?.canMate||!preview||!!busy||!sire||sire.booked>=40}
