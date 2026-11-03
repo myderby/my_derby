@@ -123,6 +123,11 @@ BEGIN$new$;
           performance_declining_weeks=v_decline_weeks,
           updated_at=now()
       WHERE staff_kind='jockey' AND staff_id=row_staff.staff_id;
+    ELSE
+      v_decline_weeks:=0;
+      UPDATE my_derby_private.staff_development_profiles
+      SET performance_declining_weeks=0,updated_at=now()
+      WHERE staff_kind='jockey' AND staff_id=row_staff.staff_id;
     END IF;
   END IF;
   v_xp:=CASE WHEN row_staff.staff_kind='jockey' THEN$old$;
