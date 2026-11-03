@@ -117,10 +117,10 @@ export default function WorldPage(){
   try{
    const c=makeClient();
    const result=signup?
-    await c.auth.signUp({email:email.trim(),password}):
+    await c.auth.signUp({email:email.trim(),password,options:{emailRedirectTo:window.location.origin+"/world"}}):
     await c.auth.signInWithPassword({email:email.trim(),password});
    if(result.error)throw result.error;
-   Notice(signup&&!result.data.session?"인증 이메일을 확인한 뒤 로그인해주세요.":"로그인했습니다.");
+   Notice(signup&&!result.data.session?"My Derby 가입 인증 메일을 보냈습니다. 이메일 인증을 마치면 마주명 입력 화면으로 이동합니다.":"로그인했습니다.");
    if(result.data.session)Token(result.data.session.access_token);
   }catch(e){Notice(e.message||"로그인에 실패했습니다.")}
   finally{Busy(false)}

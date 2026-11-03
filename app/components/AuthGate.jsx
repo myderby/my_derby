@@ -1,9 +1,12 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import TutorialOnboarding from "./TutorialOnboarding";
 
 export default function AuthGate({ children }) {
+  const pathname = usePathname();
+  const router = useRouter();
   const client = useMemo(() => {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
@@ -16,16 +19,20 @@ export default function AuthGate({ children }) {
   const [confirm, setConfirm] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [session, setSession] = useState(null);
+  const [setupStatus, setSetupStatus] = useState("checking");
 
   useEffect(() => {
     if (!client) { setStatus("config"); return; }
     let active = true;
     client.auth.getSession().then(({ data, error }) => {
       if (!active) return;
+      setSession(data.session || null);
       setStatus(error ? "error" : data.session ? "signed-in" : "signed-out");
       if (error) setMessage(error.message);
     });
     const { data: { subscription } } = client.auth.onAuthStateChange((_event, session) => {
+      if (active) setSession(session || null);
       if (active) setStatus(session ? "signed-in" : "signed-out");
     });
     // Supabase handles an OAuth callback's URL fragment automatically.
@@ -35,6 +42,32 @@ export default function AuthGate({ children }) {
     return () => { active = false; subscription.unsubscribe(); };
   }, [client]);
 
+  useEffect(() => {
+    if (status !== "signed-in" || !session?.access_token) {
+      setSetupStatus("checking");
+      return;
+    }
+    if (setupStatus === "needs-setup") {
+      if (pathname !== "/world") router.replace("/world");
+      return;
+    }
+    if (setupStatus === "ready") return;
+    let active = true;
+    fetch("/api/world/me", {
+      cache: "no-store",
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    }).then(async response => {
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "마주 정보를 확인할 수 없습니다.");
+      if (!active) return;
+      setSetupStatus(data.joined ? "ready" : "needs-setup");
+      if (!data.joined && pathname !== "/world") router.replace("/world");
+    }).catch(() => {
+      if (active) setSetupStatus("ready");
+    });
+    return () => { active = false; };
+  }, [pathname, router, session?.access_token, setupStatus, status]);
+
   async function submit(event) {
     event.preventDefault();
     if (!client || busy) return;
@@ -43,10 +76,10 @@ export default function AuthGate({ children }) {
     setBusy(true); setMessage("");
     try {
       const { data, error } = mode === "signup"
-        ? await client.auth.signUp({ email: email.trim(), password, options: { emailRedirectTo: window.location.origin + "/" } })
+        ? await client.auth.signUp({ email: email.trim(), password, options: { emailRedirectTo: window.location.origin + "/world" } })
         : await client.auth.signInWithPassword({ email: email.trim(), password });
       if (error) throw error;
-      if (mode === "signup" && !data.session) setMessage("인증 메일을 발송했습니다. 이메일 인증 후 로그인해 주세요.");
+      if (mode === "signup" && !data.session) setMessage("My Derby 가입 인증 메일을 보냈습니다. 이메일 인증 후 마주명 입력 화면으로 이동합니다.");
       else if (mode === "signup") setMessage("회원가입이 완료되었습니다.");
     } catch (error) { setMessage(error.message || "로그인에 실패했습니다."); }
     finally { setBusy(false); }
@@ -57,7 +90,7 @@ export default function AuthGate({ children }) {
     setBusy(true); setMessage("");
     try {
       const { error } = await client.auth.signInWithOAuth({
-        provider, options: { redirectTo: window.location.origin + "/" }
+        provider, options: { redirectTo: window.location.origin + "/world" }
       });
       if (error) throw error;
     } catch (error) {
@@ -75,6 +108,7 @@ export default function AuthGate({ children }) {
   }
 
   if (status === "signed-in") {
+    if (setupStatus === "checking") return <main className="auth-screen"><div className="auth-panel"><h1>MY DERBY</h1><p>첫 마주 등록 여부를 확인하고 있습니다.</p></div></main>;
     return <><div className="auth-session"><span>MY DERBY</span><button type="button" onClick={logout} disabled={busy}>로그아웃</button></div>{children}<TutorialOnboarding/></>;
   }
   if (status === "loading") return <main className="auth-screen"><div className="auth-panel"><h1>MY DERBY</h1><p>계정을 확인하고 있습니다.</p></div></main>;

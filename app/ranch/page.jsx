@@ -28,7 +28,9 @@ export default function Ranch(){
   if(!t)return;try{
    const r=await fetch("/api/player/ranch",{headers:{Authorization:"Bearer "+t},cache:"no-store"});
    const result=await r.json();if(!r.ok)throw new Error(result.error);
-   B(result);H(old=>result.horses.some(h=>h.id===old)?old:result.horses?.[0]?.id||"");E("");
+   const first=result.horses.find(h=>Number(h.age)<=2)||result.horses[0];
+   B(result);H(old=>result.horses.some(h=>h.id===old)?old:first?.id||"");
+   if(!horse&&first&&Number(first.age)<=2)C("YOUNG_BASIC");E("");
   }catch(e){E(explain(e.message))}
  };
  useEffect(()=>{if(token)void refresh(token)},[token]);
