@@ -33,6 +33,7 @@ export default function TutorialOnboarding(){
  const pathname=usePathname();
  const [state,S]=useState(null),[busy,B]=useState(false),[hiddenStage,HS]=useState(null),[topicHidden,TH]=useState(false);
  const [visibleTopicKey,VTK]=useState(null),[targetBox,TB]=useState(null);
+ const [manualTopicKey,MTK]=useState(null),[topicPickerOpen,TPO]=useState(false);
  const lastScrolled=useRef("");
  const load=useCallback(async()=>{
   try{
@@ -48,7 +49,7 @@ export default function TutorialOnboarding(){
   window.addEventListener("focus",refresh);
   return()=>{window.removeEventListener("my-derby:progress",refresh);window.removeEventListener("focus",refresh)};
  },[load]);
- useEffect(()=>{TH(false)},[pathname]);
+ useEffect(()=>{TH(false);MTK(null);TPO(false)},[pathname]);
  const topicCandidates=topicFor(pathname||"");
  const candidateList=Array.isArray(topicCandidates)?topicCandidates:topicCandidates?[topicCandidates]:[];
  const seenKey=(state?.seenTopics||[]).join("|");
@@ -56,9 +57,12 @@ export default function TutorialOnboarding(){
   if(!state?.joined||!candidateList.length){VTK(null);TB(null);return;}
   const refresh=()=>{
    const unseen=candidateList.filter(key=>!state.seenTopics?.includes(key));
+   const requested=manualTopicKey&&candidateList.includes(manualTopicKey)?{
+    key:manualTopicKey,element:document.querySelector(`[data-tutorial-target="${manualTopicKey}"]`)
+   }:null;
    const available=unseen.map(key=>({key,element:document.querySelector(`[data-tutorial-target="${key}"]`)}))
     .find(item=>item.element);
-   const selected=available|| (unseen.length?{key:unseen[0],element:null}:null);
+   const selected=requested||available|| (unseen.length?{key:unseen[0],element:null}:null);
    VTK(selected?.key||null);
    if(!selected?.element){TB(null);return;}
    const element=selected.element;
@@ -78,7 +82,7 @@ export default function TutorialOnboarding(){
   window.addEventListener("scroll",onGeometryChange,true);
   return()=>{observer.disconnect();window.removeEventListener("resize",onGeometryChange);
    window.removeEventListener("scroll",onGeometryChange,true);};
- },[state?.joined,seenKey,pathname,candidateList.join("|")]);
+ },[state?.joined,seenKey,pathname,candidateList.join("|"),manualTopicKey]);
  async function update(payload){
   B(true);
   try{
@@ -91,22 +95,29 @@ export default function TutorialOnboarding(){
  }
  const stage=Math.min(3,Math.max(0,Number(state?.storyStage)||0));
  const story=stories[stage];
- const topicKey=visibleTopicKey;
- const topic=topicKey&&!state?.seenTopics?.includes(topicKey)?topics[topicKey]:null;
+ const topicKey=manualTopicKey||visibleTopicKey;
+ const topic=topicKey&&(manualTopicKey||!state?.seenTopics?.includes(topicKey))?topics[topicKey]:null;
  const storyOpen=!!state?.joined&&hiddenStage!==stage&&!(stage>=3&&state.completed);
- const topicOpen=!storyOpen&&!topicHidden&&!!topic;
+ const topicOpen=!storyOpen&&!!topic&&(!!manualTopicKey||!topicHidden);
+ const canReplay=!!state?.joined&&!storyOpen&&candidateList.length>0;
+ const openReplay=()=>{
+  const available=candidateList.filter(key=>document.querySelector(`[data-tutorial-target="${key}"]`));
+  const choices=available.length?available:candidateList;
+  if(available.length>1){TPO(true);return;}
+  MTK(choices[0]||candidateList[0]||null);TH(false);
+ };
  useEffect(()=>{
   if(!topicOpen||!targetBox||targetBox.key!==topicKey)return;
   const element=document.querySelector(`[data-tutorial-target="${topicKey}"]`);
   if(!element)return;
   const onClick=event=>{
    if(!element.contains(event.target))return;
-   void update({topic:topicKey});TH(true);
+   void update({topic:topicKey});TH(true);MTK(null);
   };
   document.addEventListener("click",onClick,true);
   return()=>document.removeEventListener("click",onClick,true);
- },[topicOpen,topicKey,targetBox?.key]);
- if(!state?.joined||(!storyOpen&&!topicOpen))return null;
+ },[topicOpen,topicKey,targetBox?.key,targetBox?.left,targetBox?.top]);
+ if(!state?.joined||(!storyOpen&&!topicOpen&&!topicPickerOpen&&!canReplay))return null;
  if(storyOpen)return <div style={{position:"fixed",inset:0,zIndex:9999,background:"rgba(10,15,24,.76)",display:"grid",placeItems:"center",padding:18}}>
   <section role="dialog" aria-modal="true" aria-labelledby="tutorial-title" style={{width:"min(540px,100%)",background:"#111b2b",color:"#f5f1e7",border:"1px solid #b99a56",borderRadius:20,padding:24,boxShadow:"0 24px 80px #0008"}}>
    <div style={{color:"#c7a65c",fontSize:12,letterSpacing:2}}>MY DERBY · 첫 시작 이야기 {stage+1}/4</div>
@@ -127,19 +138,30 @@ export default function TutorialOnboarding(){
  const targetInLowerHalf=targetBox&&targetBox.top+targetBox.height>window.innerHeight/2;
  const targetInRightHalf=targetBox&&targetBox.left+targetBox.width/2>window.innerWidth/2;
  return <>
-  {targetBox&&targetBox.key===topicKey&&topicOpen&&<div aria-hidden="true" style={{position:"fixed",left:targetBox.left,top:targetBox.top,width:targetBox.width,height:targetBox.height,zIndex:10000,pointerEvents:"none",border:"3px solid #f0c572",borderRadius:11,boxShadow:"0 0 0 9999px rgba(5,10,18,.50),0 0 0 7px rgba(240,197,114,.28)",transition:"all .18s ease"}}>
+  {topicOpen&&targetBox&&targetBox.key===topicKey&&<div aria-hidden="true" style={{position:"fixed",left:targetBox.left,top:targetBox.top,width:targetBox.width,height:targetBox.height,zIndex:10000,pointerEvents:"none",border:"3px solid #f0c572",borderRadius:11,boxShadow:"0 0 0 9999px rgba(5,10,18,.50),0 0 0 7px rgba(240,197,114,.28)",transition:"all .18s ease"}}>
    <div style={{position:"absolute",left:"50%",top:targetBox.top>48?-38:targetBox.height+4,transform:"translateX(-50%)",whiteSpace:"nowrap",borderRadius:999,background:"#f0c572",color:"#17202b",fontWeight:800,fontSize:13,padding:"5px 11px",boxShadow:"0 3px 12px #0008"}}>
     {targetBox.top>48?"⬇ 여기를 눌러보세요":"⬆ 여기를 눌러보세요"}
    </div>
   </div>}
-  <div style={{position:"fixed",...(targetBox&&targetInLowerHalf?{top:16}:{bottom:16}),...(targetBox&&targetInRightHalf?{left:16}:{right:16}),zIndex:10001,width:"min(410px,calc(100% - 32px))",background:"#111b2b",color:"#f5f1e7",border:"1px solid #b99a56",borderRadius:16,padding:18,boxShadow:"0 14px 44px #0009"}}>
+  {topicOpen&&<div style={{position:"fixed",...(targetBox&&targetInLowerHalf?{top:16}:{bottom:16}),...(targetBox&&targetInRightHalf?{left:16}:{right:16}),zIndex:10001,width:"min(410px,calc(100% - 32px))",background:"#111b2b",color:"#f5f1e7",border:"1px solid #b99a56",borderRadius:16,padding:18,boxShadow:"0 14px 44px #0009"}}>
   <div style={{color:"#c7a65c",fontSize:11,letterSpacing:1.5}}>처음 이용하는 기능</div>
   <h2 style={{fontSize:20,margin:"8px 0"}}>{topic.title}</h2>
   <p style={{fontSize:14,lineHeight:1.6,color:"#d7dbe2",margin:"0 0 12px"}}>{topic.body}</p>
+  <p style={{fontSize:12,lineHeight:1.5,color:"#aeb8c6",margin:"0 0 12px"}}>이후에도 이 화면의 튜토리얼 보기 버튼에서 다시 열 수 있습니다.</p>
   <div style={{display:"flex",justifyContent:"flex-end",gap:8}}>
-   <button onClick={()=>TH(true)} style={{background:"transparent",border:"1px solid #566174",color:"#d7dbe2",borderRadius:8,padding:"8px 12px"}}>나중에</button>
-   <button disabled={busy} onClick={async()=>{await update({topic:topicKey});TH(true)}} style={{background:"#c7a65c",border:0,color:"#17202b",fontWeight:700,borderRadius:8,padding:"8px 12px"}}>{busy?"저장 중…":"안내 완료"}</button>
+   <button disabled={busy} onClick={async()=>{await update({topic:topicKey});TH(true);MTK(null)}} style={{background:"#c7a65c",border:0,color:"#17202b",fontWeight:700,borderRadius:8,padding:"8px 12px"}}>{busy?"저장 중…":"안내 완료 · 닫기"}</button>
   </div>
-  </div>
+  </div>}
+  {topicPickerOpen&&<div style={{position:"fixed",right:16,bottom:16,zIndex:10001,width:"min(360px,calc(100% - 32px))",background:"#111b2b",color:"#f5f1e7",border:"1px solid #b99a56",borderRadius:16,padding:16,boxShadow:"0 14px 44px #0009"}}>
+   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:10,marginBottom:10}}>
+    <b style={{color:"#f0c572"}}>다시 볼 튜토리얼 선택</b>
+    <button onClick={()=>TPO(false)} aria-label="튜토리얼 선택 닫기" style={{background:"transparent",border:"1px solid #566174",color:"#d7dbe2",borderRadius:8,padding:"5px 9px"}}>닫기</button>
+   </div>
+   <div style={{display:"grid",gap:8}}>{(candidateList.filter(key=>document.querySelector(`[data-tutorial-target="${key}"]`)).length?
+    candidateList.filter(key=>document.querySelector(`[data-tutorial-target="${key}"]`)):candidateList).map(key=>
+    <button key={key} onClick={()=>{MTK(key);TH(false);TPO(false)}} style={{textAlign:"left",background:"#1a283a",border:"1px solid #566174",color:"#f5f1e7",borderRadius:9,padding:"10px 12px"}}>{topics[key].title} 튜토리얼 보기</button>
+   )}</div>
+  </div>}
+  {canReplay&&!topicOpen&&!topicPickerOpen&&<button onClick={openReplay} style={{position:"fixed",right:16,bottom:16,zIndex:9998,background:"#111b2b",color:"#f0c572",border:"1px solid #b99a56",borderRadius:999,padding:"11px 15px",fontWeight:700,boxShadow:"0 8px 24px #0008"}}>？ 이 화면 튜토리얼</button>}
  </>;
 }
