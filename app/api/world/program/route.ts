@@ -1,5 +1,5 @@
 import {NextResponse} from "next/server";
-import {createPublicDb} from "../../../../lib/server/supabase";
+import {createPublicDb,requireUser} from "../../../../lib/server/supabase";
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
 export async function GET(request:Request){
@@ -18,20 +18,34 @@ export async function GET(request:Request){
    .eq("prize_policy->>schedule_version","csv2025_rank_sttime_v2")
    .order("start_time",{ascending:true}).limit(100);
   if(error)throw error;
+  const races=(events||[]).map(r=>({
+   id:r.id,raceNo:r.race_no,date:r.prize_policy?.kst_date,week:r.prize_policy?.game_week,
+   season:r.prize_policy?.season,raceDay:r.race_day,
+   time:r.start_time?.slice(0,5),resultTime:r.prize_policy?.result_kst_time,
+   track:r.track,grade:r.class_name,distance:r.distance_m,status:r.status,
+   dusu:r.target_runner_count,actualStarters:r.prize_policy?.actual_starters??0,
+   entryStatus:r.prize_policy?.entry_status,
+   prizesSettled:r.prize_policy?.prize_status==="SETTLED"
+  }));
+  let myEntryRaceIds:string[]=[];
+  if(new URL(request.url).searchParams.get("mine")==="1"){
+   const {db,user}=await requireUser(request);
+   const ids=races.map(r=>r.id);
+   if(ids.length){
+    const {data:entries,error:entriesError}=await db.schema("my_derby").from("race_entries")
+     .select("race_id").eq("owner_user_id",user.id).in("race_id",ids)
+     .in("status",["APPLIED","CONFIRMED"]);
+    if(entriesError)throw entriesError;
+    myEntryRaceIds=[...new Set((entries||[]).map(e=>e.race_id))];
+   }
+  }
   return NextResponse.json({
    mode:"GAME_WEEKLY_PROGRAM",world:overview.world,
    requestedSeason:Math.max(1,Number(overview.world.season||1)),requestedWeek:week,gameDay,raceCount:(events||[]).length,
    timeRule:"3-minute start intervals, 3-minute result delay",
-   races:(events||[]).map(r=>({
-    id:r.id,raceNo:r.race_no,date:r.prize_policy?.kst_date,week:r.prize_policy?.game_week,
-    season:r.prize_policy?.season,raceDay:r.race_day,
-    time:r.start_time?.slice(0,5),resultTime:r.prize_policy?.result_kst_time,
-    track:r.track,grade:r.class_name,distance:r.distance_m,status:r.status,
-    dusu:r.target_runner_count,actualStarters:r.prize_policy?.actual_starters??0,
-    entryStatus:r.prize_policy?.entry_status,
-    prizesSettled:r.prize_policy?.prize_status==="SETTLED"
-   }))
+   myEntryRaceIds,races
   },{headers:{"Cache-Control":"no-store"}});
- }catch(e){return NextResponse.json({error:e instanceof Error?e.message:"Program unavailable"},
-  {status:503,headers:{"Cache-Control":"no-store"}})}
+ }catch(e){const status=(e as {status?:number}).status===401?401:503;
+  return NextResponse.json({error:e instanceof Error?e.message:"Program unavailable"},
+  {status,headers:{"Cache-Control":"no-store"}})}
 }
