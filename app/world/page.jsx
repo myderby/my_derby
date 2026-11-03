@@ -9,6 +9,30 @@ const stageName={FOAL:"망아지",YEARLING:"1세마",RACING:"현역",
 const skillNames={start:"출발",speed:"속도",acceleration:"가속력",stamina:"지구력",
  finishing:"막판탄력",power:"파워",grit:"근성",stability:"안정성",recovery:"회복력"};
 const trackName=s=>s==="부산경남"?"부산":s==="제주"?"영천":s||"소속 미정";
+const regionName={SEOUL:"서울",YEONGCHEON:"영천",BUSAN:"부산"};
+const regionOptions=[["SEOUL","서울"],["YEONGCHEON","영천"],["BUSAN","부산"]];
+const patternOptions=[["solid","민무늬"],["stripe","줄무늬"],["check","체크"],
+ ["diamond","다이아"],["dot","점무늬"],["star","별무늬"]];
+const defaultSilks={bodyColor:"#D6A84F",sleeveColor:"#23180F",pattern:"solid",patternColor:"#FFFFFF"};
+function SilksPreview({design,small=false}){
+ const patternId="silks-pattern-"+design.pattern;
+ return <svg viewBox="0 0 120 96" role="img" aria-label="마주복 상의 미리보기"
+  style={{width:small?74:126,height:small?60:96,flex:"0 0 auto"}}>
+  <defs><pattern id={patternId} width="16" height="16" patternUnits="userSpaceOnUse">
+   <rect width="16" height="16" fill={design.bodyColor}/>
+   {design.pattern==="stripe"&&<path d="M-4 16 12 0M4 20 20 4" stroke={design.patternColor} strokeWidth="4"/>}
+   {design.pattern==="check"&&<path d="M0 0h8v8H0zM8 8h8v8H8z" fill={design.patternColor}/>}
+   {design.pattern==="diamond"&&<path d="M8 1 15 8 8 15 1 8Z" fill={design.patternColor}/>}
+   {design.pattern==="dot"&&<circle cx="8" cy="8" r="3" fill={design.patternColor}/>}
+   {design.pattern==="star"&&<text x="2" y="13" fontSize="12" fill={design.patternColor}>★</text>}
+  </pattern></defs>
+  <path d="M40 14 27 17 7 39l16 14 14-15 3 43h40l3-43 14 15 16-14-20-22-13-3-8 7-12-5-12 5-8-7Z"
+   fill={`url(#${patternId})`} stroke="#17110d" strokeWidth="3" strokeLinejoin="round"/>
+  <path d="m40 14-13 3L7 39l16 14 14-15 5-17Zm40 0 13 3 20 22-16 14-14-15-5-17Z"
+   fill={design.sleeveColor} stroke="#17110d" strokeWidth="3" strokeLinejoin="round"/>
+  <path d="M40 81h40" stroke="#17110d" strokeWidth="3"/>
+ </svg>;
+}
 const panels={
  "훈련·건강":[
   {href:"/training",icon:"🐎",title:"훈련계획·리포트",desc:"내 경주마 훈련과 성장"},
@@ -40,6 +64,8 @@ export default function WorldPage(){
  const [expanded,Expand]=useState(null);
  const [email,Email]=useState(""),[password,Password]=useState("");
  const [nickname,Nickname]=useState("");
+ const [startingRegion,StartingRegion]=useState("SEOUL");
+ const [silksDesign,SilksDesign]=useState(defaultSilks);
  const [busy,Busy]=useState(false),[notice,Notice]=useState("");
  const [refresh,Refresh]=useState(0);
 
@@ -98,7 +124,7 @@ export default function WorldPage(){
    const response=await fetch("/api/world/join",{
     method:"POST",cache:"no-store",
     headers:{"Content-Type":"application/json",Authorization:"Bearer "+token},
-    body:JSON.stringify({nickname:nickname.trim()})
+    body:JSON.stringify({nickname:nickname.trim(),startingRegion,silksDesign})
    });
    const data=await response.json();
    if(!response.ok)throw new Error(data.error||"마주 등록 실패");
@@ -157,18 +183,45 @@ export default function WorldPage(){
     mine&&!mine.joined?
     <div className="card">
      <h2 style={{fontSize:18}}>마주 등록</h2>
-     <p className="muted">처음 가입하는 마주에게 경주마 3두를 배정합니다.</p>
+     <p className="muted">닉네임과 시작 지역, 나만의 마주복을 정하면 말 3두와 C등급 목장 인력이 배정됩니다.</p>
      <input className="field" value={nickname} maxLength={32}
       placeholder="마주 닉네임 (2~32자)" onChange={e=>Nickname(e.target.value)}/>
-     <button className="primary wide" disabled={busy||nickname.trim().length<2}
+     <b style={{display:"block",margin:"10px 0 7px"}}>시작 지역</b>
+     <div className="controls" aria-label="시작 지역 선택">
+      {regionOptions.map(([value,label])=><button key={value}
+       className={startingRegion===value?"primary":"outline"}
+       aria-pressed={startingRegion===value} disabled={busy}
+       onClick={()=>StartingRegion(value)}>{label}</button>)}
+     </div>
+     <div className="card" style={{display:"flex",alignItems:"center",gap:12,marginTop:14}}>
+      <SilksPreview design={silksDesign}/>
+      <div><b>마주복 미리보기</b><div className="muted">상의와 소매를 꾸며보세요. 모자는 설정하지 않습니다.</div></div>
+     </div>
+     <div className="twoCol">
+      <label className="field">상의 색상<input aria-label="상의 색상" type="color"
+       value={silksDesign.bodyColor} disabled={busy}
+       onChange={e=>SilksDesign(v=>({...v,bodyColor:e.target.value}))}/></label>
+      <label className="field">소매 색상<input aria-label="소매 색상" type="color"
+       value={silksDesign.sleeveColor} disabled={busy}
+       onChange={e=>SilksDesign(v=>({...v,sleeveColor:e.target.value}))}/></label>
+      <label className="field">무늬 색상<input aria-label="무늬 색상" type="color"
+       value={silksDesign.patternColor} disabled={busy}
+       onChange={e=>SilksDesign(v=>({...v,patternColor:e.target.value}))}/></label>
+      <label className="field">상의 무늬<select className="field" value={silksDesign.pattern}
+       disabled={busy} onChange={e=>SilksDesign(v=>({...v,pattern:e.target.value}))}>
+       {patternOptions.map(([value,label])=><option key={value} value={value}>{label}</option>)}
+      </select></label>
+     </div>
+     <button className="primary wide" disabled={busy||nickname.trim().length<2||!startingRegion}
       onClick={join}>마주 등록 · 경주마 3두 배정</button>
     </div>:
     mine&&mine.joined?<section>
      <div className="card">
       <div className="row">
        <div><b className="gold">{mine.profile?.nickname||"내 마방"}</b>
+        <div className="muted">시작 지역 · {regionName[mine.profile?.starting_region]||"미설정"}</div>
         <div className="muted">내가 소유한 경주마의 상태와 관찰 리포트를 관리합니다.</div></div>
-       <span className="tag">마주</span>
+       <SilksPreview design={mine.profile?.silks_design||defaultSilks} small/>
       </div>
       <div className="my-horse-summary">
        <div><b>{horses.length}</b><span>보유마</span></div>
