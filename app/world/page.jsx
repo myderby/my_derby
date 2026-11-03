@@ -127,7 +127,7 @@ export default function WorldPage(){
  const activeCount=horses.filter(h=>h.life_stage==="RACING").length;
  const fmt=n=>typeof n==="number"?Math.round(n):"-";
  const raceDate=r=>r?.date|| (r?.gameDay?`게임 ${r.gameDay}일`:"");
- const raceLabel=r=>r?`${raceDate(r)} · ${trackName(r.track)} ${r.raceNo}경주 · ${r.distanceM}m${r.className?` · ${r.className}`:""}`:"";
+ const raceLabel=r=>r?`${raceDate(r)}${r.time?` ${String(r.time).slice(0,5)}`:""} · ${trackName(r.track)} ${r.raceNo}경주 · ${r.distanceM}m${r.className?` · ${r.className}`:""}`:"";
  return <main className="shell">
   <header className="header">
    <a href="/" className="brand" style={{textDecoration:"none"}}>MY DERBY</a>

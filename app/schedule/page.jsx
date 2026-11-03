@@ -1,9 +1,12 @@
 "use client";
 import {useEffect,useRef,useState} from "react";
+import {createClient} from "@supabase/supabase-js";
 import {officialSlotSummaries} from "../../lib/racing/slot-status";
 export default function SchedulePage(){
  const [program,SetProgram]=useState(null),[error,SetError]=useState(""),
-  [track,SetTrack]=useState("전체"),[week,SetWeek]=useState(null),[slot,SetSlot]=useState("전체");
+  [track,SetTrack]=useState("전체"),[week,SetWeek]=useState(null),[slot,SetSlot]=useState("전체"),
+  [myEntryRaceIds,SetMyEntryRaceIds]=useState([]),[mineLoading,SetMineLoading]=useState(false),
+  [mineError,SetMineError]=useState("");
  const selectedWeekRef=useRef(null),loadSeq=useRef(0);
  const load=async targetWeek=>{
   const seq=++loadSeq.current;
@@ -25,6 +28,27 @@ export default function SchedulePage(){
   },15000);
   return ()=>{clearInterval(timer);loadSeq.current++};
  },[]);
+ useEffect(()=>{
+  if(track!=="내 말 출전"||!week)return;
+  let active=true;
+  const loadMine=async()=>{
+   try{
+    const client=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
+    const {data,error:sessionError}=await client.auth.getSession();
+    if(sessionError)throw sessionError;
+    const token=data.session?.access_token;
+    if(!token){if(active){SetMyEntryRaceIds([]);SetMineError("내 말 출전 경주를 보려면 로그인해주세요.");SetMineLoading(false)}return;}
+    const res=await fetch(`/api/world/program?week=${week}&mine=1`,{cache:"no-store",headers:{Authorization:"Bearer "+token}});
+    const body=await res.json();
+    if(res.status===401)throw new Error("내 말 출전 경주를 보려면 다시 로그인해주세요.");
+    if(!res.ok)throw new Error(body.error||"내 말 출전 경주를 불러오지 못했습니다.");
+    if(active){SetMyEntryRaceIds(body.myEntryRaceIds||[]);SetMineError("");SetMineLoading(false)}
+   }catch(e){if(active){SetMyEntryRaceIds([]);SetMineError(e.message||"내 말 출전 경주를 불러오지 못했습니다.");SetMineLoading(false)}}
+  };
+  SetMineLoading(true);SetMineError("");void loadMine();
+  const timer=setInterval(()=>{if(document.visibilityState==="visible")void loadMine()},15000);
+  return()=>{active=false;clearInterval(timer)};
+ },[track,week]);
  const chooseSlot=value=>{
   SetSlot(value);
   const url=new URL(window.location.href);
@@ -34,7 +58,8 @@ export default function SchedulePage(){
  const slotSummaries=officialSlotSummaries(program?.races||[]);
  const selectedSlot=slotSummaries.find(x=>x.hour===slot);
  const events=(program?.races||[]).filter(x=>
-   (slot==="전체"||x.time?.slice(0,2)===slot)&&(track==="전체"||x.track===track));
+   (slot==="전체"||x.time?.slice(0,2)===slot)&&
+   (track==="전체"||(track==="내 말 출전"?myEntryRaceIds.includes(x.id):x.track===track)));
  const grouped=events.reduce((a,r)=>{
   const k=r.time.slice(0,2)+":00";(a[k]||=[]).push(r);return a;
  },{});
@@ -67,8 +92,12 @@ export default function SchedulePage(){
   {selectedSlot.ongoing>0?" · "+selectedSlot.ongoing+"경주 진행 처리 중":""}
   {" · "}실제 공식 경주 상태 기준 · 15초마다 갱신
  </div>}
-  <div className="tabs">{["전체","서울","부산","영천"].map(x=><button key={x} className={track===x?"active":""} onClick={()=>SetTrack(x)}>{x}</button>)}</div>
- {!error&&program&&events.length===0&&<div className="notice">선택한 시간대와 지역에 편성된 경주가 없습니다.</div>}
+  <div className="tabs">{["전체","서울","부산","영천","내 말 출전"].map(x=><button key={x} className={track===x?"active":""} onClick={()=>SetTrack(x)}>{x}</button>)}</div>
+ {track==="내 말 출전"&&mineError&&<div className="notice">{mineError}{mineError.includes("로그인")&&<> <a href="/world" style={{color:"#f0c572"}}>로그인하기 ›</a></>}</div>}
+ {track==="내 말 출전"&&mineLoading&&<div className="notice">내 말의 출전 경주를 확인하고 있습니다…</div>}
+ {track==="내 말 출전"&&!mineLoading&&!mineError&&myEntryRaceIds.length===0&&<div className="notice">이번 주에는 내 말이 출전 신청한 경주가 없습니다.</div>}
+ {!error&&program&&events.length===0&&track!=="내 말 출전"&&<div className="notice">선택한 시간대와 지역에 편성된 경주가 없습니다.</div>}
+ {!error&&program&&track==="내 말 출전"&&!mineLoading&&!mineError&&myEntryRaceIds.length>0&&events.length===0&&<div className="notice">선택한 시간대에 내 말이 출전하는 경주가 없습니다.</div>}
  {Object.entries(grouped).map(([slot,list])=><div key={slot}><div className="section"><h2>{slot} 시작 · {list.length}경주</h2></div>
  {list.map(r=><a key={r.id} href={"/race/"+r.id} className="card row" style={{display:"flex",textDecoration:"none",color:"inherit",cursor:"pointer"}}>
  <div><b className="gold">{r.time} · {r.track} {r.raceNo}경주</b>
