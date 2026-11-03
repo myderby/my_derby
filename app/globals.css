@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 11355)
-Total output lines: 504
-
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#100c09;color:#f7edde}body{font-family:Arial,"Apple SD Gothic Neo","Malgun Gothic",sans-serif}button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.42;cursor:not-allowed}.shell{max-width:480px;min-height:100vh;margin:auto;background:#1d150f;padding-bottom:88px;box-shadow:0 10px 90px #000b}.header{display:flex;justify-content:space-between;align-items:center;padding:18px 18px 14px;background:#1e140e;border-bottom:1px solid #46301b}.brand{font-family:Georgia,serif;font-size:23px;letter-spacing:2px;font-weight:700;color:#eabd65}.sub{color:#b0a08c;font-size:12px}.coin{color:#edc877;border:1px solid #76532d;border-radius:24px;background:#382516;padding:7px 10px;font-size:13px;white-space:nowrap;font-weight:700}.hamburger{font-size:21px;border:0;color:#eabd65;background:none}.disclaimer{background:#382719;text-align:center;color:#e3bc7f;font-size:11px;padding:7px 10px}.hero{height:204px;position:relative;overflow:hidden;background:linear-gradient(170deg,#956339 0%,#705137 48%,#53613b 49%,#253223 100%);padding:22px}.hero:before{content:"";position:absolute;right:32px;top:20px;width:80px;height:80px;border-radius:50%;background:#e5b25b;opacity:.65}.hero:after{content:"♞";position:absolute;right:28px;bottom:-21px;font-size:190px;color:#291e15;opacity:.89;transform:scaleX(-1)}.hero .overline{font-size:12px;color:#ffe4b0}.hero h1{font-family:Georgia,serif;font-size:32px;margin:53px 0 4px;text-shadow:0 3px 5px #0006}.hero .caption{font-size:12px;color:#f6dfb5}.hero a,.hero button{position:relative;z-index:1;margin-top:12px}.area{padding:19px 18px 22px}.section{display:flex;justify-content:space-between;align-items:center;margin:10px 0 13px;gap:8px}.section h2{font-size:17px;margin:0}.section button{background:transparent;border:0;color:#d7ad60;font-size:12px}.card{background:#2b2017;border:1px solid #493421;border-radius:12px;padding:15px;margin-bottom:12px}.card.action{cursor:pointer}.card.action:hover{border-color:#b58548}.row{display:flex;align-items:center;justify-content:space-between;gap:12px}.large{font-size:22px;font-weight:800}.small{font-size:13px}.muted{color:#b4a28e;font-size:12px;line-height:1.55}.gold{color:#f0c372}.green{color:#b3d38b}.pill{padding:7px 10px;background:#594025;color:#f3ca7c;border-radius:9px;font-size:12px}.tag{padding:5px 8px;background:#493322;border-radius:14px;color:#ecc17d;font-size:11px}.primary{background:#edb94d;border:0;border-radius:9px;padding:11px 15px;color:#23170b;font-weight:800}.outline{background:transparent;border:1px solid #84633b;border-radius:9px;padding:10px 12px;color:#f1c879}.fill{height:100%;background:linear-gradient(90deg,#d09b43,#a1c878);border-radius:100px}.bar{height:7px;border-radius:30px;background:#4a3828;margin-top:9px;overflow:hidden}.grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}.grid .card{margin:0;padding:15px 13px;text-align:left;color:inherit}.grid .card b{display:block;margin:7px 0 4px}.grid .icon{font-size:24px;color:#f2bd5d}.bottom{position:fixed;bottom:0;left:50%;transform:translateX(-50%);display:flex;width:min(480px,100%);background:#211810;border-top:1px solid #473019;z-index:10;padding-bottom:env(safe-area-inset-bottom)}.bottom button{flex:1;border:0;background:none;color:#ab9580;padding:12px 0 11px;font-size:11px}.bottom button span{font-size:22px;display:block;margin-bottom:2px}.bottom button.active{color:#f1c26a}.pageTitle{padding:19px 18px 0;display:flex;align-items:center;gap:13px}.pageTitle h1{font-size:20px;margin:0 0 3px}.back{border:0;background:transparent;color:#f3bd55;font-size:28px}.tabs{display:flex;gap:7px;overflow:auto;margin:4px 0 16px}.tabs button{white-space:nowrap;background:#37281b;color:#dfc29c;border:1px solid #63472a;border-radius:17px;padding:8px 13px;font-size:12px}.tabs button.active{background:#e8b64d;color:#23180c}.wide{width:100%}.notice{background:#3a2a1c;border:1px solid #725433;color:#e8d09e;padding:13px;border-radius:10px;font-size:12px;line-height:1.65;margin:12px 0}.line{padding:10px 0;border-bottom:1px solid #4c3929}.line:last-child{border-bottom:0}.field{background:#1b140f;border:1px solid #785936;color:#f7efdf;width:100%;padding:12px;border-radius:10px;margin:8px 0}.controls{display:flex;gap:8px;align-items:center;justify-content:space-between}.controls>*{flex:1}.footer{font-size:11px;text-align:center;color:#80715f;padding:20px}.toast{position:fixed;bottom:85px;left:50%;transform:translateX(-50%);width:min(430px,92vw);padding:14px;background:#6d502f;border:1px solid #cba35c;border-radius:12px;z-index:20;font-size:12px;color:#fff3da;box-shadow:0 10px 30px #0008}.raceTrack{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;margin:13px 0}.raceTrack span{font-size:10px;text-align:center;padding:7px 2px;border-radius:5px;background:#55402a;color:#f6cf86}.stack{display:grid;gap:9px}.score{font-weight:700;color:#a5ce88}.twoCol{display:grid;grid-template-columns:1fr 1fr;gap:8px}@media(min-width:700px){.shell{box-shadow:0 0 100px #000c}}
 
 /* Public horse and jockey registers */
@@ -103,7 +100,230 @@ Total output lines: 504
 .official-slot-progress span{height:100%;display:block;background:#dcb263;border-radius:99px}
 .official-slot-running .official-slot-progress span{background:#68bd83}
 .official-slot-finished .official-slot-progress span{background:#8d9a88}
-/* Slot se…5355 tokens truncated…1717!important}
+/* Slot selection on the existing official race schedule */
+.official-slot-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-bottom:13px}
+.official-slot-tabs button{border-radius:10px;border:1px solid #58402b;background:#302216;color:#cdb391;
+ display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:57px;gap:4px;padding:7px 4px;
+ font-size:13px;font-weight:750}
+.official-slot-tabs button.active{background:#674522;color:#f9dc9b;border-color:#e0a955}
+.official-slot-tabs button strong{font-size:14px}
+.official-slot-tabs button small{font-size:10px;font-weight:400;white-space:nowrap;color:#d8bda1}
+.official-slot-tabs button.active small{color:#fce8ba}
+@media (max-width:370px){
+ .official-slot-tabs{gap:4px}
+ .official-slot-tabs button{padding:6px 2px}
+ .official-slot-tabs button small{font-size:9px}
+}
+
+/* Reusable horse records and source-linked detail screen */
+.dir-main-nav button{padding:10px 13px;border-radius:9px;border:1px solid #6d5035;
+ background:#342419;color:#d8b77e;font-size:13px;font-weight:700;cursor:pointer}
+.dir-main-nav button.selected{background:#dba952;color:#29190a;border-color:#dba952}
+.horse-profile-record{min-width:0;margin:0;padding:13px}
+.horse-profile-record-top{font-size:21px;font-weight:750;color:#eac481;margin:11px 0 6px}
+.horse-profile-record-top b{margin-left:7px}
+.horse-profile-attributes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}
+.horse-profile-attributes>div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.horse-profile-attributes>div>span{font-size:11px;color:#a89a88}
+.horse-profile-attributes>div>strong{font-size:14px;word-break:break-word;color:#f2d49b}
+.horse-profile-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px}
+.horse-profile-stats>div{border-radius:8px;background:#211a13;display:flex;flex-direction:column;
+ gap:5px;align-items:center;padding:11px 5px}
+.horse-profile-stats span{font-size:11px;color:#af9c85}
+.horse-profile-stats strong{font-size:19px;color:#f0c686}
+@media(max-width:470px){.horse-profile-attributes{gap:9px}
+ .horse-profile-stats{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+
+/* Owner-only horse management: mobile-first compact tabs and action groups. */
+.my-horse-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;
+ margin-top:15px;border-top:1px solid #584029;padding-top:14px}
+.my-horse-summary>div{display:flex;flex-direction:column;align-items:center;gap:4px}
+.my-horse-summary b{color:#f2c575;font-size:23px}
+.my-horse-summary span{font-size:12px;color:#b5a48d}
+.my-horse-nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin:14px 0 17px}
+.my-horse-nav button{min-width:0;padding:10px 1px;font-size:11px;border-radius:8px}
+.my-horse-card>.row{align-items:flex-start}
+.my-horse-vitals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+ gap:7px;margin-top:13px}
+.my-horse-vitals span{display:flex;flex-direction:column;align-items:center;gap:4px;
+ background:#211912;border:1px solid #493523;padding:9px 4px;border-radius:8px;
+ color:#b9a58c;font-size:11px}
+.my-horse-vitals strong{color:#e9c88d;font-size:14px}
+.my-horse-race-info{display:grid;gap:9px;margin-top:12px;padding:11px 10px;
+ background:#241c15;border:1px solid #493523;border-radius:9px}
+.my-horse-race-row{display:grid;grid-template-columns:82px minmax(0,1fr);align-items:start;gap:8px}
+.my-horse-race-row span{color:#c0a987;font-size:11px}
+.my-horse-race-row b{color:#f0dfc2;font-size:11px;line-height:1.5;font-weight:600;overflow-wrap:anywhere}
+.my-horse-skills{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+ gap:8px;margin-top:13px;padding-top:12px;border-top:1px solid #513b24}
+.my-horse-skills>div{display:flex;flex-direction:column;text-align:center;
+ background:#241c15;border-radius:9px;padding:10px 4px;gap:5px}
+.my-horse-skills span{font-size:11px;color:#bca58c}
+.my-horse-skills strong{font-size:18px;color:#f0c97f}
+.my-horse-action-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.my-horse-action-grid .card{margin:0}
+.my-horse-action{display:flex;flex-direction:column;min-height:106px;gap:8px;
+ color:inherit;text-decoration:none;padding:13px!important}
+.my-horse-action:hover,.my-horse-action:focus-visible{border-color:#e1ad5a}
+.my-horse-action-icon{font-size:21px}
+.my-horse-action b{font-size:14px;color:#eed5a5}
+
+/* First-visit authentication */
+.auth-screen{min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:24px 16px;background:radial-gradient(circle at 50% 0%,#624123 0%,#1c130d 48%,#100c09 100%)}
+.auth-panel{width:min(420px,100%);padding:32px 25px;border:1px solid #604524;border-radius:20px;background:#251a12;box-shadow:0 20px 70px #0009;text-align:center}
+.auth-horse{font-size:62px;color:#f0c16a;line-height:1}.auth-overline{font-size:10px;letter-spacing:3px;color:#d9b679;margin:10px 0}.auth-panel h1{font-family:Georgia,serif;letter-spacing:4px;color:#f0c16a;font-size:35px;margin:7px 0}.auth-desc{color:#c8b398;font-size:13px;margin:8px 0 26px;line-height:1.6}
+.auth-provider{display:block;width:100%;padding:14px 12px;border-radius:10px;border:0;font-weight:750;margin:10px 0}.auth-provider.kakao{background:#fee500;color:#241e00}.auth-provider.google{background:white;color:#242424}.auth-divider{display:flex;align-items:center;gap:12px;color:#ac967d;font-size:12px;margin:23px 0 16px}.auth-divider:before,.auth-divider:after{content:"";height:1px;background:#644b32;flex:1}
+.auth-tabs{display:flex;background:#1b130e;border-radius:9px;padding:4px;margin-bottom:16px}.auth-tabs button{flex:1;background:none;border:0;border-radius:7px;padding:10px;color:#bda58b}.auth-tabs button.active{background:#5b4026;color:#f7d59b;font-weight:bold}
+.auth-panel label{display:block;text-align:left;color:#d5b994;font-size:12px;margin:12px 0}.auth-panel label input{display:block;width:100%;margin-top:7px;border-radius:9px;border:1px solid #765636;background:#160f0b;color:white;padding:13px}.auth-submit{background:#ecc16c;color:#25190d;width:100%;padding:14px;border-radius:10px;border:0;font-weight:bold;margin-top:10px}.auth-alert{font-size:12px;color:#ffcf9b;background:#52311e;padding:11px;border-radius:8px;line-height:1.6}.auth-note{color:#a9977f;font-size:11px;line-height:1.7;margin-top:22px}.auth-session{display:flex;justify-content:space-between;align-items:center;max-width:480px;margin:auto;padding:7px 17px;background:#301f12;border-bottom:1px solid #6e4e2b;color:#d9b16b;font-size:11px}.auth-session button{background:transparent;border:1px solid #856136;border-radius:7px;color:#eac482;padding:6px 10px;font-size:11px}
+
+/* Owner career / trophy room */
+.record-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:12px}.record-stat{background:#1d150e;border:1px solid #4b3620;border-radius:9px;padding:10px 4px;text-align:center}.record-stat span{display:block;color:#baaa96;font-size:11px}.record-stat strong{display:block;color:#f0cb7b;font-size:20px;margin-top:6px}.record-prize{grid-column:1/-1;display:flex;justify-content:space-between;color:#bea98d;padding:9px 1px;font-size:12px}.record-prize strong{color:#e8c47f}
+
+/* Official racecard: compact, scrollable table in My Derby colors */
+.race-entry-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid #6c4d29;border-radius:12px;background:#24190f;margin:8px 0 13px;scrollbar-color:#9b7542 #2c1e13}
+.race-entry-table{width:100%;min-width:650px;border-collapse:collapse;white-space:nowrap;font-size:12px;text-align:center}
+.race-entry-table thead{background:#513720;color:#f4cd81}
+.race-entry-table th{padding:12px 9px;font-weight:700;border-bottom:1px solid #8c663b}
+.race-entry-table td{padding:13px 9px;border-bottom:1px solid #473321;color:#e9d9c2}
+.race-entry-table tbody tr:nth-child(even){background:#302215}
+.race-entry-table tbody tr:hover{background:#49311d}
+.race-entry-table tbody tr:last-child td{border-bottom:0}
+.race-entry-table .race-entry-name{text-align:left;min-width:110px;font-weight:700;color:#f2c778}
+.race-entry-table .race-entry-name a{color:#f2c778;text-decoration:underline;text-underline-offset:3px}
+.race-entry-table .race-entry-number{font-weight:800;color:#f4d79e;background:#44301c}
+
+/* Three-level game menu */
+.menu-depth-one{border:1px solid #644727;border-radius:13px;background:#2b1e14;margin-bottom:12px;overflow:hidden}.menu-depth-one>summary{list-style:none;cursor:pointer;padding:17px 15px;display:flex;flex-direction:column;gap:7px}.menu-depth-one>summary::-webkit-details-marker,.menu-depth-two>summary::-webkit-details-marker{display:none}.menu-depth-one>summary:after{content:"⌄";position:absolute;right:33px;color:#e8bc6b}.menu-depth-one[open]>summary:after{content:"⌃"}.menu-depth-content{padding:0 12px 12px}.menu-depth-two{background:#21170f;border:1px solid #4b3421;border-radius:9px;margin-top:8px}.menu-depth-two>summary{cursor:pointer;list-style:none;color:#e9c793;font-size:13px;font-weight:700;padding:13px}.menu-depth-two>summary:after{content:" +";float:right}.menu-depth-two[open]>summary:after{content:" −"}.menu-depth-links{border-top:1px solid #4b3421;padding:6px}.menu-depth-link{border:0;background:transparent;display:flex;justify-content:space-between;align-items:center;color:#eadbcc;padding:12px;width:100%;text-align:left;font-size:13px;border-radius:7px}.menu-depth-link:hover,.menu-depth-link:focus-visible{background:#483321;color:#f6d69d}
+
+/* My Derby daily racing newspaper */
+.news-masthead{position:relative;overflow:hidden;text-align:center;background:linear-gradient(135deg,#372212 0%,#21170f 58%,#49311b 100%);border:1px solid #a2773d;border-radius:15px;padding:25px 14px;margin-bottom:13px;box-shadow:inset 0 0 0 1px #483421}
+.news-edition{font-size:10px;font-weight:700;letter-spacing:2.4px;color:#c9a465}
+.news-masthead h1{font-size:31px;letter-spacing:3px;color:#f3d5a0;margin:11px 0 5px;font-family:Georgia,serif}
+.news-masthead p{font-size:12px;color:#d4bf9f;line-height:1.6;margin:5px 0 15px}
+.news-date{display:inline-block;border-top:1px solid #84603b;border-bottom:1px solid #84603b;padding:7px 24px;color:#e4c391;font-size:12px}
+.news-nav{display:flex;gap:7px;align-items:center;justify-content:space-between;margin:0 0 16px}
+.news-nav button{white-space:nowrap;padding:11px 9px}
+.news-nav label{font-size:11px;color:#c9b394;min-width:0;flex:1;text-align:center}
+.news-nav .field{margin-top:4px;margin-bottom:0;padding:7px 5px;width:100%;max-width:210px;font-size:12px;color-scheme:dark}
+.news-digest{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:16px 0}
+.news-digest>div{text-align:center;border:1px solid #5f482c;border-radius:10px;padding:13px 5px;background:#2d2116}
+.news-digest b{display:block;color:#ebc782;font-size:21px}
+.news-digest span{display:block;color:#c0ad94;font-size:11px;margin-top:5px}
+.news-intro{font-size:12px;line-height:1.7;background:#362719;padding:13px;border:1px solid #755637;border-radius:10px;color:#e8d5bd}
+.news-section{margin:22px 0 25px}
+.news-section .section{margin:10px 0}
+.news-feature{border-left:3px solid #dcb06c;padding:17px 15px;background:linear-gradient(100deg,#37271a,#281c14);border-radius:0 10px 10px 0;margin:8px 0 13px}
+.news-flag{font-size:10px;font-weight:700;letter-spacing:1px;color:#d9b678;margin-bottom:8px}
+.news-feature-title{font-size:18px;color:#f3dba5;font-weight:800;line-height:1.45}
+.news-feature p,.news-open-card p,.news-personal-card p{margin:10px 0 0;color:#dbccba;font-size:12px;line-height:1.8}
+.news-leaderboard{background:#251b13;border:1px solid #57412b;border-radius:11px;overflow:hidden}
+.news-rank{display:flex;align-items:center;gap:10px;padding:13px 11px;border-bottom:1px solid #433321}
+.news-rank:last-child{border-bottom:0}
+.news-rank:nth-child(2n){background:#2d2117}
+.news-position{font-family:Georgia,serif;color:#e6c689;font-size:20px;min-width:22px;text-align:center}
+.news-rank-main{flex:1;min-width:0}
+.news-rank-main b{display:block;color:#f0dcbb;font-size:13px}
+.news-rank-main small{display:block;color:#bba991;margin-top:6px;font-size:11px;line-height:1.5}
+.news-rank-right{text-align:right;white-space:nowrap}
+.news-rank-right b{display:block;color:#e9ca89;font-size:13px}
+.news-rank-right span{display:block;color:#b7a18c;font-size:10px;margin-top:5px}
+.news-open-card,.news-personal-card{display:block;text-decoration:none;color:inherit;border:1px solid #675035;border-radius:12px;background:linear-gradient(125deg,#392717,#251a13);padding:16px;margin:10px 0}
+.news-open-card h3,.news-personal-card h3{font-size:15px;color:#f2d39c;margin:0}
+.news-meta{font-size:11px;color:#bca98f;line-height:1.6;margin-top:11px}
+.news-meta span{float:right;color:#dabc84}
+.news-my-overview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:10px}
+.news-my-overview span{text-align:center;background:#332316;border:1px solid #735537;border-radius:9px;padding:11px 5px}
+.news-my-overview strong{display:block;color:#f0cc86;font-size:22px}
+.news-my-overview small{display:block;color:#ccb79a;font-size:11px;margin-top:5px}
+.news-total-prize{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #62452a;padding:13px 4px;margin-bottom:14px;color:#ccbca6;font-size:12px;gap:8px}
+.news-total-prize strong{color:#f4d293;font-size:15px}
+.news-personal-head{display:flex;align-items:center;gap:9px;margin-bottom:12px;flex-wrap:wrap}
+.news-personal-head .news-meta{margin-top:0}
+.news-placing{display:inline-block;border-radius:7px;background:#4b3726;padding:5px 9px;font-size:12px;font-weight:700;color:#e5c8a2}
+.news-placing.first{background:#775326;color:#ffdda3}
+.news-empty{background:#2b2016;border:1px dashed #775838;border-radius:11px;padding:20px 14px;color:#c8b59d;font-size:12px;line-height:1.8;text-align:center}
+.news-footnote{font-size:11px;color:#ad9b83;line-height:1.7;margin:22px 0}
+@media(max-width:400px){.news-nav{gap:4px}.news-nav button{padding:10px 6px;font-size:11px}.news-masthead h1{font-size:27px}.news-rank{gap:6px}.news-rank-main small{font-size:10px}.news-rank-right span{font-size:9px}}
+
+/* Linked jockey and trainer profile panels */
+.staff-hero{border:1px solid #836239;background:linear-gradient(140deg,#312113,#241a13)}
+.staff-hero-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.staff-hero h1{font-size:26px;color:#eec88b;margin:6px 0}
+.staff-quick{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:17px}
+.staff-quick>div{background:#211910;border:1px solid #60482c;padding:11px 7px;border-radius:8px;text-align:center;min-width:0}
+.staff-quick small{display:block;color:#b9a891;font-size:10px;margin-bottom:7px}
+.staff-quick b{display:block;color:#ead0a0;font-size:13px;overflow-wrap:anywhere}
+.staff-record-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.staff-record .large{margin:10px 0 8px}
+.staff-rates{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin-top:12px}
+.staff-rates span{background:#362719;border-radius:6px;padding:7px 4px;font-size:10px;text-align:center;color:#cebb9b}
+.staff-rates b{display:block;color:#edca91;font-size:12px;margin-top:5px}
+.staff-skills{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.staff-skills>div{display:flex;justify-content:space-between;gap:10px;padding:9px 11px;background:#332519;border-radius:7px}
+.staff-skills span{color:#b9aa95;font-size:12px}
+.staff-skills b{color:#f0d29c}
+.staff-horse-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.staff-horse-grid>div{display:flex;flex-direction:column;gap:5px;padding:10px;background:#322419;border:1px solid #523f2b;border-radius:8px}
+.staff-horse-grid>div .muted{font-size:11px}
+.staff-inline-link{color:#e6c38b;text-decoration:underline;text-underline-offset:3}
+.staff-inline-link small{color:#bda486;font-size:10px}
+.news-meta a{color:#e5c58a;text-decoration:underline;text-underline-offset:3}
+@media(max-width:420px){.staff-record-grid{grid-template-columns:1fr}.staff-quick b{font-size:12px}}
+
+/* Owner-only observational discovery: never render the actual horse ability values. */
+.horse-discovery{display:grid;gap:12px}
+.horse-discovery-counts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.horse-discovery-counts span{background:#2b231b;border:1px solid #604b33;border-radius:8px;text-align:center;padding:12px 5px;color:#c8b59b;font-size:11px}
+.horse-discovery-counts strong{display:block;color:#ebc98b;font-size:16px;margin-top:6px}
+.horse-discovery-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.horse-discovery-stat{display:flex;justify-content:space-between;align-items:flex-start;gap:7px;padding:12px 10px;border:1px solid #60472d;border-radius:9px;background:#2d2218}
+.horse-discovery-stat>span{font-size:12px;color:#dbcaaf}
+.horse-discovery-stat>div{text-align:right;min-width:0}
+.horse-discovery-stat b{display:block;color:#eed098;font-size:13px;white-space:nowrap}
+.horse-discovery-stat small{display:block;color:#b9a78f;font-size:10px;margin-top:5px}
+.horse-discovery-section,.horse-discovery-advice{background:#2c2118;border:1px solid #59442c;border-radius:10px;padding:14px}
+.horse-discovery-section>div{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #55412c}
+.horse-discovery-section>div:last-child{border-bottom:0}
+.horse-discovery-section b,.horse-discovery-advice b{color:#f0d29c}
+.horse-discovery-section span{font-size:12px;text-align:right;color:#d3c1a8}
+.horse-discovery-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.horse-discovery-tags span{padding:7px 11px;border:1px solid #956d34;border-radius:18px;background:#51371d;color:#f3d4a6}
+.horse-discovery-advice p{font-size:12px;line-height:1.8;color:#d8c6ad;margin-bottom:0}
+@media(max-width:530px){.horse-discovery-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.horse-discovery-stat{min-height:55px}}
+
+/* My Derby private horse assessment report archive and printable report */
+.horse-report-masthead{text-align:center;background:linear-gradient(115deg,#332417,#201913);border:1px solid #87653b;border-radius:12px;padding:24px 15px;margin-bottom:16px}
+.horse-report-masthead h1{font-family:Georgia,serif;color:#ecd2a2;font-size:24px;letter-spacing:.3px;margin:11px 0}
+.horse-report-masthead p{font-size:12px;color:#b9a993;line-height:1.7;margin:7px 0 0}
+.horse-report-series,.horse-report-label{color:#d6b783;font-size:10px;letter-spacing:1.5px;font-weight:700}
+.horse-report-tools{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#332719;border:1px solid #5e4932;border-radius:10px;padding:13px;margin-bottom:12px;flex-wrap:wrap}
+.horse-report-tools .muted{margin-top:5px;font-size:11px}
+.horse-report-history{background:#2e241a;border:1px solid #59432e;border-radius:10px;padding:12px 14px;margin-bottom:15px}
+.horse-report-history label{display:block;font-size:12px;color:#c8b69e;margin-bottom:7px}
+.horse-report-history .field{margin-bottom:5px}
+.horse-report-paper{padding:23px 19px;background:#281f17;border:1px solid #9b7745;border-radius:12px;box-shadow:0 12px 30px #0003}
+.horse-report-paper-head{display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:2px solid #795d3e;padding-bottom:17px}
+.horse-report-paper-head h2{font-family:Georgia,serif;color:#f0d4a6;font-size:21px;margin:9px 0}
+.horse-report-seal{border:2px solid #9e783c;border-radius:50%;height:61px;width:61px;min-width:61px;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.1;color:#e5c68b;font-size:12px;font-weight:900;transform:rotate(-10deg)}
+.horse-report-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;background:#302519;border:1px solid #5c4932;border-radius:8px;padding:12px;margin:16px 0}
+.horse-report-meta span{font-size:11px;color:#bda990;display:flex;flex-direction:column;gap:6px}
+.horse-report-meta b{font-size:13px;color:#f2d5a5;overflow-wrap:anywhere}
+.horse-report-overview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:15px 0}
+.horse-report-overview div{text-align:center;border:1px solid #5d482e;border-radius:8px;background:#382a1c;padding:11px 6px}
+.horse-report-overview span{display:block;font-size:10px;color:#c9b698}
+.horse-report-overview strong{display:block;color:#f2d39d;font-size:15px;margin-top:7px}
+.horse-report-paper .section{margin-top:19px;margin-bottom:10px}
+.horse-report-summary{font-size:13px;color:#ddcaaf;line-height:1.8;padding:12px 14px;background:#372b1e;border-left:3px solid #c5a064;border-radius:0 8px 8px 0}
+.horse-report-evidence{display:grid;gap:8px}
+.horse-report-evidence>div{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px;border:1px solid #56432e;background:#34271b;border-radius:7px;font-size:11px;color:#d8c6ac}
+.horse-report-evidence b{color:#f0d09b}
+.horse-report-evidence small{color:#c8ad87}
+.horse-report-disclaimer{font-size:10px;line-height:1.7;border-top:1px solid #70583b;color:#bba88e;padding-top:14px;margin-top:22px}
+@media(max-width:440px){.horse-report-paper{padding:15px 12px}.horse-report-meta{gap:8px}.horse-report-paper-head h2{font-size:18px}.horse-report-overview strong{font-size:13px}}
+@media print{
+  @page{size:A4;margin:15mm}
+  html,body{background:#fff!important;color:#171717!important}
   .no-print,.header,.footer{display:none!important}
   .horse-report-shell,.horse-report-shell .area{background:#fff!important;max-width:none!important;margin:0!important;padding:0!important}
   .horse-report-masthead{display:none!important}
