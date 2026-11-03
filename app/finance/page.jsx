@@ -5,7 +5,7 @@ const fmt=n=>new Intl.NumberFormat("ko-KR").format(Number(n||0));
 const transactionNames={
  INITIAL_CAPITAL:"게임 시작 자금",
  RACE_PRIZE:"경주 상금",
- DAILY_OPERATION:"일일 운영비 납부",
+ DAILY_OPERATION:"운영비 납부",
  OPERATING_DEBT_PAYMENT:"미납 운영비 상환",
  EMERGENCY_RECOVERY_GRANT:"재정 회생 지원금",
  HORSE_PURCHASE:"경주마 구매",
@@ -14,6 +14,7 @@ const transactionNames={
  HORSE_AUCTION_SALE:"경매 경주마 판매 수익",
  RACE_ENTRY_FEE:"경주 출전료",
  RACE_ENTRY_REFUND:"출전 취소 환불",
+ RACE_PARTICIPATION_ALLOWANCE:"경주 출전수당",
  AUCTION_BID_HOLD:"경매 입찰금 예치",
  AUCTION_BID_REFUND:"경매 입찰금 환불",
  RANCH_COURSE_FEE:"목장 코스 이용료",
@@ -58,8 +59,8 @@ export default function Finance(){
   <button className="primary wide" disabled={busy} onClick={requestRecovery} style={{marginTop:12}}>
    {busy?"회생 신청 중…":"시즌 1회 재정 회생 지원 신청"}</button>}
  </div>
- <div className="notice">경제_v2의 등급별 운영비·기본 목장 유지비·인건비를 반영합니다.
-   현실 하루는 게임 7일이며 매일 22:45(한국시간) 정산합니다.
+ <div className="notice">운영비 20,000 G를 실제 시간 4일마다 22:45(한국시간)에 정산합니다.
+   현실 하루는 게임 7일입니다.
    초기 자본 200만 G는 경제 원문에 수치가 없어 설정한 <b>임시 운영값</b>입니다.</div>
  <div className="section"><h2>거래 내역</h2><span className="tag">{data.recentTransactions?.length||0}건</span></div>
  {!data.recentTransactions?.length&&<div className="notice">거래 내역이 없습니다.</div>}
