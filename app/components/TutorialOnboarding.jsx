@@ -162,6 +162,8 @@ export default function TutorialOnboarding(){
     <button key={key} onClick={()=>{MTK(key);TH(false);TPO(false)}} style={{textAlign:"left",background:"#1a283a",border:"1px solid #566174",color:"#f5f1e7",borderRadius:9,padding:"10px 12px"}}>{topics[key].title} 튜토리얼 보기</button>
    )}</div>
   </div>}
-  {canReplay&&!topicOpen&&!topicPickerOpen&&<button onClick={openReplay} style={{position:"fixed",right:16,bottom:16,zIndex:9998,background:"#111b2b",color:"#f0c572",border:"1px solid #b99a56",borderRadius:999,padding:"11px 15px",fontWeight:700,boxShadow:"0 8px 24px #0008"}}>？ 이 화면 튜토리얼</button>}
+  {canReplay&&!topicOpen&&!topicPickerOpen&&<div className="tutorial-replay-dock">
+   <button onClick={openReplay} className="tutorial-replay-button">？ 이 화면 튜토리얼</button>
+  </div>}
  </>;
 }

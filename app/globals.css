@@ -478,17 +478,32 @@
 
 /* Pool-backed public odds: only rank, combination, rate and wager-type total. */
 .popular-odds-card{margin-bottom:12px}
-.popular-odds-table{width:100%}
+.popular-odds-table{width:100%;min-width:0;table-layout:fixed}
 .popular-odds-table th:first-child,.popular-odds-table td:first-child{text-align:center;white-space:nowrap}
 .popular-odds-table th:last-child,.popular-odds-table td:last-child{text-align:right;white-space:nowrap}
+.popular-odds-table th,.popular-odds-table td{padding:4px 7px;line-height:1.15}
+.popular-odds-table th:nth-child(1){width:48px}
+.popular-odds-table th:nth-child(3){width:100px}
+.popular-odds-table td:nth-child(2){overflow:hidden;text-overflow:ellipsis}
+.odds-sort-button{border:0;background:transparent;color:inherit;font:inherit;font-weight:700;padding:2px 0;white-space:nowrap}
+.odds-sort-button span{display:inline-block;margin-left:3px;color:#f4d28d}
 .popular-odds-combination{font-weight:700;color:#f3dcaf;white-space:nowrap}
 .popular-odds-value{color:#eec27c;font-weight:800;font-variant-numeric:tabular-nums}
 .popular-odds-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;
  margin-top:13px;padding:13px 2px 2px;border-top:1px solid #866343}
 .popular-odds-footer span{font-size:13px;color:#dfc89f}
 .popular-odds-footer strong{color:#f0d391;font-size:17px;font-variant-numeric:tabular-nums;white-space:nowrap}
-@media(max-width:410px){.popular-odds-table th,.popular-odds-table td{padding:7px 6px;font-size:12px}
+@media(max-width:410px){.popular-odds-table th,.popular-odds-table td{padding:3px 5px;font-size:11px}
+ .popular-odds-table th:nth-child(1){width:42px}
+ .popular-odds-table th:nth-child(3){width:84px}
+ .odds-sort-button{font-size:11px}
  .popular-odds-footer strong{font-size:15px}}
+
+.tutorial-replay-dock{position:fixed;left:50%;bottom:calc(12px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:9998;
+ width:min(480px,100vw);padding:0 max(12px,env(safe-area-inset-right)) 0 max(12px,env(safe-area-inset-left));
+ display:flex;justify-content:flex-end;pointer-events:none}
+.tutorial-replay-button{max-width:100%;padding:10px 13px;border:1px solid #b99a56;border-radius:999px;background:#111b2b;
+ color:#f0c572;font-size:13px;font-weight:700;white-space:nowrap;box-shadow:0 8px 24px #0008;pointer-events:auto}
 
 /* Stored official dividends: compact enough for the mobile result screen. */
 .dividend-result-table{width:100%;min-width:0}

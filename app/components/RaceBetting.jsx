@@ -26,6 +26,7 @@ const errMap={
 export default function RaceBetting({raceId,readOnly=false}){
  const [data,setData]=useState(null),[token,setToken]=useState(""),[betType,setBetType]=useState("WIN");
  const [rows,setRows]=useState([[],[],[]]),[stakeEach,setStakeEach]=useState(100);
+ const [runnerOddsSort,setRunnerOddsSort]=useState(null);
  const [quote,setQuote]=useState(null),[busy,setBusy]=useState(false);
  const [error,setError]=useState(""),[notice,setNotice]=useState("");
  const requestRef=useRef({signature:"",id:""});
@@ -49,8 +50,24 @@ export default function RaceBetting({raceId,readOnly=false}){
   }catch(e){setError(e.message||"배당 조회 실패")}
  },[raceId,token,betType,readOnly]);
  useEffect(()=>{void load();const timer=setInterval(()=>void load(),30000);return()=>clearInterval(timer)},[load]);
+ useEffect(()=>{setRunnerOddsSort(null)},[raceId]);
  const current=BET_TYPES.find(t=>t.id===betType)||BET_TYPES[0];
  const horses=(data?.horses||[]).slice().sort((a,b)=>Number(a.number)-Number(b.number));
+ const runnerOddsRows=horses.map(h=>({
+  horse:h,
+  odds:(data?.popularOdds?.popular||[]).find(p=>String(p.numbers?.[0])===String(h.number))?.odds
+ }));
+ const visibleRunnerOddsRows=runnerOddsSort?[...runnerOddsRows].sort((a,b)=>{
+  const aValue=a.odds==null?null:Number(a.odds),bValue=b.odds==null?null:Number(b.odds);
+  const aOdds=aValue!=null&&Number.isFinite(aValue)?aValue:null;
+  const bOdds=bValue!=null&&Number.isFinite(bValue)?bValue:null;
+  if(aOdds===null&&bOdds===null)return Number(a.horse.number)-Number(b.horse.number);
+  if(aOdds===null)return 1;
+  if(bOdds===null)return -1;
+  const order=aOdds-bOdds;
+  return runnerOddsSort==="asc"?order||Number(a.horse.number)-Number(b.horse.number):
+   -order||Number(a.horse.number)-Number(b.horse.number);
+ }):runnerOddsRows;
  const rosterIds=horses.map(x=>x.horseId);
  const validRows=rows.map(row=>row.filter(id=>rosterIds.includes(id)));
  const combos=useMemo(()=>expandOmr(betType,validRows,rosterIds),
@@ -76,7 +93,7 @@ export default function RaceBetting({raceId,readOnly=false}){
   },350);
   return()=>{live=false;clearTimeout(timer)};
  },[raceId,betType,comboKey,stakeEach,validStake,data?.bettingOpen,data?.betCount,readOnly]);
- const switchType=id=>{setBetType(id);setRows([[],[],[]]);setQuote(null);setError("");setNotice("")};
+ const switchType=id=>{setBetType(id);setRows([[],[],[]]);setQuote(null);setError("");setNotice("");setRunnerOddsSort(null)};
  const toggle=(rowIndex,id)=>{
   setRows(before=>before.map((row,i)=>i!==rowIndex?row:
    row.includes(id)?row.filter(x=>x!==id):
@@ -155,11 +172,14 @@ export default function RaceBetting({raceId,readOnly=false}){
       {current.legs===1?
        <div className="race-entry-wrap" style={{marginTop:11}}>
         <table className="race-entry-table popular-odds-table">
-         <thead><tr><th>마번</th><th>경주마</th><th>현재 배당률</th></tr></thead>
-         <tbody>{horses.map(h=>{
-          const item=(data.popularOdds.popular||[]).find(p=>p.numbers?.[0]===h.number);
+         <thead><tr><th>마번</th><th>경주마</th><th aria-sort={runnerOddsSort==="asc"?"ascending":runnerOddsSort==="desc"?"descending":"none"}>
+          <button type="button" className="odds-sort-button" onClick={()=>setRunnerOddsSort(value=>value==="asc"?"desc":"asc")}
+           aria-label={runnerOddsSort==="asc"?"현재 배당률 내림차순 정렬":"현재 배당률 오름차순 정렬"}>
+           현재 배당률 <span>{runnerOddsSort==="asc"?"▲":runnerOddsSort==="desc"?"▼":"↕"}</span>
+          </button></th></tr></thead>
+         <tbody>{visibleRunnerOddsRows.map(({horse:h,odds})=>{
           return <tr key={h.horseId}><td>{h.number}</td><td>{h.name}</td>
-           <td className="popular-odds-value">{item?.odds!=null?Number(item.odds).toFixed(2)+"배":"—"}</td>
+           <td className="popular-odds-value">{odds!=null?Number(odds).toFixed(2)+"배":"—"}</td>
           </tr>;
          })}</tbody>
         </table>
