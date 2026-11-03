@@ -150,6 +150,11 @@
  background:#211912;border:1px solid #493523;padding:9px 4px;border-radius:8px;
  color:#b9a58c;font-size:11px}
 .my-horse-vitals strong{color:#e9c88d;font-size:14px}
+.my-horse-race-info{display:grid;gap:9px;margin-top:12px;padding:11px 10px;
+ background:#241c15;border:1px solid #493523;border-radius:9px}
+.my-horse-race-row{display:grid;grid-template-columns:82px minmax(0,1fr);align-items:start;gap:8px}
+.my-horse-race-row span{color:#c0a987;font-size:11px}
+.my-horse-race-row b{color:#f0dfc2;font-size:11px;line-height:1.5;font-weight:600;overflow-wrap:anywhere}
 .my-horse-skills{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
  gap:8px;margin-top:13px;padding-top:12px;border-top:1px solid #513b24}
 .my-horse-skills>div{display:flex;flex-direction:column;text-align:center;

@@ -126,6 +126,8 @@ export default function WorldPage(){
    filter==="회복 필요"&&injured(h));
  const activeCount=horses.filter(h=>h.life_stage==="RACING").length;
  const fmt=n=>typeof n==="number"?Math.round(n):"-";
+ const raceDate=r=>r?.date|| (r?.gameDay?`게임 ${r.gameDay}일`:"");
+ const raceLabel=r=>r?`${raceDate(r)} · ${trackName(r.track)} ${r.raceNo}경주 · ${r.distanceM}m${r.className?` · ${r.className}`:""}`:"";
  return <main className="shell">
   <header className="header">
    <a href="/" className="brand" style={{textDecoration:"none"}}>MY DERBY</a>
@@ -202,6 +204,20 @@ export default function WorldPage(){
         <span>컨디션 <strong>{fmt(h.condition_score)}</strong></span>
         <span>피로도 <strong>{fmt(h.fatigue)}</strong></span>
         <span>건강 <strong>{h.health_state==="HEALTHY"?"정상":h.health_state==="INJURED"?"부상":"상태 확인"}</strong></span>
+       </div>
+       <div className="my-horse-race-info" aria-label={h.name+" 출전 정보"}>
+        <div className="my-horse-race-row">
+         <span>마지막 출전</span>
+         <b>{mine.raceSchedule?.[h.id]?.lastStart?
+          `${raceLabel(mine.raceSchedule[h.id].lastStart)} · ${mine.raceSchedule[h.id].lastStart.rank}위`:
+          "출전 기록 없음"}</b>
+        </div>
+        <div className="my-horse-race-row">
+         <span>출전 예정</span>
+         <b>{mine.raceSchedule?.[h.id]?.nextStart?
+          `${raceLabel(mine.raceSchedule[h.id].nextStart)} · ${mine.raceSchedule[h.id].nextStart.entryStatus==="CONFIRMED"?"출전 확정":"신청 접수"}`:
+          "예정된 출전 없음"}</b>
+        </div>
        </div>
        <div className="controls" style={{marginTop:11}}>
         <HorseLink horseId={h.id} className="outline" style={{textDecoration:"none",fontSize:12}}>
