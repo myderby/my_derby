@@ -63,6 +63,7 @@ BEGIN$old$;
  v_peak_score numeric;
  v_decline_weeks integer;
  v_trend text;
+ v_staff_id uuid;
 BEGIN$new$;
   IF position(v_old IN v_definition)=0 THEN RAISE EXCEPTION 'Could not add performance variables'; END IF;
   v_definition:=replace(v_definition,v_old,v_new);
@@ -76,9 +77,11 @@ BEGIN$new$;
   v_definition:=replace(v_definition,v_old,v_new);
 
   v_old := $old$  v_placings:=row_staff.placings;
-  v_xp:=CASE WHEN row_staff.staff_kind='jockey' THEN$old$;
+  v_xp:=CASE WHEN row_staff.staff_kind='jockey' THEN
+$old$;
   v_new := $new$  v_placings:=row_staff.placings;
   v_current_score:=NULL;v_previous_score:=NULL;v_trend:='INSUFFICIENT';
+  v_staff_id:=row_staff.staff_id;
   v_peak_score:=row_staff.peak_performance_score;
   v_decline_weeks:=coalesce(row_staff.performance_declining_weeks,0);
   IF row_staff.staff_kind='jockey' THEN
@@ -92,7 +95,7 @@ BEGIN$new$;
     INTO v_recent_rides,v_recent_wins,v_recent_placings,
       v_previous_rides,v_previous_wins,v_previous_placings
     FROM my_derby_private.staff_development_history h
-    WHERE h.world_id=p_world AND h.staff_kind='jockey' AND h.staff_id=row_staff.staff_id;
+    WHERE h.world_id=p_world AND h.staff_kind='jockey' AND h.staff_id=v_staff_id;
     v_recent_rides:=v_recent_rides+v_rides;
     v_recent_wins:=v_recent_wins+v_wins;
     v_recent_placings:=v_recent_placings+v_placings;
@@ -107,7 +110,7 @@ BEGIN$new$;
         v_peak_score:=v_current_score;
         UPDATE my_derby_private.staff_development_profiles
         SET peak_age=v_age,peak_performance_score=v_current_score
-        WHERE staff_kind='jockey' AND staff_id=row_staff.staff_id;
+        WHERE staff_kind='jockey' AND staff_id=v_staff_id;
       END IF;
       IF v_previous_score IS NULL THEN
         v_trend:='BASELINE';v_decline_weeks:=0;
@@ -122,15 +125,16 @@ BEGIN$new$;
       SET last_performance_score=v_current_score,
           performance_declining_weeks=v_decline_weeks,
           updated_at=now()
-      WHERE staff_kind='jockey' AND staff_id=row_staff.staff_id;
+      WHERE staff_kind='jockey' AND staff_id=v_staff_id;
     ELSE
       v_decline_weeks:=0;
       UPDATE my_derby_private.staff_development_profiles
       SET performance_declining_weeks=0,updated_at=now()
-      WHERE staff_kind='jockey' AND staff_id=row_staff.staff_id;
+      WHERE staff_kind='jockey' AND staff_id=v_staff_id;
     END IF;
   END IF;
-  v_xp:=CASE WHEN row_staff.staff_kind='jockey' THEN$old$;
+  v_xp:=CASE WHEN row_staff.staff_kind='jockey' THEN
+$new$;
   IF position(v_old IN v_definition)=0 THEN RAISE EXCEPTION 'Could not add rolling performance scoring'; END IF;
   v_definition:=replace(v_definition,v_old,v_new);
 
