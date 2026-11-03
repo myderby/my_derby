@@ -5,6 +5,10 @@ import {createClient} from "@supabase/supabase-js";
 
 const changeReasons={
  EXPERIENCE_GROWTH:"경주·훈련 경험에 따른 점진 성장",
+ PERFORMANCE_GROWTH:"최근 1년 경주 성적 향상",
+ PERFORMANCE_DECLINE:"최근 성적 하락이 이어져 능력 하락",
+ PERFORMANCE_STABLE:"성적 유지에 따라 능력 유지",
+ PERFORMANCE_DECLINE_WAIT:"성적 추세를 더 관찰 중",
  GRADUAL_AGE_DECLINE:"전성기 이후 자연스러운 기량 하락",
  EXTENDED_INACTIVITY:"장기간 활동 공백",
  NO_ACTIVITY:"이번 주 활동 없음",
@@ -122,7 +126,7 @@ export default function StaffProfile({kind,id}){
     <section className="card staff-development">
      {v.development?<><div className="staff-growth-facts">
        <div><small>나이</small><strong>{v.development.age}세</strong></div>
-       <div><small>전성기 기준</small><strong>{v.development.peakAge}세</strong></div>
+       <div><small>전성기 기준</small><strong>{v.development.peakAge?`${v.development.peakAge}세`:"성적 산정 중"}</strong></div>
        <div><small>현재 단계</small><strong>{v.development.careerStage}</strong></div>
        <div><small>성장 성향</small><strong>{v.development.developmentStyle}</strong></div>
        <div><small>남은 성장 여력</small><strong>{v.development.growthPotential}</strong></div>
@@ -130,6 +134,7 @@ export default function StaffProfile({kind,id}){
       </div>
       <div className="muted" style={{marginTop:12,lineHeight:1.8}}>
        현실 하루(게임 7일) 단위로 실제 {isJockey?"기승":"훈련·담당마 경주"} 경험을 정산합니다.
+       {isJockey&&" 기수는 최근 1년 경주 성적을 이전 1년과 비교해 전성기를 산정하며, 51세부터는 성적과 관계없이 능력이 하락합니다."}
        한 번에 하나의 능력만 성장·하락하며, 최대 상승 +0.035점 / 최대 하락 -0.020점입니다.
        실제 성장 한계는 개인마다 다르며 급격한 능력 변화를 방지합니다.
       </div>
