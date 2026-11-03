@@ -209,14 +209,16 @@ export default function WorldPage(){
         <div className="my-horse-race-row">
          <span>마지막 출전</span>
          <b>{mine.raceSchedule?.[h.id]?.lastStart?
-          `${raceLabel(mine.raceSchedule[h.id].lastStart)} · ${mine.raceSchedule[h.id].lastStart.rank}위`:
-          "출전 기록 없음"}</b>
+          <a className="my-horse-race-link" href={"/race/"+encodeURIComponent(mine.raceSchedule[h.id].lastStart.raceId)}>
+           {raceLabel(mine.raceSchedule[h.id].lastStart)} · {mine.raceSchedule[h.id].lastStart.rank}위 · 경주 결과 보기 ›
+          </a>:"출전 기록 없음"}</b>
         </div>
         <div className="my-horse-race-row">
          <span>출전 예정</span>
          <b>{mine.raceSchedule?.[h.id]?.nextStart?
-          `${raceLabel(mine.raceSchedule[h.id].nextStart)} · ${mine.raceSchedule[h.id].nextStart.entryStatus==="CONFIRMED"?"출전 확정":"신청 접수"}`:
-          "예정된 출전 없음"}</b>
+          <a className="my-horse-race-link" href={"/race/"+encodeURIComponent(mine.raceSchedule[h.id].nextStart.raceId)}>
+           {raceLabel(mine.raceSchedule[h.id].nextStart)} · {mine.raceSchedule[h.id].nextStart.entryStatus==="CONFIRMED"?"출전 확정":"신청 접수"} · 출전 정보 보기 ›
+          </a>:"예정된 출전 없음"}</b>
         </div>
        </div>
        <div className="controls" style={{marginTop:11}}>

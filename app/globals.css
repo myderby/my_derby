@@ -155,6 +155,8 @@
 .my-horse-race-row{display:grid;grid-template-columns:82px minmax(0,1fr);align-items:start;gap:8px}
 .my-horse-race-row span{color:#c0a987;font-size:11px}
 .my-horse-race-row b{color:#f0dfc2;font-size:11px;line-height:1.5;font-weight:600;overflow-wrap:anywhere}
+.my-horse-race-link{color:inherit;text-decoration:underline;text-decoration-color:#8c6a39;text-underline-offset:3px}
+.my-horse-race-link:hover,.my-horse-race-link:focus-visible{color:#f0c372;text-decoration-color:currentColor}
 .my-horse-skills{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
  gap:8px;margin-top:13px;padding-top:12px;border-top:1px solid #513b24}
 .my-horse-skills>div{display:flex;flex-direction:column;text-align:center;
