@@ -13,10 +13,14 @@ export async function GET(request:Request){
   ]);
   if(profileRes.error||horsesRes.error)throw profileRes.error||horsesRes.error;
   const horses=horsesRes.data??[];
+  const scheduleRes=profileRes.data?.initial_setup_complete?
+   await api.rpc("player_horse_race_schedule"):
+   {data:null,error:null};
+  if(scheduleRes.error)console.error("Owned horse race schedule lookup failed",scheduleRes.error.message);
   return NextResponse.json({
    mode:"PLAYER_RANCH",joined:!!profileRes.data?.initial_setup_complete,
    profile:profileRes.data??null,
-   horses,
+   horses,raceSchedule:scheduleRes.data?.horses??{},
    note:"Actual horse abilities, gene data and hidden traits are private. Use the owner-only discovery report for estimates."
   },{headers:{"Cache-Control":"no-store"}});
  }catch(e){
