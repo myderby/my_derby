@@ -61,7 +61,7 @@ export default function Finance(){
    {busy?"회생 신청 중…":"시즌 1회 재정 회생 지원 신청"}</button>}
  </div>
  <div className="notice">운영비 20,000 G와 초기 지급마를 제외한 경주마 보험료를 실제 시간 4일마다 22:45(한국시간)에 정산합니다.
-   보험료는 각 경주마 구매가의 연 4%이며, 52일 게임 연도에 맞춰 13회로 나누어 납부합니다. 현실 하루는 게임 7일입니다.
+   보험료는 각 경주마 구매가의 연 2%이며, 52일 게임 연도에 맞춰 13회로 나누어 납부합니다. 현실 하루는 게임 7일입니다.
    초기 자본 200만 G는 경제 원문에 수치가 없어 설정한 <b>임시 운영값</b>입니다.</div>
  <div className="section"><h2>거래 내역</h2><span className="tag">{data.recentTransactions?.length||0}건</span></div>
  {!data.recentTransactions?.length&&<div className="notice">거래 내역이 없습니다.</div>}
