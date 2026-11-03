@@ -5,7 +5,7 @@ import {createClient} from "@supabase/supabase-js";
 const c=()=>createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
 const fmt=n=>new Intl.NumberFormat("ko-KR").format(n||0);
 const facility={PASTURE:"방목지",RECOVERY_STABLE:"회복 마방",REHAB_TRACK:"재활 트랙",VET_CLINIC:"수의 진료소",YOUNG_HORSE_AREA:"어린말 육성장"};
-const courses=[["REST_3D","기본 휴양 3게임일"],["RECOVERY_7D","회복 7게임일"],["REHAB","재활 7게임일"],["YOUNG_BASIC","어린말 기초육성 7게임일"]];
+const courses=[["REST_3D","기본 휴양 3게임일"],["RECOVERY_7D","회복 7게임일"],["REHAB","재활 7게임일"],["YOUNG_BASIC","2세 이하 기초육성 7게임일"]];
 const errors={RANCH_COURSE_ALREADY_ACTIVE:"이미 진행 중인 목장 코스가 있습니다.",
  RANCH_RACE_CONFLICT:"공식 경주 출전 예정 기간과 목장 입소 기간이 겹칩니다.",
  RANCH_FACILITY_FULL:"해당 시설의 수용 인원이 가득 찼습니다.",
@@ -76,7 +76,7 @@ export default function Ranch(){
     {courses.map(([key,title])=><option key={key} value={key}>{title}</option>)}
    </select>
    <div className="muted">휴양: 피로·컨디션 회복 / 회복: 장기 피로 관리 / 재활: 부상마의 회복 상태 개선 /
-   어린말 육성: 0~1세 기초 능력치 향상. 적용 효과는 실제 DB에 기록됩니다.</div>
+   어린말 육성: 0~2세 기초 능력치 향상. 적용 효과는 실제 DB에 기록됩니다.</div>
    {h&&<div className="muted" style={{marginTop:9}}>선택: <HorseLink horseId={h.id}>{h.name}</HorseLink> · 상태 {h.health} · {h.stage}</div>}
    <button className="primary wide" style={{marginTop:14}} disabled={!h||busy} onClick={apply}>
     {busy?"신청 중…":"게임머니 결제 후 목장 입소"}</button>

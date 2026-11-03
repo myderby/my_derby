@@ -7,7 +7,7 @@ export async function GET(request:Request){
   const {db,user}=await requireUser(request);
   const api=db.schema("my_derby");
   const [profileRes,horsesRes]=await Promise.all([
-   api.from("profiles").select("nickname,world_id,initial_setup_complete").eq("user_id",user.id).maybeSingle(),
+   api.from("profiles").select("nickname,world_id,initial_setup_complete,starting_region,silks_design").eq("user_id",user.id).maybeSingle(),
    api.from("horses").select("id,source_hr_no,name,sex,age_years,life_stage,condition_score,fatigue,source_record_count,source_meet")
     .eq("owner_user_id",user.id).order("name").limit(60),
   ]);
