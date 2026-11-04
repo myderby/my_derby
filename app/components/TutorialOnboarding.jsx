@@ -1,6 +1,6 @@
 "use client";
 import {useCallback,useEffect,useRef,useState} from "react";
-import {usePathname} from "next/navigation";
+import {usePathname,useRouter} from "next/navigation";
 import {createClient} from "@supabase/supabase-js";
 
 const stories=[
@@ -31,6 +31,7 @@ function client(){return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,proce
 
 export default function TutorialOnboarding(){
  const pathname=usePathname();
+ const router=useRouter();
  const [state,S]=useState(null),[busy,B]=useState(false),[hiddenStage,HS]=useState(null),[topicHidden,TH]=useState(false);
  const [visibleTopicKey,VTK]=useState(null),[targetBox,TB]=useState(null);
  const [manualTopicKey,MTK]=useState(null),[topicPickerOpen,TPO]=useState(false);
@@ -40,7 +41,15 @@ export default function TutorialOnboarding(){
   try{
    const cfg=client(),{data:{session}}=await cfg.auth.getSession();if(!session)return;
    const r=await fetch("/api/player/tutorial",{headers:{Authorization:"Bearer "+session.access_token},cache:"no-store"});
-   if(r.ok)S(await r.json());
+   if(r.ok){
+    const next=await r.json();S(next);
+    const key="my-derby:tutorial:hidden-stage:"+session.user.id;
+    const dismissed=sessionStorage.getItem(key);
+    if(dismissed!==null){
+     if(Number(dismissed)===Number(next.storyStage))HS(Number(dismissed));
+     else{sessionStorage.removeItem(key);HS(null);}
+    }
+   }
   }catch(_){/* Tutorial guidance must not block the game. */}
  },[]);
  useEffect(()=>{void load()},[load]);
@@ -64,8 +73,9 @@ export default function TutorialOnboarding(){
    const available=unseen.map(key=>({key,element:document.querySelector(`[data-tutorial-target="${key}"]`)}))
     .find(item=>item.element);
    const selected=requested||available|| (unseen.length?{key:unseen[0],element:null}:null);
-   VTK(selected?.key||null);
-   if(!selected?.element){TB(null);return;}
+   const selectedKey=selected?.key||null;
+   VTK(current=>current===selectedKey?current:selectedKey);
+   if(!selected?.element){TB(current=>current===null?current:null);return;}
    const element=selected.element;
    const scrollKey=(pathname||"")+":"+selected.key;
    if(lastScrolled.current!==scrollKey){
@@ -73,7 +83,9 @@ export default function TutorialOnboarding(){
     element.scrollIntoView({block:"center",inline:"nearest",behavior:"smooth"});
    }
    const rect=element.getBoundingClientRect();
-   TB({key:selected.key,left:rect.left-5,top:rect.top-5,width:rect.width+10,height:rect.height+10});
+   const nextBox={key:selected.key,left:rect.left-5,top:rect.top-5,width:rect.width+10,height:rect.height+10};
+   TB(current=>current&&current.key===nextBox.key&&current.left===nextBox.left&&
+    current.top===nextBox.top&&current.width===nextBox.width&&current.height===nextBox.height?current:nextBox);
   };
   refresh();
   const observer=new MutationObserver(refresh);
@@ -166,7 +178,12 @@ export default function TutorialOnboarding(){
     <button disabled={busy} onClick={async()=>{
      if(stage===2){await update({storyStage:3});return;}
      if(stage===3)await update({completeStory:true});
-     HS(stage);window.location.assign(story.href);
+     HS(stage);
+     try{
+      const cfg=client(),{data:{session}}=await cfg.auth.getSession();
+      if(session?.user?.id)sessionStorage.setItem("my-derby:tutorial:hidden-stage:"+session.user.id,String(stage));
+     }catch(_){/* Keep navigation available if the browser storage is unavailable. */}
+     router.push(story.href);
     }} style={{background:"#c7a65c",border:0,color:"#17202b",fontWeight:700,borderRadius:9,padding:"10px 16px"}}>{busy?"저장 중…":story.action}</button>
    </div>
   </section>
