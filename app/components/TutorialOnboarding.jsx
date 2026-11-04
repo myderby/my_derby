@@ -109,6 +109,11 @@ export default function TutorialOnboarding(){
  }
  const stage=Math.min(3,Math.max(0,Number(state?.storyStage)||0));
  const story=stories[stage];
+ useEffect(()=>{
+  if(state?.joined&&stage===0&&hiddenStage===0&&pathname==="/ranch"){
+   MTK("ranch");TH(false);
+  }
+ },[state?.joined,stage,hiddenStage,pathname]);
  useEffect(()=>{RV("");RM("")},[stage,state?.starterHorse?.name]);
  async function renameStarter(){
   const horse=state?.starterHorse;
@@ -130,10 +135,12 @@ export default function TutorialOnboarding(){
    RM(message.includes("TUTORIAL_HORSE_NAME_TAKEN")?"이미 사용 중인 이름입니다. 다른 이름을 입력해주세요.":message);
   }finally{B(false)}
  }
- const topicKey=manualTopicKey||visibleTopicKey;
- const topic=topicKey&&(manualTopicKey||!state?.seenTopics?.includes(topicKey))?topics[topicKey]:null;
+ const storyContinuation=stage===0&&hiddenStage===stage&&pathname==="/ranch";
+ const topicKey=manualTopicKey||(storyContinuation?"ranch":visibleTopicKey);
+ const topic=storyContinuation?{title:"첫 육성 코스 신청",body:"첫 시작 이야기는 끝나지 않았습니다. 2세 육성마를 선택하고 ‘2세 이하 기초육성’ 코스를 신청하면 다음 이야기와 3세 6등급 신마가 열립니다."}:
+  topicKey&&(manualTopicKey||!state?.seenTopics?.includes(topicKey))?topics[topicKey]:null;
  const storyOpen=!!state?.joined&&hiddenStage!==stage&&!(stage>=3&&state.completed);
- const topicOpen=!storyOpen&&!!topic&&(!!manualTopicKey||!topicHidden);
+ const topicOpen=!storyOpen&&!!topic&&(!!manualTopicKey||storyContinuation||!topicHidden);
  const canReplay=!!state?.joined&&!storyOpen&&candidateList.length>0;
  const openReplay=()=>{
   const available=candidateList.filter(key=>document.querySelector(`[data-tutorial-target="${key}"]`));
@@ -197,12 +204,12 @@ export default function TutorialOnboarding(){
    </div>
   </div>}
   {topicOpen&&<div style={{position:"fixed",...(targetBox&&targetInLowerHalf?{top:16}:{bottom:16}),...(targetBox&&targetInRightHalf?{left:16}:{right:16}),zIndex:10001,width:"min(410px,calc(100% - 32px))",background:"#111b2b",color:"#f5f1e7",border:"1px solid #b99a56",borderRadius:16,padding:18,boxShadow:"0 14px 44px #0009"}}>
-  <div style={{color:"#c7a65c",fontSize:11,letterSpacing:1.5}}>처음 이용하는 기능</div>
+  <div style={{color:"#c7a65c",fontSize:11,letterSpacing:1.5}}>{storyContinuation?"첫 시작 이야기 · 1단계 계속":"처음 이용하는 기능"}</div>
   <h2 style={{fontSize:20,margin:"8px 0"}}>{topic.title}</h2>
   <p style={{fontSize:14,lineHeight:1.6,color:"#d7dbe2",margin:"0 0 12px"}}>{topic.body}</p>
   <p style={{fontSize:12,lineHeight:1.5,color:"#aeb8c6",margin:"0 0 12px"}}>이후에도 이 화면의 튜토리얼 보기 버튼에서 다시 열 수 있습니다.</p>
   <div style={{display:"flex",justifyContent:"flex-end",gap:8}}>
-   <button disabled={busy} onClick={async()=>{await update({topic:topicKey});TH(true);MTK(null)}} style={{background:"#c7a65c",border:0,color:"#17202b",fontWeight:700,borderRadius:8,padding:"8px 12px"}}>{busy?"저장 중…":"안내 완료 · 닫기"}</button>
+   <button disabled={busy} onClick={async()=>{await update({topic:topicKey});TH(true);MTK(null)}} style={{background:"#c7a65c",border:0,color:"#17202b",fontWeight:700,borderRadius:8,padding:"8px 12px"}}>{busy?"저장 중…":storyContinuation?"안내 닫기 · 계속 진행":"안내 완료 · 닫기"}</button>
   </div>
   </div>}
   {topicPickerOpen&&<div style={{position:"fixed",right:16,bottom:16,zIndex:10001,width:"min(360px,calc(100% - 32px))",background:"#111b2b",color:"#f5f1e7",border:"1px solid #b99a56",borderRadius:16,padding:16,boxShadow:"0 14px 44px #0009"}}>
