@@ -26,13 +26,13 @@ export async function GET(request:Request){
     {p_secret:secret,p_slot:slot});
    if(publishError)throw publishError;
    if(Number(published?.count)>0)alreadyPublished.push({slot,count:Number(published.count)});
-   for(let n=0;n<20;n++){
+   while(processed.length<3){
     const {data:claimed,error:claimError}=await api.rpc("secure_backfill_claim_nov3",
      {p_secret:secret,p_slot:slot});
     if(claimError)throw claimError;
     if(claimed?.status!=="CLAIMED")break;
     const result=simulateRace(claimed.input);
-    const {data:finished,error:finishError}=await api.rpc("secure_official_race_finalize",
+    const {data:finished,error:finishError}=await api.rpc("secure_backfill_finalize_race_nov3",
      {p_secret:secret,p_run_id:claimed.runId,p_result:result});
     if(finishError)throw finishError;
     if(!["FINISHED","ALREADY_FINISHED"].includes(finished?.status))
