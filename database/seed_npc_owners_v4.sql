@@ -1,13 +1,31 @@
 -- Run once after calendar/RPC migration. Reruns intentionally preserve the player reserve.
-with w as (select id from my_derby.worlds where world_key='kra_roster_v1')
+with w as (select id from my_derby.worlds where world_key='kra_roster_v1'),
+name_pool as (
+ select w.id world_id,s.surname||g.given_name name,
+  row_number() over(partition by w.id order by md5(w.id::text||s.surname||g.given_name||':npc-owner-v4')) rn
+ from w
+ cross join unnest(array[
+  '김','이','박','최','정','강','조','윤','장','임','한','오','신','서','권',
+  '황','송','전','홍','안','문','류','백','남','노','배','유','고','심','변','하','차'
+ ]) as s(surname)
+ cross join unnest(array[
+  '서준','하준','도윤','시우','주원','지호','민재','예준','수연','예린','서연','지우',
+  '채원','태현','준혁','유진','민석','선우','주영','동현','지훈','아린','도현','승우',
+  '세진','윤호','지원','현우','수빈','준서','태윤','준호','민서','은우','지안','은서',
+  '시현','서율','태민','연우','하린','수현','지민','민준','예성','수호','유찬','준영',
+  '소윤','유나','나연','도연','예진','유정','규민','승현','성민','준수','현서','정우',
+  '진우','원준','현준','범준','동하','시온','다은','지율','아윤','서우'
+ ]) as g(given_name)
+)
 insert into my_derby.npc_owners(world_id,name,reputation,policy)
-select w.id,'시스템 마주 '||lpad(gs::text,3,'0'),40+((gs*17)%51),
+select w.id,p.name,40+((gs*17)%51),
   jsonb_build_object('agentType','RULE_BASED','worldRulesVersion','v4_world_v1',
     'risk',(array['CONSERVATIVE','BALANCED','AGGRESSIVE'])[1+((gs-1)%3)],
     'distancePreference',(array['SPRINT','MILE','MIDDLE','LONG'])[1+((gs-1)%4)],
     'entryPolicy','FIT_CONDITION_FIRST','active',false,
     'explanation','No autonomous bids, race entry or economics before weekly processor verification')
 from w cross join generate_series(1,80) gs
+join name_pool p on p.world_id=w.id and p.rn=gs
 on conflict(world_id,name) do nothing;
 
 with w as (select id from my_derby.worlds where world_key='kra_roster_v1'),
