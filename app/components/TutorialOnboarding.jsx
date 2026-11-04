@@ -46,7 +46,10 @@ export default function TutorialOnboarding(){
     const key="my-derby:tutorial:hidden-stage:"+session.user.id;
     const dismissed=sessionStorage.getItem(key);
     if(dismissed!==null){
-     if(Number(dismissed)===Number(next.storyStage))HS(Number(dismissed));
+     const dismissedStage=Number(dismissed);
+     const intendedPath=stories[dismissedStage]?.href;
+     const currentPath=window.location.pathname;
+     if(dismissedStage===Number(next.storyStage)&&currentPath===intendedPath)HS(dismissedStage);
      else{sessionStorage.removeItem(key);HS(null);}
     }
    }
