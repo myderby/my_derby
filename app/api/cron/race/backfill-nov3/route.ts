@@ -22,7 +22,7 @@ export async function GET(request:Request){
   const processed:Array<{slot:number;raceId:string;winner:string;finishers:number}>=[];
   const alreadyPublished:Array<{slot:number;count:number}>=[];
   for(const slot of [0,1,2]){
-   const {data:published,error:publishError}=await api.rpc("secure_program_publish_due",
+   const {data:published,error:publishError}=await api.rpc("secure_backfill_finalize_pending_nov3",
     {p_secret:secret,p_slot:slot});
    if(publishError)throw publishError;
    if(Number(published?.count)>0)alreadyPublished.push({slot,count:Number(published.count)});
