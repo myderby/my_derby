@@ -149,7 +149,7 @@ export default function BreedingPage(){
    </div>
    <div className="section"><h2>번식 관리</h2><span className="tag">실제 DB 연동</span></div>
    <div className="notice"><b>암말 4~18세 / 씨수말 4~25세</b> · 마주가 공개한 플레이어 씨수말만 교배 목록에 표시됩니다.
-    암말은 시즌당 1회, 씨수말은 시즌당 최대 {board?.sireSeasonLimit||200}회 신청할 수 있습니다. 예약이 {board?.demandReviewThreshold||150}건에 도달하면 협회 또는 NPC 목장이 혈통 궁합과 자마 기대치를 심사하며, 심사 불허 시 교배료는 청구되지 않습니다. 임신에 성공하면 <b>게임 330일</b> 후 출산합니다.
+    암말은 시즌당 1회, 씨수말은 시즌당 최대 {board?.sireSeasonLimit||200}회 신청할 수 있습니다. 씨수말별로 한국시간 기준 하루 {board?.demandReviewThreshold||10}건 이상 신청되면 협회 또는 NPC 목장이 혈통 궁합과 자마 기대치를 심사하며, 심사 불허 시 교배료는 청구되지 않습니다. 임신에 성공하면 <b>게임 330일</b> 후 출산합니다.
     교배료는 자마의 실제 성적에 따라 10,000G부터 책정되며 신청 시 암말 마주에게서 차감되고 씨수말 마주에게 지급됩니다.
     임신 실패 시에도 교배료가 정산됩니다.</div>
    {checking&&<div className="notice">로그인 확인 중…</div>}
