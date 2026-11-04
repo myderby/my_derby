@@ -14,7 +14,8 @@ export async function GET(req:Request){
    !/^[0-9a-z]{1,24}$/i.test(hrNo||""))))
    return NextResponse.json({error:"경주마 식별정보가 올바르지 않습니다."},{status:400});
  try{
-  const db=req.headers.get("authorization")? (await requireUser(req)).db:createPublicDb();
+  const authenticated=!!req.headers.get("authorization");
+  const db=authenticated? (await requireUser(req)).db:createPublicDb();
   const {data,error}=await db.schema("my_derby")
    .rpc("world_horse_profile",{
     p_horse_id:byHorse?horseId:null,
@@ -24,6 +25,11 @@ export async function GET(req:Request){
   if(error)throw error;
   if(!data||data.status==="NOT_FOUND")
    return NextResponse.json({error:"해당 경주마 정보가 없습니다."},{status:404});
+  if(authenticated&&byHorse){
+   const {data:genetics,error:geneticsError}=await db.schema("my_derby")
+    .rpc("player_horse_genetic_discovery",{p_horse_id:horseId});
+   if(!geneticsError)data.genetics=genetics;
+  }
   return NextResponse.json(data,{headers:{"Cache-Control":"no-store"}});
  }catch(e){
   console.error("horse profile lookup failed",e instanceof Error?e.message:"unknown");

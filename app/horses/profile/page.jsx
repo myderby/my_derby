@@ -108,6 +108,20 @@ function Detail(){
      </div>}
      <div className="section"><h2>🔍 능력·잠재력 발견 보고서</h2></div>
      <HorseDiscovery discovery={discovery} horseId={horseId||data?.id}/> 
+     {data.genetics&&<>
+      <div className="section"><h2>🧬 유전 특성 발견</h2></div>
+      <div className="card">
+       <div className="muted">훈련 리포트·목장 코스·공식 경주 관찰 {data.genetics.observations||0}회</div>
+       {(data.genetics.knownTraits||[]).length?data.genetics.knownTraits.map(t=><div className="line" key={t.code}>
+        <b className="gold">{t.name}</b><div className="muted">{t.description}</div>
+        {t.inheritedFrom&&<div className="muted">유전 경로: {({DAM:"모마 계열",SIRE:"부마 계열",BOTH:"부모 양쪽",MUTATION:"자연 변이",DERIVED:"능력 기록 분석"})[t.inheritedFrom]||"혈통 분석"}</div>}
+       </div>):<div className="muted" style={{marginTop:8}}>아직 확인된 유전 특성이 없습니다. 훈련·목장·경주 기록을 쌓으면 특성이 순차적으로 발견됩니다.</div>}
+       {Number(data.genetics.undiscoveredCount||0)>0&&<div className="notice" style={{marginTop:9}}>
+        미발견 특성 {data.genetics.undiscoveredCount}개 · 다음 발견 기준 {data.genetics.nextDiscoveryAt}회 관찰
+       </div>}
+       <div className="muted" style={{marginTop:8}}>발견된 유전 특성의 효과는 자마의 유전자 능력치에 반영됩니다. 숨겨진 실제 수치와 미발견 특성은 표시하지 않습니다.</div>
+      </div>
+     </>}
     </>}
     {data.gameTrainer&&<div className="card"><div className="muted">현재 게임 담당 조교사</div><strong><StaffLink kind="trainer" staffId={data.gameTrainer.id}>{data.gameTrainer.name}</StaffLink></strong></div>}
     {source&&<><div className="section"><h2>혈통 · 관계자</h2></div>

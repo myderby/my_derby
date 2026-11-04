@@ -176,14 +176,22 @@ export default function BreedingPage(){
       현재 {mare.age}세 · {mare.stage==="BROODMARE"?"번식암말":mare.stage==="RACING"?"현역 경주마":mare.stage}
       · {mare.canMate?"✓ 신청 가능":"교배 신청 불가"}
      </div>}
+     {mare&&<div className="muted" style={{marginTop:6}}>
+      확인된 유전 특성: {(mare.genetics?.knownTraits||[]).map(t=>t.name).join(" · ")||"아직 없음"}
+      {Number(mare.genetics?.undiscoveredCount||0)>0&&` · 미발견 ${mare.genetics.undiscoveredCount}개`}
+     </div>}
      <label className="muted" htmlFor="sire" style={{display:"block",marginTop:14}}>씨수말 선택 (은퇴한 수말만)</label>
      <select id="sire" className="field" value={sireId} onChange={changeSire}>
       {!stallions.length&&<option value="">이용 가능한 씨수말이 없습니다</option>}
       {stallions.map(s=><option key={s.id} value={s.id} disabled={s.booked>=40}>
-       {s.name} · {s.age}세 · {s.ownerType==="MY_STALLION"?"내 씨수말":s.ownerType==="NPC_STALLION"?"NPC 은퇴 씨수말":"시스템 씨수말"} · 시즌 예약 {s.booked}/40회
+       {s.name} · {s.age}세 · {s.ownerType==="MY_STALLION"?"내 씨수말":s.ownerType==="ASSOCIATION"?"협회 씨수말":s.providerName||"NPC 목장"} · 시즌 예약 {s.booked}/40회
       </option>)}
      </select>
-     {sire&&<div className="muted">부마의 실제 유전 잠재력은 공개되지 않습니다. 혈통 및 교배 궁합으로만 판단할 수 있습니다.</div>}
+     {sire&&<div className="muted" style={{marginTop:6}}>
+      확인된 유전 특성: {(sire.genetics?.knownTraits||[]).map(t=>t.name).join(" · ")||"아직 없음"}
+      {Number(sire.genetics?.undiscoveredCount||0)>0&&` · 미발견 ${sire.genetics.undiscoveredCount}개`}
+      <br/>잠재 능력치와 미발견 특성은 숨겨져 있습니다. 발견한 특성은 자마에게 유전될 가능성을 확인할 수 있습니다.
+     </div>}
      <div className="controls" style={{marginTop:15}}>
       <button data-tutorial-target="breeding" className="outline" disabled={!mare?.canMate||!sireId||!!busy}
        onClick={()=>send({action:"PREVIEW",mareId,sireId})}>
@@ -196,6 +204,13 @@ export default function BreedingPage(){
       적합도 <b>{fmt(preview.compatibility)}점</b> · 추정 임신 확률 <b>{fmt(preview.chance)}%</b><br/>
       알려진 공통조상에 의한 근친 계수 추정: {fmt(Number(preview.knownInbreeding||0)*100)}%
       {preview.pedigreeIncomplete&&<div className="muted">⚠ 혈통 정보가 불완전합니다. 근친 계수 0은 무혈연을 의미하지 않으며, 이 평가는 추정값입니다.</div>}
+      {!!preview.possibleInheritedTraits?.length&&<div style={{marginTop:9}}>
+       <b>자마 유전 특성 후보</b>
+       {preview.possibleInheritedTraits.map(t=><div className="muted" key={t.code}>
+        {t.name} · 유전 가능성 {fmt(t.inheritanceChance)}% · {t.knownFrom?.join("·")}
+       </div>)}
+       <div className="muted" style={{marginTop:5}}>실제 유전과 발현은 확률로 결정됩니다. 자마의 유전 특성은 출생 후 훈련·목장 코스·경주 관찰로 점차 공개됩니다.</div>
+      </div>}
       {!mare?.canMate&&<div className="muted">현재 암말은 교배 신청 조건을 충족하지 못했습니다.</div>}
      </div>}
      {!female.length&&<div className="muted" style={{marginTop:10}}>
