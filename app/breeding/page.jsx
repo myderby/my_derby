@@ -32,6 +32,7 @@ const fmt=n=>Number(n||0).toFixed(1);
 const money=n=>Number(n||0).toLocaleString("ko-KR");
 const status={APPROVED:"임신 성공",REJECTED:"임신 실패",COMPLETED:"출산 완료",PENDING:"심사 중",CANCELLED:"취소"};
 const babyStatus={PREGNANT:"임신 중",BORN:"출산 완료",FAILED:"임신 종료"};
+const npcApplicationStatus={PREGNANT:"임신 성공",FAILED:"임신 실패",BORN:"출산 완료",DENIED:"심사 불허"};
 function gender(sex){return {FEMALE:"암",MALE:"수",GELDING:"거"}[sex]||sex;}
 
 export default function BreedingPage(){
@@ -84,6 +85,7 @@ export default function BreedingPage(){
  const mare=female.find(m=>m.id===mareId);
  const sire=stallions.find(s=>s.id===sireId);
  const requests=board?.requests||[];
+ const npcApplications=board?.npcApplications||[];
  const pregnant=requests.filter(r=>r.pregnancy?.status==="PREGNANT");
  const past=requests.filter(r=>r.pregnancy?.status!=="PREGNANT");
  const canRetire=(h)=>
@@ -266,6 +268,21 @@ export default function BreedingPage(){
      {r.decisionDetail?.review&&<div className="muted">{r.decisionDetail.review.reviewer} 심사 · 기대치 {fmt(r.decisionDetail.review.expectationScore)}점 · {r.decisionDetail.review.decision==="APPROVED"?"허가":"불허"}</div>}
      {r.pregnancy?.status==="BORN"&&<div className="line">🐴 자마 출산 완료 · 보유마 목록에 자동 추가됨</div>}
      {r.status==="REJECTED"&&<div className="muted" style={{marginTop:8}}>{r.decisionDetail?.approvalState==="DENIED"?"심사 불허 · 교배료 없음":"임신 실패 · 다음 시즌 재신청 가능"}</div>}
+    </div>)}
+
+    <div className="section"><h2>NPC 마주 교배 신청</h2><span className="tag">{npcApplications.length}건</span></div>
+    <div className="notice">씨수말을 공개하면 조건을 충족한 NPC 마주가 자동으로 교배 신청을 넣습니다. 신청 결과와 교배료는 이곳과 알림에서 확인할 수 있습니다.</div>
+    {!npcApplications.length&&<div className="notice">아직 공개 씨수말에 들어온 NPC 마주 신청이 없습니다.</div>}
+    {npcApplications.map(r=><div className="card" key={r.id}>
+     <div className="row"><b className="gold">{r.mareName} × {r.sireName}</b>
+      <span className="tag">{npcApplicationStatus[r.status]||r.status}</span></div>
+     <div className="muted">{r.npcOwnerName} · 시즌 {r.season} · 신청 임신 확률 {fmt(r.conceptionChance)}%</div>
+     <div className="muted">교배료 {money(r.studFeeG)}G · {dateOf(r.createdAt)}</div>
+     {r.decisionDetail?.review&&<div className="muted">{r.decisionDetail.review.reviewer} 심사 · 기대치 {fmt(r.decisionDetail.review.expectationScore)}점 · {r.status==="DENIED"?"불허":"허가"}</div>}
+     {r.status==="PREGNANT"&&<div className="line">임신 성공 · 게임 {r.dueGameDay}일 출산 예정</div>}
+     {r.status==="DENIED"&&<div className="muted">심사 불허 · 교배료 없음</div>}
+     {r.status==="FAILED"&&<div className="muted">임신 실패 · 교배료가 정산되었습니다.</div>}
+     {r.status==="BORN"&&<div className="line">자마 출산 완료</div>}
     </div>)}
 
    </>}

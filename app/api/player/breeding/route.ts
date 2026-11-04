@@ -12,9 +12,22 @@ const fail=(e:unknown)=>{
 export async function GET(request:Request){
  try{
   const {db}=await requireUser(request);
-  const {data,error}=await db.schema("my_derby").rpc("player_breeding_dashboard");
+  const [{data,error},{data:npcApplications,error:npcError}]=await Promise.all([
+   db.schema("my_derby").rpc("player_breeding_dashboard"),
+   db.schema("my_derby").rpc("player_npc_breeding_applications")
+  ]);
   if(error)throw error;
-  return output(data);
+  if(npcError)throw npcError;
+  const activeSeason=Number(data?.world?.season);
+  const npcBookings=new Map<string,number>();
+  for(const application of (npcApplications||[]) as Array<{sireId:string;season:number;status:string}>){
+   if(Number(application.season)!==activeSeason||application.status==="DENIED")continue;
+   npcBookings.set(application.sireId,(npcBookings.get(application.sireId)||0)+1);
+  }
+  const sires=(data?.sires||[]).map((sire:{id:string;booked:number})=>({
+   ...sire,booked:Number(sire.booked||0)+(npcBookings.get(sire.id)||0)
+  }));
+  return output({...data,sires,npcApplications:npcApplications||[]});
  }catch(e){return fail(e);}
 }
 export async function POST(request:Request){
