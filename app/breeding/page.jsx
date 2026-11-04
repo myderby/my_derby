@@ -107,7 +107,7 @@ export default function BreedingPage(){
   }else if(body.action==="LIST_STALLION"||body.action==="UNLIST_STALLION"){
    SetNotice(body.action==="LIST_STALLION"?`씨수말 공개를 시작했습니다. 현재 교배료는 ${money(data.feeG)}G입니다.`:"씨수말 공개를 종료했습니다.");
    }else if(data.status==="BREEDING_DENIED"){
-   SetNotice(`교배 신청 불허: ${data.review?.reviewer||"심사위원회"} · 기대치 ${fmt(data.review?.expectationScore)}점 (기준 ${fmt(data.review?.approvalThreshold)}점). 교배료는 청구되지 않았습니다.`);
+   SetNotice(`교배 신청 불허: ${data.review?.reviewer||"심사위원회"} · 기대치 ${fmt(data.review?.expectationScore)}점 (기준 ${fmt(data.review?.approvalThreshold)}점). 교배료는 청구되지 않았으며, 이번 시즌 다른 씨수말을 신청할 수 있습니다.`);
    }else if(data.status==="PREGNANT"){
    SetNotice("교배 신청 결과: 임신 성공! 씨수말 교배료 "+money(data.studFeeG)+"G · 게임 "+data.dueGameDay+
       "일에 출산 예정입니다. 임신 기간은 게임 330일입니다.");
