@@ -21,6 +21,7 @@ const readable={
  HORSE_ALREADY_ENTERED_THIS_DAY:"이 경주마는 같은 게임 날짜의 다른 경주에 이미 출전합니다.",
  RACE_FULL_NO_NPC_SLOT:"현재 경주에는 교체 가능한 NPC 출전 슬롯이 없습니다.",
  RACE_ENTRY_NOT_SELECTED:"출전 신청이 몰려 수득상금, 레이팅, 출전 횟수 기준으로 선발되지 않았습니다. 수득상금과 레이팅이 높고 출전 횟수가 적은 말이 우선 선발됩니다.",
+ TRAINER_REQUIRED:"담당 조교사와 계약된 뒤 출전 신청할 수 있습니다. 조교사 위탁 메뉴에서 계약을 완료해주세요.",
  JOCKEY_ALREADY_BOOKED_FOR_RACE:"선택한 기수는 이 경주에 이미 출전합니다.",
  JOCKEY_DAILY_LIMIT:"기수의 하루 최대 기승 횟수(8회)에 도달했습니다.",
  JOCKEY_NOT_ELIGIBLE:"선택한 기수가 해당 지역에서 활동하지 않거나 비활성 상태입니다.",
