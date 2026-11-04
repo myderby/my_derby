@@ -96,7 +96,7 @@ const walletText=walletBalance.status==="READY"
  :walletBalance.status==="ERROR"?"◉ 잔액 조회 실패"
  :"◉ 잔액 조회 중";
 
-const go=x=>{const routes={ownersDirectory:"/participants?view=owners",trainersDirectory:"/participants?view=trainers",participantsRecords:"/participants?view=records",testFixture:"/test-race",allHorses:"/horses",allJockeys:"/jockeys",ratings:"/ratings",auction:"/auction",injuries:"/injuries",ranchManagement:"/ranch/management",notifications:"/notifications",races:"/schedule",training:"/training",breeding:"/breeding",horses:"/world",trainers:"/stable",ranch:"/ranch",market:"/market",finance:"/finance",myBets:"/bets",entry:"/entries",jockey:"/entries",strategy:"/entries",results:"/schedule",dailyNews:"/news",myNews:"/news?view=mine",achievements:"/achievements",tutorial:"/tutorial"};if(routes[x]&&typeof window!=="undefined"){window.location.assign(routes[x]);return;}S(x);if(typeof window!=="undefined")window.scrollTo(0,0)},msg=x=>{Q(x);setTimeout(()=>Q(""),3500)};
+const go=x=>{const routes={ownersDirectory:"/participants?view=owners",trainersDirectory:"/participants?view=trainers",participantsRecords:"/participants?view=records",testFixture:"/test-race",allHorses:"/horses",allJockeys:"/jockeys",ratings:"/ratings",auction:"/auction",injuries:"/injuries",ranchManagement:"/ranch/management",notifications:"/notifications",races:"/schedule",training:"/training",breeding:"/breeding",horses:"/world",trainers:"/stable",ranch:"/ranch",market:"/market",finance:"/finance",settings:"/settings",myBets:"/bets",entry:"/entries",jockey:"/entries",strategy:"/entries",results:"/schedule",dailyNews:"/news",myNews:"/news?view=mine",achievements:"/achievements",tutorial:"/tutorial"};if(routes[x]&&typeof window!=="undefined"){window.location.assign(routes[x]);return;}S(x);if(typeof window!=="undefined")window.scrollTo(0,0)},msg=x=>{Q(x);setTimeout(()=>Q(""),3500)};
 const title=(x,sub)=><div className="pageTitle"><button className="back" onClick={()=>go("home")}>‹</button><div><h1>{x}</h1><div className="sub">{sub}</div></div></div>;
 const section=(x,next)=><div className="section"><h2>{x}</h2>{next&&<button onClick={()=>go(next)}>전체 보기 ›</button>}</div>;
 const box=(a,b,d,right)=><div className="card action row" onClick={d}><div><b>{a}</b><div className="muted">{b}</div></div><span className="tag">{right||"›"}</span></div>;
@@ -387,6 +387,9 @@ return <main className="shell"><header className="header"><div onClick={()=>go("
   ["💰 시장과 재무","경매 · 거래 · 자산",[
    ["경주마 시장",[["경주마 매매","market"],["경주마 경매","auction"]]],
    ["내 자산",[["재무 내역","finance"]]]
+  ]],
+  ["⚙ 계정과 설정","로그인 수단 · 계정 보호",[
+   ["계정 관리",[["설정 및 계정 연동","settings"]]]
   ]]
  ].map(([category,description,groups])=><details key={category} className="menu-depth-one">
    <summary><b className="gold">{category}</b><span className="muted">{description}</span></summary>

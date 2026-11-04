@@ -99,6 +99,18 @@ export default function AuthGate({ children }) {
     }
   }
 
+  async function startAsGuest() {
+    if (!client || busy) return;
+    setBusy(true); setMessage("");
+    try {
+      const { error } = await client.auth.signInAnonymously();
+      if (error) throw error;
+      setMessage("게스트 계정으로 시작합니다. 설정에서 계정을 연동하면 게임 기록을 보존할 수 있습니다.");
+    } catch (error) {
+      setMessage(error.message || "게스트 계정을 만들지 못했습니다. 잠시 후 다시 시도해주세요.");
+    } finally { setBusy(false); }
+  }
+
   async function logout() {
     if (!client) return;
     setBusy(true);
@@ -119,8 +131,11 @@ export default function AuthGate({ children }) {
     <p className="auth-desc">당신의 경주마와 함께 최고의 마주에 도전하세요.</p>
     {status === "config" ? <p className="auth-alert">서비스 인증 설정이 누락되었습니다. 관리자에게 문의해 주세요.</p> :
     <>
-      <button className="auth-provider kakao" type="button" onClick={() => oauth("kakao")} disabled={busy}>카카오로 시작하기</button>
-      <button className="auth-provider google" type="button" onClick={() => oauth("google")} disabled={busy}>Google(Gmail)로 시작하기</button>
+      <button className="auth-provider google" type="button" onClick={() => oauth("google")} disabled={busy}>Google로 시작하기</button>
+      <button className="auth-provider kakao" type="button" onClick={() => oauth("kakao")} disabled={busy}>카카오톡으로 시작하기</button>
+      <button className="auth-provider apple" type="button" onClick={() => oauth("apple")} disabled={busy}>Apple로 시작하기</button>
+      <button className="auth-provider naver" type="button" onClick={() => oauth("custom:naver")} disabled={busy}>네이버로 시작하기</button>
+      <button className="auth-provider guest" type="button" onClick={startAsGuest} disabled={busy}>{busy ? "준비 중…" : "게스트로 시작하기"}</button>
       <div className="auth-divider"><span>또는 이메일로 시작</span></div>
       <div className="auth-tabs"><button type="button" className={mode === "login" ? "active" : ""} onClick={() => { setMode("login"); setMessage(""); }}>로그인</button><button type="button" className={mode === "signup" ? "active" : ""} onClick={() => { setMode("signup"); setMessage(""); }}>회원가입</button></div>
       <form onSubmit={submit}>
