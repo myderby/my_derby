@@ -13,6 +13,7 @@ const errors={
  MARE_ALREADY_PREGNANT:"이미 임신 중인 암말입니다.",
  MARE_SEASON_LIMIT:"이번 시즌에는 이미 이 암말의 교배를 신청했습니다.",
  SIRE_SEASON_LIMIT:"이 씨수말은 이번 시즌 예약 한도에 도달했습니다.",
+ BREEDING_DENIED:"협회 또는 NPC 목장 심사에서 혈통 기대치 미달로 교배가 불허되었습니다.",
  CLOSE_INBREEDING_PROHIBITED:"가까운 혈연관계여서 교배할 수 없습니다.",
  BREEDING_PAIR_INVALID:"서로 다른 씨수말과 암말을 선택하세요.",
  BREEDING_AGE_OR_SEX_INELIGIBLE:"번식용 은퇴는 암말 4~18세, 수말 2세 이상만 가능합니다.",
@@ -105,6 +106,8 @@ export default function BreedingPage(){
     SetNotice("경주마 은퇴 후 번식마 등록이 완료되었습니다. 다시 경주에 출전할 수 없습니다.");
   }else if(body.action==="LIST_STALLION"||body.action==="UNLIST_STALLION"){
    SetNotice(body.action==="LIST_STALLION"?`씨수말 공개를 시작했습니다. 현재 교배료는 ${money(data.feeG)}G입니다.`:"씨수말 공개를 종료했습니다.");
+   }else if(data.status==="BREEDING_DENIED"){
+   SetNotice(`교배 신청 불허: ${data.review?.reviewer||"심사위원회"} · 기대치 ${fmt(data.review?.expectationScore)}점 (기준 ${fmt(data.review?.approvalThreshold)}점). 교배료는 청구되지 않았습니다.`);
    }else if(data.status==="PREGNANT"){
    SetNotice("교배 신청 결과: 임신 성공! 씨수말 교배료 "+money(data.studFeeG)+"G · 게임 "+data.dueGameDay+
       "일에 출산 예정입니다. 임신 기간은 게임 330일입니다.");
@@ -127,7 +130,8 @@ export default function BreedingPage(){
   if(!window.confirm(
    mare.name+" × "+sire.name+" 교배를 신청하시겠습니까?\n"+
    "이번 시즌 이 암말은 1회만 신청할 수 있습니다. 임신이 실패해도 재신청은 다음 시즌부터 가능합니다.\n"+
-   "씨수말 교배료: "+money(preview.studFeeG)+"G (임신 성공 여부와 관계없이 신청 시 지급)\n"+
+   "씨수말 교배료: "+money(preview.studFeeG)+"G (심사 통과 후에는 임신 성공 여부와 관계없이 지급)\n"+
+   (preview.boardReviewRequired?"혼잡 심사: "+(preview.boardReview?.reviewer||"협회·NPC 목장")+" · "+fmt(preview.boardReview?.expectationScore)+"점 · "+(preview.boardReview?.decision==="APPROVED"?"허가 예상":"불허 예상")+"\n":"")+
    "추정 임신 확률: "+preview.chance+"%"))return;
   void send({action:"APPLY",mareId,sireId});
  };
@@ -143,7 +147,7 @@ export default function BreedingPage(){
    </div>
    <div className="section"><h2>번식 관리</h2><span className="tag">실제 DB 연동</span></div>
    <div className="notice"><b>암말 4~18세 / 씨수말 4~25세</b> · 마주가 공개한 플레이어 씨수말만 교배 목록에 표시됩니다.
-    암말은 시즌당 1회, 씨수말은 40회까지 신청할 수 있고 임신에 성공하면 <b>게임 330일</b> 후 출산합니다.
+    암말은 시즌당 1회, 씨수말은 시즌당 최대 {board?.sireSeasonLimit||200}회 신청할 수 있습니다. 예약이 {board?.demandReviewThreshold||150}건에 도달하면 협회 또는 NPC 목장이 혈통 궁합과 자마 기대치를 심사하며, 심사 불허 시 교배료는 청구되지 않습니다. 임신에 성공하면 <b>게임 330일</b> 후 출산합니다.
     교배료는 자마의 실제 성적에 따라 10,000G부터 책정되며 신청 시 암말 마주에게서 차감되고 씨수말 마주에게 지급됩니다.
     임신 실패 시에도 교배료가 정산됩니다.</div>
    {checking&&<div className="notice">로그인 확인 중…</div>}
@@ -200,8 +204,8 @@ export default function BreedingPage(){
      <label className="muted" htmlFor="sire" style={{display:"block",marginTop:14}}>씨수말 선택 (마주 공개 씨수말만)</label>
      <select id="sire" className="field" value={sireId} onChange={changeSire}>
       {!stallions.length&&<option value="">현재 공개된 씨수말이 없습니다</option>}
-      {stallions.map(s=><option key={s.id} value={s.id} disabled={s.booked>=40}>
-       {s.name} · {s.age}세 · {s.ownerType==="MY_STALLION"?"내 씨수말":s.ownerType==="ASSOCIATION"?"협회 씨수말":s.providerName||"NPC 목장"} · 시즌 예약 {s.booked}/40회
+      {stallions.map(s=><option key={s.id} value={s.id} disabled={s.booked>=(board?.sireSeasonLimit||200)}>
+       {s.name} · {s.age}세 · {s.ownerType==="MY_STALLION"?"내 씨수말":s.ownerType==="ASSOCIATION"?"협회 씨수말":s.providerName||"NPC 목장"} · 시즌 예약 {s.booked}/{board?.sireSeasonLimit||200}회
       </option>)}
      </select>
      {sire&&<div className="muted" style={{marginTop:6}}>
@@ -213,7 +217,7 @@ export default function BreedingPage(){
       <button data-tutorial-target="breeding" className="outline" disabled={!mare?.canMate||!sireId||!!busy}
        onClick={()=>send({action:"PREVIEW",mareId,sireId})}>
        {busy==="PREVIEW"?"검사 중…":"혈통·궁합 확인"}</button>
-      <button className="primary" disabled={!mare?.canMate||!preview||!!busy||!sire||sire.booked>=40}
+      <button className="primary" disabled={!mare?.canMate||!preview||!!busy||!sire||sire.booked>=(board?.sireSeasonLimit||200)}
        onClick={apply}>교배 신청 확정</button>
      </div>
      {preview&&<div className="notice">
@@ -222,6 +226,12 @@ export default function BreedingPage(){
       씨수말 교배료 <b>{money(preview.studFeeG)}G</b> · 자마 {fmt(preview.studFeeRecord?.offspringCount)}두 성적 반영
       (1위 {fmt(preview.studFeeRecord?.wins)}회 · 2위 {fmt(preview.studFeeRecord?.seconds)}회 · 3위 {fmt(preview.studFeeRecord?.thirds)}회 · 대상경주 입상 {fmt(preview.studFeeRecord?.stakesPlacings)}회)<br/>
       알려진 공통조상에 의한 근친 계수 추정: {fmt(Number(preview.knownInbreeding||0)*100)}%
+      {preview.boardReviewRequired&&preview.boardReview&&<div className="notice" style={{marginTop:8}}>
+       <b>혼잡 교배 심사 · {preview.boardReview.reviewer}</b><br/>
+       혈통 기대치 {fmt(preview.boardReview.expectationScore)}점 · 허가 기준 {fmt(preview.boardReview.approvalThreshold)}점 ·
+       <b>{preview.boardReview.decision==="APPROVED"?"허가 예상":"불허 예상"}</b><br/>
+       <span className="muted">{preview.boardReview.rationale} 허가되면 임신 성공 여부와 관계없이 교배료가 정산됩니다.</span>
+      </div>}
       {preview.pedigreeIncomplete&&<div className="muted">⚠ 혈통 정보가 불완전합니다. 근친 계수 0은 무혈연을 의미하지 않으며, 이 평가는 추정값입니다.</div>}
       {!!preview.possibleInheritedTraits?.length&&<div style={{marginTop:9}}>
        <b>자마 유전 특성 후보</b>
@@ -251,10 +261,11 @@ export default function BreedingPage(){
     <div className="section"><h2>교배·출산 이력</h2><span className="tag">{past.length}건</span></div>
     {!past.length&&<div className="notice">아직 완료되거나 실패한 교배 이력이 없습니다.</div>}
     {past.map(r=><div className="card" key={r.id}>
-     <div className="row"><b className="gold">{r.mareName} × {r.sireName}</b><span className="tag">{status[r.status]||r.status}</span></div>
+     <div className="row"><b className="gold">{r.mareName} × {r.sireName}</b><span className="tag">{r.decisionDetail?.approvalState==="DENIED"?"심사 불허":status[r.status]||r.status}</span></div>
      <div className="muted">{dateOf(r.createdAt)} · 시즌 {r.season} · 궁합 {fmt(r.compatibility)}점 · 교배료 {money(r.decisionDetail?.studFeeG)}G</div>
+     {r.decisionDetail?.review&&<div className="muted">{r.decisionDetail.review.reviewer} 심사 · 기대치 {fmt(r.decisionDetail.review.expectationScore)}점 · {r.decisionDetail.review.decision==="APPROVED"?"허가":"불허"}</div>}
      {r.pregnancy?.status==="BORN"&&<div className="line">🐴 자마 출산 완료 · 보유마 목록에 자동 추가됨</div>}
-     {r.status==="REJECTED"&&<div className="muted" style={{marginTop:8}}>임신 실패 · 다음 시즌 재신청 가능</div>}
+     {r.status==="REJECTED"&&<div className="muted" style={{marginTop:8}}>{r.decisionDetail?.approvalState==="DENIED"?"심사 불허 · 교배료 없음":"임신 실패 · 다음 시즌 재신청 가능"}</div>}
     </div>)}
 
    </>}
