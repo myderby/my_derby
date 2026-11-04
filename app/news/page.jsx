@@ -47,8 +47,19 @@ function OpenNews({items}) {
 }
 function MyNews({data}) {
  const mine=data?.mine||[],summary=data?.mySummary||{};
+ const upcoming=data?.upcomingRaces||[];
  return <section className="news-section" id="my-news">
   <div className="section"><h2>🐎 나의 경주 소식</h2><span className="tag">내 말 전용</span></div>
+  <div className="section"><h3>📅 출전 예정 소식</h3><span className="tag">{upcoming.length}건</span></div>
+  {!upcoming.length?<div className="news-empty">현재 등록된 내 말의 출전 예정이 없습니다.</div>:
+   upcoming.map(x=><article className="news-personal-card" key={x.race_id+"-"+x.horse_id}>
+    <div className="news-personal-head"><span className="news-placing">{x.entry_status==="CONFIRMED"?"출전 확정":"신청 중"}</span>
+     <span className="news-meta">{x.race_date} · {x.start_time} · {x.track} {x.race_no}경주</span></div>
+    <h3><HorseLink horseId={x.horse_id}>{x.horse_name}</HorseLink> 출전 예정</h3>
+    <p>{x.class_name} · {num(x.distance_m)}m · {x.gate_no?x.gate_no+"번 게이트":"게이트 배정 전"}</p>
+    <div className="news-meta">기수 {x.jockey_name||"미배정"} · 조교사 {x.trainer_name||"미배정"}
+     <a href="/entries" style={{float:"right"}}>출전 정보 ›</a></div>
+   </article>)}
   <div className="news-my-overview"><span><strong>{num(summary.starts)}</strong><small>출전</small></span>
    <span><strong>{num(summary.wins)}</strong><small>우승</small></span>
    <span><strong>{num(summary.seconds)}</strong><small>준우승</small></span>
@@ -141,16 +152,17 @@ export default function DailyNewsPage() {
     <div className="news-digest"><div><b>{num(data.raceCount)}경주</b><span>공식 결과</span></div>
       <div><b>{num(data.runnerCount)}두</b><span>출전 기록</span></div>
       <div><b>{num(data.openWinners?.length)}</b><span>OPEN 우승</span></div></div>
-    {!Number(data.raceCount)?<div className="news-empty">이 날짜에 공식 결과가 확정된 경주가 없습니다. 가상의 소식은 작성하지 않습니다.</div>:
-      tab==="all"?<>
+    {!Number(data.raceCount)&&tab==="all"?<div className="news-empty">이 날짜에 공식 결과가 확정된 경주가 없습니다. 가상의 소식은 작성하지 않습니다.</div>:null}
+    {Number(data.raceCount)>0&&tab==="all"?<> 
        <div className="news-intro">📰 {selectedDate} 경주 결과를 바탕으로 마주·기수·조교사의 활약을 정리했습니다.
         순위는 해당 날짜의 우승 횟수, 2위·3위 횟수, 획득 상금 순으로 집계합니다.</div>
        <OpenNews items={data.openWinners}/>
        <NewsRanking icon="👑" label="마주 활약 소식" subject="마주" people={data.owners}/>
        <NewsRanking icon="🏇" label="기수 활약 소식" subject="기수" people={data.jockeys}/>
        <NewsRanking icon="🏠" label="조교사 활약 소식" subject="조교사" people={data.trainers}/>
-      </>:<MyNews data={data}/>}
-    {Number(data.raceCount)>0&&<p className="news-footnote">자료: My Derby 공식 확정 경주 기록. 개인 소식은 출전 당시 마주 계정을 기준으로 조회하며, 소식지 내용은 예측이나 가상 기사가 아닙니다.</p>}
+      </>:null}
+    {tab==="mine"&&<MyNews data={data}/>}
+    {Number(data.raceCount)>0&&<p className="news-footnote">자료: My Derby 출전 등록과 공식 확정 경주 기록. 개인 결과는 출전 당시 마주 계정을 기준으로 하며, 출전 예정 소식은 아직 확정 결과가 아닙니다.</p>}
    </>}
   </div>
  </main>;

@@ -12,10 +12,12 @@ export async function GET(request:Request){
   const date=new URL(request.url).searchParams.get("date");
   if(date!==null&&!validDate(date))return json({error:"날짜 형식은 YYYY-MM-DD여야 합니다."},400);
   const {db}=await requireUser(request);
-  const {data,error}=await db.schema("my_derby")
-   .rpc("player_daily_news",{p_date:date||null});
-  if(error)throw error;
-  return json(data||{error:"소식지를 조회할 수 없습니다."},data?200:404);
+  const [{data,error},{data:upcomingRaces,error:upcomingError}]=await Promise.all([
+   db.schema("my_derby").rpc("player_daily_news",{p_date:date||null}),
+   db.schema("my_derby").rpc("player_upcoming_race_news")
+  ]);
+  if(error||upcomingError)throw error||upcomingError;
+  return json(data?{...data,upcomingRaces:upcomingRaces||[]}:{error:"소식지를 조회할 수 없습니다."},data?200:404);
  }catch(e){
   const err=e as {status?:number;message?:string;code?:string};
   return json({error:err.message||"소식지 조회 실패"},
