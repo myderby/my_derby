@@ -20,6 +20,7 @@ const readable={
  HORSE_BIRTH_HEMISPHERE_REQUIRED:"이 경주는 남·북반구 출생 조건이 있습니다. 경주마의 출생 반구 정보가 확인되어야 출전할 수 있습니다.",
  HORSE_ALREADY_ENTERED_THIS_DAY:"이 경주마는 같은 게임 날짜의 다른 경주에 이미 출전합니다.",
  RACE_FULL_NO_NPC_SLOT:"현재 경주에는 교체 가능한 NPC 출전 슬롯이 없습니다.",
+ RACE_ENTRY_NOT_SELECTED:"출전 신청이 몰려 수득상금, 레이팅, 출전 횟수 기준으로 선발되지 않았습니다. 수득상금과 레이팅이 높고 출전 횟수가 적은 말이 우선 선발됩니다.",
  JOCKEY_ALREADY_BOOKED_FOR_RACE:"선택한 기수는 이 경주에 이미 출전합니다.",
  JOCKEY_DAILY_LIMIT:"기수의 하루 최대 기승 횟수(8회)에 도달했습니다.",
  JOCKEY_NOT_ELIGIBLE:"선택한 기수가 해당 지역에서 활동하지 않거나 비활성 상태입니다.",
