@@ -25,6 +25,11 @@ export async function GET(req:Request){
   if(error)throw error;
   if(!data||data.status==="NOT_FOUND")
    return NextResponse.json({error:"해당 경주마 정보가 없습니다."},{status:404});
+  if(byHorse&&data.gameHorseId&&["MALE","FEMALE"].includes(data.sex)){
+   const {data:offspring,error:offspringError}=await db.schema("my_derby")
+    .rpc("world_horse_offspring_profile",{p_horse_id:horseId,p_page:1,p_page_size:20});
+   if(!offspringError&&offspring?.status==="OK")data.offspring=offspring;
+  }
   if(authenticated&&byHorse){
    const {data:genetics,error:geneticsError}=await db.schema("my_derby")
     .rpc("player_horse_genetic_discovery",{p_horse_id:horseId});

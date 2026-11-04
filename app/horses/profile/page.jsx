@@ -122,6 +122,44 @@ function Detail(){
        <div className="muted" style={{marginTop:8}}>발견된 유전 특성의 효과는 자마의 유전자 능력치에 반영됩니다. 숨겨진 실제 수치와 미발견 특성은 표시하지 않습니다.</div>
       </div>
      </>}
+     {data.offspring&&<>
+      <div className="section"><h2>🧬 자마 성적</h2>
+       <a className="outline" href={`/horses/offspring?horseId=${encodeURIComponent(data.gameHorseId)}`}>자마 내역 전체 보기 ›</a>
+      </div>
+      <div className="card">
+       <div className="horse-profile-attributes">
+        <div><span>자마 수</span><strong>{fmt(data.offspring.summary?.offspring)}두</strong></div>
+        <div><span>출전</span><strong>{fmt(data.offspring.summary?.starts)}회</strong></div>
+        <div><span>1위</span><strong>{fmt(data.offspring.summary?.wins)}회</strong></div>
+        <div><span>2위</span><strong>{fmt(data.offspring.summary?.second)}회</strong></div>
+        <div><span>3위</span><strong>{fmt(data.offspring.summary?.third)}회</strong></div>
+       </div>
+       <div className="section"><h2>등급별 성적</h2></div>
+       {(data.offspring.byGrade||[]).length?<div className="race-entry-wrap" role="region" aria-label="자마 등급별 성적" tabIndex={0}>
+        <table className="race-entry-table"><thead><tr><th>등급</th><th>출전</th><th>1위</th><th>2위</th><th>3위</th></tr></thead>
+         <tbody>{data.offspring.byGrade.map(r=><tr key={r.grade}><td>{r.grade}등급</td><td>{fmt(r.starts)}</td><td>{fmt(r.wins)}</td><td>{fmt(r.second)}</td><td>{fmt(r.third)}</td></tr>)}</tbody>
+        </table>
+       </div>:<div className="muted">자마의 경주 성적이 아직 없습니다.</div>}
+       <div className="section"><h2>거리별 성적</h2></div>
+       {(data.offspring.byDistance||[]).length?<div className="race-entry-wrap" role="region" aria-label="자마 거리별 성적" tabIndex={0}>
+        <table className="race-entry-table"><thead><tr><th>거리</th><th>출전</th><th>1위</th><th>2위</th><th>3위</th></tr></thead>
+         <tbody>{data.offspring.byDistance.map(r=><tr key={r.distanceM}><td>{fmt(r.distanceM)}m</td><td>{fmt(r.starts)}</td><td>{fmt(r.wins)}</td><td>{fmt(r.second)}</td><td>{fmt(r.third)}</td></tr>)}</tbody>
+        </table>
+       </div>:<div className="muted">거리별로 집계할 경주 성적이 없습니다.</div>}
+       <div className="section"><h2>대상경주 성적</h2></div>
+       {(data.offspring.stakes||[]).length?<div className="race-entry-wrap" role="region" aria-label="자마 대상경주 성적" tabIndex={0}>
+        <table className="race-entry-table"><thead><tr><th>경주</th><th>출전</th><th>1위</th><th>2위</th><th>3위</th></tr></thead>
+         <tbody>{data.offspring.stakes.map((r,i)=><tr key={`${r.name||"stakes"}-${i}`}><td>{r.name||"대상경주"}</td><td>{fmt(r.starts)}</td><td>{fmt(r.wins)}</td><td>{fmt(r.second)}</td><td>{fmt(r.third)}</td></tr>)}</tbody>
+        </table>
+       </div>:<div className="muted">자마의 대상경주 성적이 아직 없습니다.</div>}
+      </div>
+      <div className="section"><h2>최근 자마</h2></div>
+      {(data.offspring.offspring||[]).slice(0,5).map(h=><div className="card row" key={h.id}>
+       <div><b>{h.name}</b><div className="muted">{({RACING:"경주마",RESTING:"휴양마",STALLION:"씨수마",BROODMARE:"씨암말",RETIRED:"은퇴마"})[h.status]||h.status} · {fmt(h.starts)}전 {fmt(h.first)}승 · 2위 {fmt(h.second)}회 · 3위 {fmt(h.third)}회</div>
+        <div className="muted">은퇴 직전 레이팅 {h.retirementRating==null?"-":fmt(h.retirementRating)} · 등급 {h.retirementGrade?`${h.retirementGrade}등급`:"-"}</div></div>
+       <a className="outline" href={`/horses/profile?horseId=${encodeURIComponent(h.id)}`}>정보 ›</a>
+      </div>)}
+     </>}
     </>}
     {data.gameTrainer&&<div className="card"><div className="muted">현재 게임 담당 조교사</div><strong><StaffLink kind="trainer" staffId={data.gameTrainer.id}>{data.gameTrainer.name}</StaffLink></strong></div>}
     {source&&<><div className="section"><h2>혈통 · 관계자</h2></div>

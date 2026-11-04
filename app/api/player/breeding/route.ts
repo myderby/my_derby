@@ -26,6 +26,12 @@ export async function POST(request:Request){
   if(!body||Array.isArray(body)||typeof body!=="object")
    return output({error:"신청 정보가 올바르지 않습니다."},400);
   let result;
+  if(body.action==="LIST_STALLION"||body.action==="UNLIST_STALLION"){
+   if(Object.keys(body).sort().join(",")!=="action,horseId"||!uuid.test(body.horseId))
+    return output({error:"씨수말 등록 정보가 올바르지 않습니다."},400);
+   result=await db.schema("my_derby").rpc("player_manage_stud_offer",{
+    p_horse_id:body.horseId,p_listed:body.action==="LIST_STALLION"});
+  }else
   if(body.action==="RETIRE"){
    if(Object.keys(body).sort().join(",")!=="action,horseId"||!uuid.test(body.horseId))
     return output({error:"번식용 은퇴 대상이 잘못되었습니다."},400);

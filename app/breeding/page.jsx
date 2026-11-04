@@ -18,7 +18,8 @@ const errors={
  BREEDING_AGE_OR_SEX_INELIGIBLE:"번식용 은퇴는 암말 4~18세, 수말 2세 이상만 가능합니다.",
  ACTIVE_RACE_ENTRY:"출전 신청 중인 말은 번식마로 은퇴시킬 수 없습니다.",
  ALREADY_PERMANENTLY_RETIRED:"이미 영구 은퇴한 말입니다.",
- HORSE_NOT_OWNED:"다른 마주의 말은 변경할 수 없습니다."
+ HORSE_NOT_OWNED:"다른 마주의 말은 변경할 수 없습니다.",
+ INSUFFICIENT_FUNDS:"교배료를 낼 잔액이 부족합니다."
 };
 function messageOf(msg){
  const text=String(msg||"처리 실패");
@@ -27,6 +28,7 @@ function messageOf(msg){
 }
 function dateOf(v){try{return new Date(v).toLocaleDateString("ko-KR",{timeZone:"Asia/Seoul"})}catch{return "-";}}
 const fmt=n=>Number(n||0).toFixed(1);
+const money=n=>Number(n||0).toLocaleString("ko-KR");
 const status={APPROVED:"임신 성공",REJECTED:"임신 실패",COMPLETED:"출산 완료",PENDING:"심사 중",CANCELLED:"취소"};
 const babyStatus={PREGNANT:"임신 중",BORN:"출산 완료",FAILED:"임신 종료"};
 function gender(sex){return {FEMALE:"암",MALE:"수",GELDING:"거"}[sex]||sex;}
@@ -101,11 +103,13 @@ export default function BreedingPage(){
    }
    if(body.action==="RETIRE"){
     SetNotice("경주마 은퇴 후 번식마 등록이 완료되었습니다. 다시 경주에 출전할 수 없습니다.");
+  }else if(body.action==="LIST_STALLION"||body.action==="UNLIST_STALLION"){
+   SetNotice(body.action==="LIST_STALLION"?`씨수말 공개를 시작했습니다. 현재 교배료는 ${money(data.feeG)}G입니다.`:"씨수말 공개를 종료했습니다.");
    }else if(data.status==="PREGNANT"){
-    SetNotice("교배 신청 결과: 임신 성공! 게임 "+data.dueGameDay+
+   SetNotice("교배 신청 결과: 임신 성공! 씨수말 교배료 "+money(data.studFeeG)+"G · 게임 "+data.dueGameDay+
       "일에 출산 예정입니다. 임신 기간은 게임 330일입니다.");
    }else{
-    SetNotice("교배 신청 결과: 임신하지 못했습니다. 이 암말은 다음 시즌에 다시 신청할 수 있습니다.");
+   SetNotice("교배 신청 결과: 임신 실패 · 씨수말 교배료 "+money(data.studFeeG)+"G가 정산되었습니다. 다음 시즌에 다시 신청할 수 있습니다.");
    }
    SetPreview(null);
    await reload(token);
@@ -123,6 +127,7 @@ export default function BreedingPage(){
   if(!window.confirm(
    mare.name+" × "+sire.name+" 교배를 신청하시겠습니까?\n"+
    "이번 시즌 이 암말은 1회만 신청할 수 있습니다. 임신이 실패해도 재신청은 다음 시즌부터 가능합니다.\n"+
+   "씨수말 교배료: "+money(preview.studFeeG)+"G (임신 성공 여부와 관계없이 신청 시 지급)\n"+
    "추정 임신 확률: "+preview.chance+"%"))return;
   void send({action:"APPLY",mareId,sireId});
  };
@@ -137,10 +142,10 @@ export default function BreedingPage(){
     <button className="outline" disabled={!token||loading||!!busy} onClick={()=>reload()}>정보 새로고침 ↻</button>
    </div>
    <div className="section"><h2>번식 관리</h2><span className="tag">실제 DB 연동</span></div>
-   <div className="notice"><b>암말 4~18세 / 씨수말 4~25세</b> · 반드시 경주마 은퇴를 먼저 완료한 말만 교배할 수 있습니다.
-    암말은 시즌당 교배 신청 최대 1회, 씨수말은 시즌당 최대 40회이며
-    임신에 성공하면 <b>게임 330일</b> 후 출산합니다. 매일 09:15(한국시간)에 출산 대상이 자동 처리됩니다.
-    교배 수수료는 경제 시스템 연동 전까지 부과되지 않습니다.</div>
+   <div className="notice"><b>암말 4~18세 / 씨수말 4~25세</b> · 마주가 공개한 플레이어 씨수말만 교배 목록에 표시됩니다.
+    암말은 시즌당 1회, 씨수말은 40회까지 신청할 수 있고 임신에 성공하면 <b>게임 330일</b> 후 출산합니다.
+    교배료는 자마의 실제 성적에 따라 10,000G부터 책정되며 신청 시 암말 마주에게서 차감되고 씨수말 마주에게 지급됩니다.
+    임신 실패 시에도 교배료가 정산됩니다.</div>
    {checking&&<div className="notice">로그인 확인 중…</div>}
    {error&&<div className="notice" role="alert">⚠ {error}</div>}
    {notice&&<div className="notice" role="status">✓ {notice}</div>}
@@ -165,6 +170,18 @@ export default function BreedingPage(){
       은퇴 · 번식 전환</button>:<span className="tag">{h.retired?"은퇴 완료":h.hasActiveRaceEntry?"출전 신청 중":"조건 미달"}</span>}
     </div>)}
 
+    <div className="section"><h2>내 씨수말 공개 관리</h2><span className="tag">자마 성적 연동 교배료</span></div>
+    {(board.myStuds||[]).length===0?<div className="notice">공개할 수 있는 내 씨수말이 없습니다. 수말을 번식용으로 은퇴시키고 건강한 4세 이상 씨수말로 등록하면 여기서 공개할 수 있습니다.</div>:
+     (board.myStuds||[]).map(h=><div className="card row" key={h.id}>
+      <div><b><HorseLink horseId={h.id}>{h.name}</HorseLink></b>
+       <div className="muted">{h.age}세 · 자마 {fmt(h.offspringCount)}두 · {fmt(h.starts)}전 {fmt(h.wins)}승</div>
+       <div className="muted">현재 산정 교배료 {money(h.feeG)}G</div>
+      </div>
+      <button className={h.listed?"outline":"primary"} disabled={!!busy}
+       onClick={()=>send({action:h.listed?"UNLIST_STALLION":"LIST_STALLION",horseId:h.id})}>
+       {h.listed?"공개 중 · 내리기":"교배 목록에 공개"}</button>
+     </div>)}
+
     <div className="section"><h2>2단계 · 은퇴한 번식마 교배 신청</h2></div>
     <div className="card">
      <label className="muted" htmlFor="mare">내 번식암말</label>
@@ -180,9 +197,9 @@ export default function BreedingPage(){
       확인된 유전 특성: {(mare.genetics?.knownTraits||[]).map(t=>t.name).join(" · ")||"아직 없음"}
       {Number(mare.genetics?.undiscoveredCount||0)>0&&` · 미발견 ${mare.genetics.undiscoveredCount}개`}
      </div>}
-     <label className="muted" htmlFor="sire" style={{display:"block",marginTop:14}}>씨수말 선택 (은퇴한 수말만)</label>
+     <label className="muted" htmlFor="sire" style={{display:"block",marginTop:14}}>씨수말 선택 (마주 공개 씨수말만)</label>
      <select id="sire" className="field" value={sireId} onChange={changeSire}>
-      {!stallions.length&&<option value="">이용 가능한 씨수말이 없습니다</option>}
+      {!stallions.length&&<option value="">현재 공개된 씨수말이 없습니다</option>}
       {stallions.map(s=><option key={s.id} value={s.id} disabled={s.booked>=40}>
        {s.name} · {s.age}세 · {s.ownerType==="MY_STALLION"?"내 씨수말":s.ownerType==="ASSOCIATION"?"협회 씨수말":s.providerName||"NPC 목장"} · 시즌 예약 {s.booked}/40회
       </option>)}
@@ -202,6 +219,8 @@ export default function BreedingPage(){
      {preview&&<div className="notice">
       <b>혈통·궁합 검사 결과</b><br/>
       적합도 <b>{fmt(preview.compatibility)}점</b> · 추정 임신 확률 <b>{fmt(preview.chance)}%</b><br/>
+      씨수말 교배료 <b>{money(preview.studFeeG)}G</b> · 자마 {fmt(preview.studFeeRecord?.offspringCount)}두 성적 반영
+      (1위 {fmt(preview.studFeeRecord?.wins)}회 · 2위 {fmt(preview.studFeeRecord?.seconds)}회 · 3위 {fmt(preview.studFeeRecord?.thirds)}회 · 대상경주 입상 {fmt(preview.studFeeRecord?.stakesPlacings)}회)<br/>
       알려진 공통조상에 의한 근친 계수 추정: {fmt(Number(preview.knownInbreeding||0)*100)}%
       {preview.pedigreeIncomplete&&<div className="muted">⚠ 혈통 정보가 불완전합니다. 근친 계수 0은 무혈연을 의미하지 않으며, 이 평가는 추정값입니다.</div>}
       {!!preview.possibleInheritedTraits?.length&&<div style={{marginTop:9}}>
@@ -233,7 +252,7 @@ export default function BreedingPage(){
     {!past.length&&<div className="notice">아직 완료되거나 실패한 교배 이력이 없습니다.</div>}
     {past.map(r=><div className="card" key={r.id}>
      <div className="row"><b className="gold">{r.mareName} × {r.sireName}</b><span className="tag">{status[r.status]||r.status}</span></div>
-     <div className="muted">{dateOf(r.createdAt)} · 시즌 {r.season} · 궁합 {fmt(r.compatibility)}점</div>
+     <div className="muted">{dateOf(r.createdAt)} · 시즌 {r.season} · 궁합 {fmt(r.compatibility)}점 · 교배료 {money(r.decisionDetail?.studFeeG)}G</div>
      {r.pregnancy?.status==="BORN"&&<div className="line">🐴 자마 출산 완료 · 보유마 목록에 자동 추가됨</div>}
      {r.status==="REJECTED"&&<div className="muted" style={{marginTop:8}}>임신 실패 · 다음 시즌 재신청 가능</div>}
     </div>)}
