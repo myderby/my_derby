@@ -10,6 +10,7 @@ const readable={
  RACE_NOT_OPEN:"신청할 수 없는 경주입니다.",ENTRY_DEADLINE_PASSED:"출전 신청 마감 시각이 지났습니다.",
  NOT_YOUR_HORSE:"본인 소유 경주마만 신청할 수 있습니다.",
  HORSE_NOT_RACE_ELIGIBLE:"연령·건강·컨디션·피로도 또는 은퇴 상태상 출전이 불가능합니다.",
+ HORSE_IN_PERSONAL_RANCH:"개인목장 코스에 들어간 말은 코스 종료 후 출전 신청할 수 있습니다.",
  REGION_OR_GRADE_MISMATCH:"출전마의 지역이나 등급이 경주 조건과 다릅니다.",
  REGION_MISMATCH:"출전마의 소속 지역과 경주 지역이 다릅니다.",
  GRADE_ENTRY_NOT_ALLOWED:"경주마와 동일한 등급의 경주에만 출전 신청할 수 있습니다. 상위·하위 등급 경주는 모두 제한됩니다.",
