@@ -380,6 +380,7 @@ return <main className="shell"><header className="header"><div onClick={()=>go("
   ]],
   ["📊 정보와 기록","나의 성적 · 명부 · 순위",[
    ["개인 기록",[["나의 정보","myRecord"],["달성 업적","myAchievements"]]],
+   ["내 우편",[["우편함 · 선물 보관함","notifications"]]],
    ["경마 소식",[["더비 데일리 · 전체 뉴스","dailyNews"],["나의 경주 소식","myNews"]]],
    ["전체 명부",[["전체 기수","allJockeys"],["전체 마주","ownersDirectory"],["전체 조교사","trainersDirectory"]]],
    ["경주 성적",[["기수·마주·조교사 성적","participantsRecords"]]]
