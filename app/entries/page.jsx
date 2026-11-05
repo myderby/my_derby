@@ -67,6 +67,7 @@ export default function EntriesPage(){
  const [busy,SetBusy]=useState(false);
  const [loading,SetLoading]=useState(false);
  const [message,SetMessage]=useState("");
+ const [entryFeedback,SetEntryFeedback]=useState({});
  const [error,SetError]=useState("");
  const [active,SetActive]=useState(null);
  const [jockeys,SetJockeys]=useState([]);
@@ -127,6 +128,8 @@ export default function EntriesPage(){
 
  const submitEntry=async(race,horseId)=>{
   if(!horseId)return SetMessage("경주마를 선택해주세요.");
+  const feedbackKey=race.id+":"+horseId;
+  SetEntryFeedback(current=>({...current,[feedbackKey]:null}));
   const chosen=horses.find(h=>h.id===horseId);
   const tutorialSameDay=chosen?.tutorialStarterType==="GRADE6"&&Number(race.gradeNo)===6&&!race.isSpecialRace;
   if(entryWindowState(race,tutorialSameDay)!=="OPEN")return SetMessage("출전 신청 기간이 아닙니다. 신규 마주의 튜토리얼 6등급 신마만 경주 당일 18시 전까지 신청할 수 있습니다.");
@@ -142,8 +145,16 @@ export default function EntriesPage(){
     SetStrategyFocus(horseId);
     await showJockeys(race.id,horseId);
     SetMessage("출전이 확정됐습니다. 기수와 전략을 이어서 선택할 수 있습니다.");
-   }else SetMessage("이미 출전 확정된 경주입니다.");
-  }catch(e){SetMessage(explain(e.message))}finally{SetBusy(false)}
+    SetEntryFeedback(current=>({...current,[feedbackKey]:{kind:"success",text:"출전이 확정됐습니다. 기수와 전략을 이어서 선택할 수 있습니다."}}));
+   }else {
+    SetMessage("이미 출전 확정된 경주입니다.");
+    SetEntryFeedback(current=>({...current,[feedbackKey]:{kind:"success",text:"이미 출전 확정된 경주입니다."}}));
+   }
+  }catch(e){
+   const text=explain(e.message);
+   SetMessage(text);
+   SetEntryFeedback(current=>({...current,[feedbackKey]:{kind:"error",text,trainerRequired:String(e?.message||"").includes("TRAINER_REQUIRED")}}));
+  }finally{SetBusy(false)}
  };
  const withdrawEntry=async(raceId,horseId)=>{
   if(!window.confirm("공식 출전을 취소하시겠습니까? 신청금이 납부된 경우 전액 환불되고 NPC 출전마로 대체됩니다."))return;
@@ -332,6 +343,10 @@ export default function EntriesPage(){
        <button data-tutorial-target="racing" className="primary wide" disabled={busy||loading} onClick={()=>submitEntry(r,selected)}>
         {busy?"처리 중…":"공식 출전 신청"}
        </button>
+       {entryFeedback[r.id+":"+selected]&&<div className="notice" role="status" style={{marginTop:8}}>
+        {entryFeedback[r.id+":"+selected].text}
+        {entryFeedback[r.id+":"+selected].trainerRequired&&<> <a href="/stable" className="gold">조교사 계약 관리로 이동 ›</a></>}
+       </div>}
       </div>}
      {!mine.length&&(!room||close||!candidate.length)&&<div className="muted" style={{marginTop:12}}>
       {r.isSpecialRace&&!r.ageCondValid?"원본 ageCond 연령 조건이 등록되지 않아 출전 신청할 수 없습니다.":windowState==="NOT_OPEN"?"접수 대기: "+r.entryOpenDate+" 00:00부터 출전 신청할 수 있습니다.":close?"신청 기간이 종료되었습니다.":!room?"출전 정원이 가득 찼습니다.":r.isSpecialRace?(r.ageCondRequiresBirthHemisphere?
