@@ -4,7 +4,7 @@ import {createClient} from "@supabase/supabase-js";
 
 const categories=[
  {id:"ranch",label:"목장",icon:"🌲",paths:["/ranch","/ranch/management"],groups:[
-  {id:"ranch-space",label:"목장 공간",items:[["내 목장·마방","/ranch"],["시설·직원 관리","/ranch/management"],["재무 관리","/finance"]]},
+  {id:"ranch-space",label:"목장 관리",items:[["목장 둘러보기","/ranch/management"],["재무 관리","/finance"]]},
   {id:"ranch-care",label:"말 돌보기",items:[["휴양·재활 코스","/ranch?view=courses"],["부상·회복 관리","/injuries"],["내 경주마","/world"]]}
  ]},
  {id:"stable",label:"마사",icon:"🐎",paths:["/world","/breeding","/market","/auction","/horses"],groups:[
