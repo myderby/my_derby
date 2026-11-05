@@ -15,6 +15,7 @@ export default function Ranch(){
  [horse,H]=useState(""),[course,C]=useState("REST_3D"),[view,V]=useState("stable");
  useEffect(()=>{
   if(new URLSearchParams(window.location.search).get("view")==="courses")V("courses");
+  else{window.location.replace("/ranch/management");return;}
   let on=true;const api=c();
   api.auth.getSession().then(({data})=>{if(on){T(data.session?.access_token||"");Loaded(true)}})
    .catch(e=>{if(on){E(e.message);Loaded(true)}});
