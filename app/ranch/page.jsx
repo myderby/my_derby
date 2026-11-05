@@ -15,7 +15,6 @@ export default function Ranch(){
  [horse,H]=useState(""),[course,C]=useState("REST_3D"),[view,V]=useState("stable");
  useEffect(()=>{
   if(new URLSearchParams(window.location.search).get("view")==="courses")V("courses");
-  else{window.location.replace("/ranch/management");return;}
   let on=true;const api=c();
   api.auth.getSession().then(({data})=>{if(on){T(data.session?.access_token||"");Loaded(true)}})
    .catch(e=>{if(on){E(e.message);Loaded(true)}});
@@ -92,7 +91,7 @@ export default function Ranch(){
     </section>
    </div>}
    {board&&view==="courses"&&<>
-    <div className="ranch-course-intro"><a className="outline" href="/ranch/management" style={{textDecoration:"none"}}>‹ 목장 관리로</a><div><b>목장 코스 신청</b><p>말을 선택하고 휴양·회복·재활·어린말 육성을 신청하세요.</p></div></div>
+    <div className="ranch-course-intro"><button className="outline" onClick={()=>V("stable")}>‹ 마방으로</button><div><b>목장 코스 신청</b><p>말을 선택하고 휴양·회복·재활·어린말 육성을 신청하세요.</p></div></div>
     <div className="ranch-course-grid">
      <section className="card"><div className="section"><h2>입소할 경주마</h2><span className="tag">{board.horses.length}두</span></div>
       <label className="muted" htmlFor="ranchHorse">마방에서 말 선택</label>
