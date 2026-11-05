@@ -401,4 +401,4 @@ return <main className="shell"><header className="header"><div onClick={()=>go("
   </details>)}
  <div className="footer">MY DERBY · GAME MENU</div></div></>}
 {screen==="account"&&<>{title("계정 및 연결","Supabase 이메일 로그인")}<div className="area"><div className="notice">Supabase 로그인·회원가입만 연결합니다. 플레이어 월드 생성과 데이터 저장, NPC 엔진은 아직 연결되지 않았습니다.</div><input className="field" placeholder="이메일" value={email} onChange={e=>Mail(e.target.value)}/><input className="field" placeholder="비밀번호" type="password" value={password} onChange={e=>Pass(e.target.value)}/><div className="stack"><button className="primary wide" onClick={()=>auth(false)}>로그인</button><button className="outline wide" onClick={()=>auth(true)}>회원가입</button></div></div></>}
-<nav className="bottom">{[["home","⌂","홈"],["horses","♞","말 관리"],["races","♜","경주"],["menu","☰","메뉴"]].map(([x,icon,label])=><button className={screen===x?"active":""} onClick={()=>go(x)} key={x}><span>{icon}</span>{label}</button>)}</nav>{toast&&<div className="toast">{toast}</div>}</main>}
+{toast&&<div className="toast">{toast}</div>}</main>}
