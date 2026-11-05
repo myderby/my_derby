@@ -2,7 +2,19 @@ import {NextResponse} from "next/server";
 import {requireUser} from "../../../../lib/server/supabase";
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
-const regions=["SEOUL","YEONGCHEON","BUSAN"];
+const regions=["SEOUL","BUSAN","YEONGCHEON"];
+const regionAliases={
+ SEOUL:"SEOUL","서울":"SEOUL",
+ BUSAN:"BUSAN",BUSAN_GYEONGNAM:"BUSAN","부산":"BUSAN","부산경남":"BUSAN",
+ YEONGCHEON:"YEONGCHEON","영천":"YEONGCHEON",
+ JEJU:"YEONGCHEON","제주":"YEONGCHEON"
+};
+const normalizeRegion=(value:unknown)=>{
+ if(typeof value!=="string")return null;
+ const key=value.trim().toUpperCase();
+ return regionAliases[key as keyof typeof regionAliases]||
+  regionAliases[value.trim() as keyof typeof regionAliases]||null;
+};
 const patterns=["solid","stripe","check","diamond","dot","star"];
 const hexColor=(value:unknown):value is string=>
  typeof value==="string"&&/^#[0-9a-fA-F]{6}$/.test(value);
@@ -12,10 +24,12 @@ export async function POST(request:Request){
   if(Number(request.headers.get("content-length")||0)>2048)
    return NextResponse.json({error:"요청 본문이 너무 큽니다."},{status:413});
   const body=await request.json();
+  const startingRegion=body&&typeof body==="object"&&!Array.isArray(body)
+   ?normalizeRegion((body as {startingRegion?:unknown}).startingRegion):null;
   if(!body||typeof body!=="object"||Array.isArray(body)||
      Object.keys(body).some(k=>!["nickname","startingRegion","silksDesign"].includes(k))||
      typeof body.nickname!=="string"||body.nickname.trim().length<2||body.nickname.trim().length>32||
-     !regions.includes(body.startingRegion)||!body.silksDesign||typeof body.silksDesign!=="object"||
+     !startingRegion||!body.silksDesign||typeof body.silksDesign!=="object"||
      Array.isArray(body.silksDesign)||
      Object.keys(body.silksDesign).some(k=>!["bodyColor","sleeveColor","pattern","patternColor"].includes(k))||
      !hexColor(body.silksDesign.bodyColor)||!hexColor(body.silksDesign.sleeveColor)||
@@ -24,7 +38,7 @@ export async function POST(request:Request){
   // The Postgres RPC binds auth.uid() server-side and allocates the fixed starter package atomically.
   const {data,error}=await db.schema("my_derby").rpc("join_world",{
    p_nickname:body.nickname.trim(),
-   p_starting_region:body.startingRegion,
+   p_starting_region:startingRegion,
    p_silks_design:body.silksDesign,
   });
   if(error)throw error;
