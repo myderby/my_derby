@@ -2,7 +2,6 @@ import {NextResponse} from "next/server";
 import {requireUser} from "../../../../lib/server/supabase";
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
-const regions=["SEOUL","BUSAN","YEONGCHEON"];
 const regionAliases={
  SEOUL:"SEOUL","서울":"SEOUL",
  BUSAN:"BUSAN",BUSAN_GYEONGNAM:"BUSAN","부산":"BUSAN","부산경남":"BUSAN",
