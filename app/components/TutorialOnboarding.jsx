@@ -59,7 +59,7 @@ export default function TutorialOnboarding(){
    }
   }catch(_){/* Tutorial guidance must not block the game. */}
  },[]);
- useEffect(()=>{void load()},[load]);
+ useEffect(()=>{void load()},[load,pathname]);
  useEffect(()=>{
   const refresh=()=>void load();
   window.addEventListener("my-derby:progress",refresh);
