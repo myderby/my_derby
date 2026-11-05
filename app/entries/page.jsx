@@ -44,18 +44,17 @@ const eligible=(h,r)=>h.sourceMeet===r.sourceMeet
  && h.lifeStage==="RACING"&&!h.retired&&!h.breedingRetired
  && h.health==="HEALTHY"&&h.age>=2&&h.age<=10
  && h.saleState==="NOT_LISTED"&&Number(h.condition)>=50&&Number(h.fatigue)<80;
-const entryWindowState=r=>{
+const entryWindowState=(r,allowTutorialSameDay=false)=>{
  if(r.status!=="OPEN"||!r.kstDate)return "CLOSED";
  const now=currentKst();
  if(r.entryOpenDate&&now<r.entryOpenDate+" 00:00")return "NOT_OPEN";
  if(now.slice(0,10)>r.kstDate)return "CLOSED";
  if(now.slice(0,10)===r.kstDate){
-  if(Number(r.gradeNo)!==6||r.isSpecialRace)return "CLOSED";
+  if(Number(r.gradeNo)!==6||r.isSpecialRace||!allowTutorialSameDay)return "CLOSED";
   return now.slice(11,16)<"08:00"?"OPEN":"CLOSED";
  }
  return "OPEN";
 };
-const beforeDeadline=r=>entryWindowState(r)==="OPEN";
 export default function EntriesPage(){
  const [token,SetToken]=useState("");
  const [checking,SetChecking]=useState(true);
@@ -128,18 +127,22 @@ export default function EntriesPage(){
 
  const submitEntry=async(race,horseId)=>{
   if(!horseId)return SetMessage("경주마를 선택해주세요.");
-  if(!beforeDeadline(race))return SetMessage("출전 신청 기간이 아닙니다. 경주 당일에는 신청할 수 없으며 OPEN·대상경주는 4일 전, 일반 경주는 2일 전부터 접수합니다.");
-  if(!window.confirm("선택한 경주에 공식 출전 신청하시겠습니까? 만석이면 NPC 출전 슬롯을 교체합니다."))return;
+  const chosen=horses.find(h=>h.id===horseId);
+  const tutorialSameDay=chosen?.tutorialStarterType==="GRADE6"&&Number(race.gradeNo)===6&&!race.isSpecialRace;
+  if(entryWindowState(race,tutorialSameDay)!=="OPEN")return SetMessage("출전 신청 기간이 아닙니다. 신규 마주의 튜토리얼 6등급 신마만 경주 당일 오전 8시 전까지 신청할 수 있습니다.");
   SetBusy(true);SetMessage("");
   try{
    const r=await fetch("/api/player/entries",{method:"POST",cache:"no-store",
     headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},
     body:JSON.stringify({raceId:race.id,horseId})});
    const data=await r.json();if(!r.ok)throw new Error(data.error||"신청 실패");
-   SetMessage(data.status==="ALREADY_CONFIRMED"?"이미 출전 확정된 경주입니다.":
-     "출전 확정! "+race.track+" "+race.raceNo+"경주 · "+data.gateNo+"번 게이트 · 기수는 기본 배정되었습니다.");
    if(data.status!=="ALREADY_CONFIRMED")window.dispatchEvent(new Event("my-derby:progress"));
    await load(week);
+   if(data.status!=="ALREADY_CONFIRMED"){
+    SetStrategyFocus(horseId);
+    await showJockeys(race.id,horseId);
+    SetMessage("출전이 확정됐습니다. 기수와 전략을 이어서 선택할 수 있습니다.");
+   }else SetMessage("이미 출전 확정된 경주입니다.");
   }catch(e){SetMessage(explain(e.message))}finally{SetBusy(false)}
  };
  const withdrawEntry=async(raceId,horseId)=>{
@@ -195,14 +198,17 @@ export default function EntriesPage(){
   }catch(e){SetMessage(explain(e.message))}finally{SetJockeyBusy(false)}
  };
  const horses=board?.horses||[];
+ const tutorialSameDayAvailable=r=>horses.some(h=>h.tutorialStarterType==="GRADE6"&&eligible(h,r));
+ const beforeDeadline=r=>entryWindowState(r,tutorialSameDayAvailable(r))==="OPEN";
  const races=(board?.races||[]).filter(r=>{
   if(track!=="전체"&&r.track!==track)return false;
   const hasMine=(r.myEntries||[]).length>0;
-  const can=beforeDeadline(r)&&(r.npcReplaceableCount>0||r.confirmedCount<r.capacity)
+  const overflowRoom=r.npcReplaceableCount===0&&r.confirmedCount>=r.capacity&&r.confirmedCount<16;
+  const can=beforeDeadline(r)&&(r.npcReplaceableCount>0||r.confirmedCount<r.capacity||overflowRoom)
     &&horses.some(h=>eligible(h,r));
   if(view==="내 출전")return hasMine;
   if(view==="연령 조건 확인")return r.isSpecialRace;
-  if(view==="신청 예정")return entryWindowState(r)==="NOT_OPEN"&&horses.some(h=>eligible(h,r));
+  if(view==="신청 예정")return entryWindowState(r,tutorialSameDayAvailable(r))==="NOT_OPEN"&&horses.some(h=>eligible(h,r));
   if(view==="신청 가능")return can||hasMine;
   return true;
  });
@@ -249,15 +255,17 @@ export default function EntriesPage(){
     const candidate=horses.filter(h=>eligible(h,r)&&!board.races.some(other=>
      other.id!==r.id&&(other.myEntries||[]).some(e=>e.horseId===h.id)))
      .sort((a,b)=>a.name.localeCompare(b.name,"ko"));
-    const windowState=entryWindowState(r);
+    const windowState=entryWindowState(r,candidate.some(h=>h.tutorialStarterType==="GRADE6"));
     const close=windowState!=="OPEN";
-    const room=r.npcReplaceableCount>0||r.confirmedCount<r.capacity;
+    const overflowRoom=r.npcReplaceableCount===0&&r.confirmedCount>=r.capacity&&r.confirmedCount<16;
+    const room=r.npcReplaceableCount>0||r.confirmedCount<r.capacity||overflowRoom;
+    const displayCapacity=overflowRoom||r.confirmedCount>r.capacity?16:r.capacity;
     const selected=candidate.some(h=>h.id===choice[r.id])?choice[r.id]:candidate[0]?.id||"";
     return <div className="card" key={r.id}>
      <div className="row"><div><b className="gold">{r.kstDate} {r.startTime} · {r.track} {r.raceNo}경주</b>
-       <div className="muted">{r.grade} · {r.distance}m · {r.confirmedCount}/{r.capacity}두</div></div>
+       <div className="muted">{r.grade} · {r.distance}m · {r.confirmedCount}/{displayCapacity}두{overflowRoom?" · 플레이어 출전마만 편성되어 최대 16두까지 신청 가능":""}</div></div>
        <span className="tag">{r.status==="FINISHED"?"종료":r.isSpecialRace&&!r.ageCondValid?"연령 조건 미등록":windowState==="NOT_OPEN"?"접수 예정":close?"신청 마감":"신청 가능"}</span></div>
-     <div className="muted" style={{marginTop:8}}>접수 시작 {r.entryOpenDate} 00:00 ({r.isSpecialRace?"OPEN·대상 4일 전":"일반 2일 전"}) · 마감 {r.kstDate} {Number(r.gradeNo)===6&&!r.isSpecialRace?"08:00":"00:00"} ({Number(r.gradeNo)===6&&!r.isSpecialRace?"6등급은 당일 오전 8시 전까지 신청 가능":"경주 당일 신청 불가"}, 한국시간)</div>
+     <div className="muted" style={{marginTop:8}}>접수 시작 {r.entryOpenDate} 00:00 ({r.isSpecialRace?"OPEN·대상 4일 전":"일반 2일 전"}) · 마감 {r.kstDate} {Number(r.gradeNo)===6&&!r.isSpecialRace?"08:00":"00:00"} ({Number(r.gradeNo)===6&&!r.isSpecialRace?"튜토리얼 신규 6등급마는 당일 오전 8시 전까지 신청 가능":"경주 당일 신청 불가"}, 한국시간)</div>
      {r.isSpecialRace&&<div className="notice" style={{marginTop:8,fontSize:12}}>
       대상경주 출전 연령 조건(ageCond): <b>{r.ageCondValid?r.ageCond:"확인되지 않음"}</b>
       {!r.ageCondValid&&" · 정확한 원본 경주 연령 조건이 등록될 때까지 신청할 수 없습니다."}
