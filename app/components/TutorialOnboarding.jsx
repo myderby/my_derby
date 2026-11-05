@@ -37,12 +37,16 @@ export default function TutorialOnboarding(){
  const [manualTopicKey,MTK]=useState(null),[topicPickerOpen,TPO]=useState(false);
  const [renameValue,RV]=useState(""),[renameMessage,RM]=useState("");
  const lastScrolled=useRef("");
+ const loadGeneration=useRef(0);
  const load=useCallback(async()=>{
+  const requestId=++loadGeneration.current;
   try{
    const cfg=client(),{data:{session}}=await cfg.auth.getSession();if(!session)return;
    const r=await fetch("/api/player/tutorial",{headers:{Authorization:"Bearer "+session.access_token},cache:"no-store"});
    if(r.ok){
-    const next=await r.json();S(next);
+    const next=await r.json();
+    if(requestId!==loadGeneration.current)return;
+    S(next);
     const key="my-derby:tutorial:hidden-stage:"+session.user.id;
     const dismissed=sessionStorage.getItem(key);
     if(dismissed!==null){
