@@ -543,7 +543,7 @@
 @media(min-width:700px) and (max-height:500px){.game-bottom-nav,.game-nav-panel{width:min(1000px,100vw)}.game-bottom-nav button{min-height:48px}.game-nav-panel{max-height:56dvh;left:50%;bottom:calc(63px + env(safe-area-inset-bottom))}}
 
 /* Stable-yard landing view modeled after a horse stall aisle. */
-.ranch-shell{max-width:980px;padding-bottom:108px;background:#21160f}
+.ranch-shell{width:min(100%,480px);max-width:480px;padding-bottom:108px;background:#21160f}
 .ranch-area{padding:16px clamp(12px,2.3vw,24px) 24px}
 .ranch-page-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:13px}
 .ranch-page-heading h1{margin:3px 0 0;color:#f4cb88;font-size:23px}
