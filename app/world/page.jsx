@@ -9,8 +9,8 @@ const stageName={FOAL:"망아지",YEARLING:"1세마",RACING:"현역",
 const skillNames={start:"출발",speed:"속도",acceleration:"가속력",stamina:"지구력",
  finishing:"막판탄력",power:"파워",grit:"근성",stability:"안정성",recovery:"회복력"};
 const trackName=s=>s==="부산경남"?"부산":s==="제주"?"영천":s||"소속 미정";
-const regionName={SEOUL:"서울",YEONGCHEON:"영천",BUSAN:"부산"};
-const regionOptions=[["SEOUL","서울"],["YEONGCHEON","영천"],["BUSAN","부산"]];
+const regionName={SEOUL:"서울",YEONGCHEON:"영천",JEJU:"영천",BUSAN:"부산경남"};
+const regionOptions=[["SEOUL","서울"],["BUSAN","부산경남"],["YEONGCHEON","영천"]];
 const patternOptions=[["solid","민무늬"],["stripe","줄무늬"],["check","체크"],
  ["diamond","다이아"],["dot","점무늬"],["star","별무늬"]];
 const defaultSilks={bodyColor:"#D6A84F",sleeveColor:"#23180F",pattern:"solid",patternColor:"#FFFFFF"};
