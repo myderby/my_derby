@@ -51,9 +51,9 @@ export default function TutorialOnboarding(){
     const dismissed=sessionStorage.getItem(key);
     if(dismissed!==null){
      const dismissedStage=Number(dismissed);
-     const intendedPath=stories[dismissedStage]?.href;
-     const currentPath=window.location.pathname;
-     if(dismissedStage===Number(next.storyStage)&&currentPath===intendedPath)HS(dismissedStage);
+     const intendedUrl=new URL(stories[dismissedStage]?.href||"/",window.location.origin);
+     const currentUrl=new URL(window.location.href);
+     if(dismissedStage===Number(next.storyStage)&&currentUrl.pathname===intendedUrl.pathname&&currentUrl.search===intendedUrl.search)HS(dismissedStage);
      else{sessionStorage.removeItem(key);HS(null);}
     }
    }
