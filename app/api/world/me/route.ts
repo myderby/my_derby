@@ -6,12 +6,17 @@ export async function GET(request:Request){
  try{
   const {db,user}=await requireUser(request);
   const api=db.schema("my_derby");
-  const [profile,owned]=await Promise.all([
-   api.from("profiles").select("nickname,world_id,initial_setup_complete").eq("user_id",user.id).maybeSingle(),
-   api.from("horses").select("id,source_hr_no,name,sex,age_years,life_stage,condition_score,fatigue,racing_retired_permanently").eq("owner_user_id",user.id).order("name").limit(40)
-  ]);
-  if(profile.error||owned.error)throw profile.error||owned.error;
-  return NextResponse.json({joined:!!profile.data?.initial_setup_complete,profile:profile.data??null,
+  const profile=await api.from("profiles").select("nickname,world_id,initial_setup_complete")
+   .eq("user_id",user.id).maybeSingle();
+  if(profile.error)throw profile.error;
+  const joined=!!profile.data?.initial_setup_complete;
+  if(!joined)return NextResponse.json({joined:false,profile:profile.data??null,horses:[],userHorseCount:0},
+   {headers:{"Cache-Control":"no-store"}});
+  const owned=await api.from("horses")
+   .select("id,source_hr_no,name,sex,age_years,life_stage,condition_score,fatigue,racing_retired_permanently")
+   .eq("owner_user_id",user.id).order("name").limit(40);
+  if(owned.error)throw owned.error;
+  return NextResponse.json({joined:true,profile:profile.data??null,
     horses:owned.data??[],userHorseCount:(owned.data??[]).length},
    {headers:{"Cache-Control":"no-store"}});
  }catch(e){return NextResponse.json({error:e instanceof Error?e.message:"Failed to read owner roster"},
