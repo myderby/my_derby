@@ -597,40 +597,40 @@
 
 /* Keep ranch management cards and actions inside narrow mobile viewports. */
 @media(max-width:480px){
- main.shell:has(> .header + .area > .controls > a[href="/ranch"]){
+ .ranch-management-shell{
   width:100%;max-width:480px;overflow-x:clip;padding-bottom:calc(88px + env(safe-area-inset-bottom))
  }
- main.shell:has(> .header + .area > .controls > a[href="/ranch"])>.area{
+ .ranch-management-shell>.area{
   min-width:0;padding:12px 10px calc(100px + env(safe-area-inset-bottom))
  }
- main.shell:has(> .header + .area > .controls > a[href="/ranch"])>.area>*{min-width:0}
- main.shell:has(> .header + .area > .controls > a[href="/ranch"])>.area>.controls{gap:6px;flex-wrap:nowrap}
- main.shell:has(> .header + .area > .controls > a[href="/ranch"])>.area>.controls>*{
+ .ranch-management-shell>.area>*{min-width:0}
+ .ranch-management-shell>.area>.controls{gap:6px;flex-wrap:nowrap}
+ .ranch-management-shell>.area>.controls>*{
   min-width:0;padding:9px 6px;text-align:center;font-size:12px;white-space:nowrap
  }
- main.shell:has(> .header + .area > .controls > a[href="/ranch"])>.area>.section{align-items:flex-start}
- main.shell:has(> .header + .area > .controls > a[href="/ranch"])>.area>.section h2{min-width:0;font-size:15px;line-height:1.4}
- main.shell:has(> .header + .area > .controls > a[href="/ranch"])>.area>.section button{flex:0 0 auto;padding:5px 0;font-size:11px}
- main.shell:has(> .header + .area > .controls > a[href="/ranch"]) .card{
+ .ranch-management-shell>.area>.section{align-items:flex-start}
+ .ranch-management-shell>.area>.section h2{min-width:0;font-size:15px;line-height:1.4}
+ .ranch-management-shell>.area>.section button{flex:0 0 auto;padding:5px 0;font-size:11px}
+ .ranch-management-shell .card{
   min-width:0;padding:12px;margin-bottom:10px;overflow-wrap:anywhere
  }
- main.shell:has(> .header + .area > .controls > a[href="/ranch"]) .row{
+ .ranch-management-shell .row{
   min-width:0;align-items:stretch;flex-wrap:wrap;gap:8px
  }
- main.shell:has(> .header + .area > .controls > a[href="/ranch"]) .row>div:first-child{
+ .ranch-management-shell .row>div:first-child{
   min-width:0;flex:1 1 100%
  }
- main.shell:has(> .header + .area > .controls > a[href="/ranch"]) .row>button{
+ .ranch-management-shell .row>button{
   width:100%;max-width:100%;flex:1 1 100%;padding:10px 8px;font-size:13px;line-height:1.3;white-space:normal
  }
- main.shell:has(> .header + .area > .controls > a[href="/ranch"]) .field{min-width:0;width:100%}
- main.shell:has(> .header + .area > .controls > a[href="/ranch"]) .ranch-worker{
+ .ranch-management-shell .field{min-width:0;width:100%}
+ .ranch-management-shell .ranch-worker{
   min-width:0;padding:9px;overflow-wrap:anywhere
  }
 }
 @media(max-width:360px){
- main.shell:has(> .header + .area > .controls > a[href="/ranch"])>.area{padding-left:8px;padding-right:8px}
- main.shell:has(> .header + .area > .controls > a[href="/ranch"])>.area>.controls>*{font-size:11px}
- main.shell:has(> .header + .area > .controls > a[href="/ranch"]) .card{padding:10px}
- main.shell:has(> .header + .area > .controls > a[href="/ranch"]) .section h3{font-size:14px}
+ .ranch-management-shell>.area{padding-left:8px;padding-right:8px}
+ .ranch-management-shell>.area>.controls>*{font-size:11px}
+ .ranch-management-shell .card{padding:10px}
+ .ranch-management-shell .section h3{font-size:14px}
 }
