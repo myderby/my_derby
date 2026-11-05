@@ -107,7 +107,12 @@ export default function AuthGate({ children }) {
       if (error) throw error;
       setMessage("게스트 계정으로 시작합니다. 설정에서 계정을 연동하면 게임 기록을 보존할 수 있습니다.");
     } catch (error) {
-      setMessage(error.message || "게스트 계정을 만들지 못했습니다. 잠시 후 다시 시도해주세요.");
+      const code = error?.code || error?.name;
+      const isAnonymousDisabled = code === "anonymous_provider_disabled"
+        || /anonymous sign-ins are disabled/i.test(error?.message || "");
+      setMessage(isAnonymousDisabled
+        ? "현재 게스트 로그인이 꺼져 있습니다. Supabase Auth에서 익명 로그인을 활성화한 뒤 다시 시도해 주세요."
+        : error.message || "게스트 계정을 만들지 못했습니다. 잠시 후 다시 시도해주세요.");
     } finally { setBusy(false); }
   }
 
