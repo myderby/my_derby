@@ -55,7 +55,7 @@ export default function RanchManagement(){
  const staffLimit=spec=>spec.code==="VET"?data.vetMax:data.staffMax;
  const staffCount=spec=>spec.code==="VET"?data.vets:data.staff;
  return <main className="shell ranch-management-shell"><header className="header"><a className="brand" href="/" style={{textDecoration:"none"}}>MY DERBY</a><span className="coin">🏗️ 목장 경영</span></header>
- <div className="area ranch-management-area"><div className="controls"><a href="/ranch" className="outline" style={{textDecoration:"none"}}>‹ 내 목장</a><a href="/finance" className="outline" style={{textDecoration:"none"}}>재무 ›</a></div>
+ <div className="area ranch-management-area"><div className="controls"><a href="/ranch" className="outline" style={{textDecoration:"none"}}>‹ 목장 둘러보기</a><a href="/finance" className="outline" style={{textDecoration:"none"}}>재무 ›</a></div>
  <div className="section"><h2>개인목장 확장 · 시설 · 인력</h2><button disabled={!token||busy} onClick={()=>load()}>새로고침 ↻</button></div>
  <div className="notice">시설 투자·고용 비용은 게임머니 지갑에서 차감됩니다. 직원 급여는 게임일마다 청구됩니다.</div>
  {error&&<div className="notice" role="alert">{error}</div>}{notice&&<div className="notice" role="status">{notice}</div>}
