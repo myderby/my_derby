@@ -48,7 +48,7 @@ export default function RanchManagement(){
    else if(operation==="HIRE_WORKER")M("선택한 직원을 고용했습니다. · "+fmt(x.paid)+" G");
    else M("처리 완료 · 비용 "+fmt(x.paid)+" G");
    await load();
-   if(operation==="HIRE_WORKER"){await loadCandidates(fields.specialty);HS(null);}
+   if(operation==="HIRE_WORKER")HS(null);
   }catch(e){E(e.message)}finally{B(false)}
  };
  const activeWorkers=data?.workers||[];
