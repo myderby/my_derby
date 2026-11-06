@@ -39,7 +39,8 @@ function explain(message){
 const apiClient=()=>createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
 const currentKst=()=>new Intl.DateTimeFormat("sv-SE",{timeZone:"Asia/Seoul",
  year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false}).format(new Date()).replace(",","");
-const eligible=(h,r)=>h.sourceMeet===r.sourceMeet
+const sameMeet=(horseMeet,raceMeet)=>horseMeet===raceMeet||([horseMeet,raceMeet].every(x=>["영천","제주"].includes(x)));
+const eligible=(h,r)=>sameMeet(h.sourceMeet,r.sourceMeet)
  && Array.isArray(r.eligibleHorseIds)&&r.eligibleHorseIds.includes(h.id)
  && h.lifeStage==="RACING"&&!h.retired&&!h.breedingRetired
  && h.health==="HEALTHY"&&h.age>=2&&h.age<=10
