@@ -92,7 +92,21 @@ export default function RanchManagement(){
      </select>
     </div>
    </div>)}</div>
-undefined
+
+   <div className="section"><h3>{spec.label} 고용</h3></div>
+   <div className="muted">직원은 고용 후 자동 배치되지 않습니다. 배치 시설을 선택해야 관리 효과가 적용됩니다.</div>
+   {hireSpecialty!==spec.code?<button className="primary" disabled={busy||candidateLoading||staffCount(spec)>=staffLimit(spec)} onClick={async()=>{HS(spec.code);await loadCandidates(spec.code)}}>직원 고용하기 · {fmt(hirePrice)} G</button>:<>
+    <div className="section"><h3>후보 3명 중 1명 선택</h3><button className="outline" disabled={busy} onClick={()=>HS(null)}>닫기</button></div>
+    {candidateLoading&&<div className="notice">고용 후보를 불러오는 중…</div>}
+    {!candidateLoading&&!candidates.length&&<div className="notice">현재 고용 후보가 없습니다.</div>}
+    <div className="ranch-worker-list">{candidates.map(candidate=><div className="ranch-worker" key={candidate.id}>
+     <div className="row"><div><b>{candidate.name}</b><div className="muted">등급 {candidate.grade}</div></div>
+      <button className="primary" disabled={busy||staffCount(spec)>=staffLimit(spec)}
+       onClick={()=>apply("HIRE_WORKER",{candidateId:candidate.id,specialty:spec.code},candidate.name+" 후보를 "+fmt(hirePrice)+" G에 고용하시겠습니까?")}>고용 {fmt(hirePrice)} G</button>
+     </div>
+     <div className="muted" style={{marginTop:7}}>관리 {candidate.skills?.care} · 의료 {candidate.skills?.medical} · 육성 {candidate.skills?.growth} · 안정 {candidate.skills?.stability}<br/>게임 1일 급여 {fmt(candidate.salary)} G</div>
+    </div>)}</div>
+   </>}
   </section>;
  })}
  </>}
