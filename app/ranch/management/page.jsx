@@ -14,7 +14,7 @@ const specialists=[
 export default function RanchManagement(){
  const [token,T]=useState(""),[data,D]=useState(null),[error,E]=useState(""),
  [notice,M]=useState(""),[busy,B]=useState(false),
- [candidateMap,CM]=useState({}),[candidateLoading,CL]=useState(false);
+ [candidateMap,CM]=useState({}),[candidateLoading,CL]=useState(false),[hireSpecialty,HS]=useState(null);
  useEffect(()=>{let live=true;const c=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
   c.auth.getSession().then(({data})=>{if(live)T(data.session?.access_token||"")}).catch(e=>E(e.message));
   const {data:{subscription}}=c.auth.onAuthStateChange((_e,s)=>{if(live)T(s?.access_token||"")});
@@ -34,7 +34,7 @@ export default function RanchManagement(){
    const x=await r.json();if(!r.ok)throw new Error(x.error);return [spec.code,x.candidates||[]];
   }));CM(Object.fromEntries(entries));
  }catch(e){E(e.message)}finally{CL(false)}};
- useEffect(()=>{if(token){void load(token);void loadAllCandidates(token)}},[token]);
+ useEffect(()=>{if(token)void load(token)},[token]);
  const apply=async(operation,fields={},confirmText="")=>{
   if(confirmText&&!window.confirm(confirmText))return;
   B(true);M("");E("");
@@ -48,7 +48,7 @@ export default function RanchManagement(){
    else if(operation==="HIRE_WORKER")M("선택한 직원을 고용했습니다. · "+fmt(x.paid)+" G");
    else M("처리 완료 · 비용 "+fmt(x.paid)+" G");
    await load();
-   if(operation==="HIRE_WORKER")await loadCandidates(fields.specialty);
+   if(operation==="HIRE_WORKER"){await loadCandidates(fields.specialty);HS(null);}
   }catch(e){E(e.message)}finally{B(false)}
  };
  const activeWorkers=data?.workers||[];
@@ -92,17 +92,7 @@ export default function RanchManagement(){
      </select>
     </div>
    </div>)}</div>
-   <div className="section"><h3>{spec.label} 고용 · 후보 선택</h3></div>
-   <div className="muted">직원을 고용하면 자동 배치되지 않습니다. 배치 시설을 선택해야 시설 관리 효과가 적용됩니다.</div>
-   {candidateLoading&&!candidateMap[spec.code]&&<div className="notice">고용 후보를 불러오는 중…</div>}
-   {!candidateLoading&&!candidates.length&&<div className="notice">현재 고용 후보가 없습니다.</div>}
-   <div className="ranch-worker-list">{candidates.map(candidate=><div className="ranch-worker" key={candidate.id}>
-    <div className="row"><div><b>{candidate.name}</b><div className="muted">등급 {candidate.grade}</div></div>
-     <button className="primary" disabled={busy||staffCount(spec)>=staffLimit(spec)}
-      onClick={()=>apply("HIRE_WORKER",{candidateId:candidate.id,specialty:spec.code},candidate.name+" 후보를 "+fmt(hirePrice)+" G에 고용하시겠습니까?")}>고용 {fmt(hirePrice)} G</button>
-    </div>
-    <div className="muted" style={{marginTop:7}}>관리 {candidate.skills?.care} · 의료 {candidate.skills?.medical} · 육성 {candidate.skills?.growth} · 안정 {candidate.skills?.stability}<br/>게임 1일 급여 {fmt(candidate.salary)} G</div>
-   </div>)}</div>
+undefined
   </section>;
  })}
  </>}
